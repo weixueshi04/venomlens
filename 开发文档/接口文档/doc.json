@@ -1,0 +1,153 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "懂鸟动物识别 API",
+    "version": "2.0.0",
+    "description": "所有业务请求均为 POST /dongniao，服务端根据表单字段分发：图片文件（image + upload）、图片 URL（url）、鸟鸣文件（sound + upload）、鸟鸣 URL（sound_url）、结果查询（resultid）、百科查询（animalid）和配额查询（quota）。所有业务响应均为 [code, payload] 元组，而非 status/message 对象。"
+  },
+  "servers": [
+    {
+      "url": "https://ai.open.hhodata.com/api/v2"
+    }
+  ],
+  "paths": {
+    "/dongniao": {
+      "post": {
+        "summary": "动物识别与查询统一接口",
+        "description": "文件上传使用 multipart/form-data；URL 提交使用 application/x-www-form-urlencoded。认证使用 api_key 请求头或同名表单字段。图片 URL 下载失败在结果轮询阶段返回 [1001, \"URL download failed\"]；鸟鸣 URL 下载或解码失败返回 [1002, \"Sound url error\"]。当前服务不提供指定坐标裁剪参数。",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "api_key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "认证必填：此请求头或同名表单字段 api_key 二选一。"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "title": "上传图片",
+                    "type": "object",
+                    "properties": {
+                      "image": { "type": "string", "format": "binary", "description": "不超过 2MB；任一边为 11~8192 像素。" },
+                      "upload": { "type": "string", "description": "非空值，建议填 1。" },
+                      "class": { "type": "string", "default": "B", "description": "B/M/A/R/F 的组合。" },
+                      "area": { "type": "string", "description": "字母数字，最长 8 位，且必须为已知地区。" },
+                      "did": { "type": "string", "description": "可选；提供时仅能为字母数字。" }
+                    },
+                    "required": ["image", "upload"]
+                  },
+                  {
+                    "title": "上传鸟鸣",
+                    "type": "object",
+                    "properties": {
+                      "sound": { "type": "string", "format": "binary", "description": "不超过 5MB。" },
+                      "upload": { "type": "string", "description": "非空值，建议填 1。" },
+                      "area": { "type": "string" },
+                      "did": { "type": "string" }
+                    },
+                    "required": ["sound", "upload"]
+                  },
+                  {
+                    "title": "获取识别结果",
+                    "type": "object",
+                    "properties": {
+                      "resultid": { "type": "string" }
+                    },
+                    "required": ["resultid"]
+                  },
+                  {
+                    "title": "获取百科资料",
+                    "type": "object",
+                    "properties": {
+                      "animalid": { "type": "integer" },
+                      "class": { "type": "string", "default": "B", "description": "B/M/A/R/F。" }
+                    },
+                    "required": ["animalid"]
+                  },
+                  {
+                    "title": "查询配额",
+                    "type": "object",
+                    "properties": {
+                      "quota": { "type": "string", "example": "1" }
+                    },
+                    "required": ["quota"]
+                  }
+                ]
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "title": "图片 URL 提交识别",
+                    "type": "object",
+                    "properties": {
+                      "url": { "type": "string", "format": "uri", "description": "服务端下载；超时 5 秒，最多跟随 2 次重定向。" },
+                      "class": { "type": "string", "default": "B", "description": "B/M/A/R/F 的组合；非法值回退为 B。" },
+                      "area": { "type": "string" },
+                      "did": { "type": "string" }
+                    },
+                    "required": ["url"]
+                  },
+                  {
+                    "title": "鸟鸣 URL 提交识别",
+                    "type": "object",
+                    "properties": {
+                      "sound_url": { "type": "string", "format": "uri", "description": "服务端下载；上限 5MB，超时 10 秒，最多跟随 2 次重定向。" },
+                      "area": { "type": "string" },
+                      "did": { "type": "string" }
+                    },
+                    "required": ["sound_url"]
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "业务成功、处理中和多数业务失败均使用 HTTP 200，响应为 [code, payload]。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "items": {}
+                },
+                "examples": {
+                  "任务已受理": {
+                    "value": [1000, "HH-B_20260728_143052123456_1"]
+                  },
+                  "图片识别完成": {
+                    "value": [1000, [{ "box": [31, 9, 379, 356], "list": [[97.6, "北美红松鼠|North American Red Squirrel|Tamiasciurus hudsonicus", 6534, "M"]] }]]
+                  },
+                  "处理中": {
+                    "value": [1001, "HH-B_20260728_143052123456_1"]
+                  },
+                  "图片 URL 下载失败": {
+                    "value": [1001, "URL download failed"]
+                  },
+                  "未识别到动物": {
+                    "value": [1010, "No animals"]
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "图像或语音配额耗尽、或触发限流时返回 [1007, message]。"
+          }
+        }
+      }
+    }
+  }
+}

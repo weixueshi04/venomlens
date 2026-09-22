@@ -1,0 +1,32 @@
+[
+  {
+    "speciesId": "pantherophis_guttatus",
+    "commonName": "玉米蛇",
+    "scientificName": "Pantherophis guttatus",
+    "aliases": ["Corn Snake"],
+    "verificationStatus": "pending_review",
+    "riskStatus": "unknown",
+    "referenceImage": null,
+    "source": "项目背景中的素材类别；学名映射待人工核对，仅作开发联调"
+  },
+  {
+    "speciesId": "lampropeltis_californiae",
+    "commonName": "加州王蛇",
+    "scientificName": "Lampropeltis californiae",
+    "aliases": ["California Kingsnake"],
+    "verificationStatus": "pending_review",
+    "riskStatus": "unknown",
+    "referenceImage": null,
+    "source": "项目背景中的素材类别；学名映射待人工核对，仅作开发联调"
+  },
+  {
+    "speciesId": "pseudagkistrodon_rudis",
+    "commonName": "颈棱蛇",
+    "scientificName": "Pseudagkistrodon rudis",
+    "aliases": ["Red Keelback", "伪腹蛇"],
+    "verificationStatus": "verified",
+    "riskStatus": "unknown",
+    "referenceImage": null,
+    "source": "2026-09-22 郭浩天核验测试图片为颈棱蛇，并提供别名“伪腹蛇”（保留用户原文）；学名与英文名对应同次 HHodata 返回的 Pseudagkistrodon rudis / Red Keelback。仅核验名称映射，毒性资料与参考图授权另行核验。"
+  }
+]

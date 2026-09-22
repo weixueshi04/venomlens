@@ -1,0 +1,5 @@
+{
+  "requestId": "fixture",
+  "resultSource": "mock",
+  "error": {"code": "UPSTREAM_TIMEOUT", "message": "模拟模型超时，未调用真实模型"}
+}

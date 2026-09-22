@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingVertical="4dp">
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/scan_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/demo_primary_text"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            tools:text="INSTA360 X3" />
+
+        <TextView
+            android:id="@+id/scan_mac"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:textColor="@color/demo_secondary_text"
+            android:textSize="11sp"
+            tools:text="AA:BB:CC:DD:EE:FF" />
+    </LinearLayout>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_bluetooth"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="6dp"
+        android:backgroundTint="@color/demo_green"
+        android:minWidth="0dp"
+        android:paddingHorizontal="10dp"
+        android:text="@string/bluetooth"
+        android:textColor="@color/white"
+        android:textSize="11sp"
+        app:cornerRadius="4dp" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_wifi"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="6dp"
+        android:backgroundTint="@color/demo_accent"
+        android:minWidth="0dp"
+        android:paddingHorizontal="10dp"
+        android:text="@string/wifi"
+        android:textColor="@color/white"
+        android:textSize="11sp"
+        app:cornerRadius="4dp" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_wifi_aware"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:backgroundTint="@color/demo_wifi_aware"
+        android:minWidth="0dp"
+        android:paddingHorizontal="10dp"
+        android:text="@string/wifi_aware"
+        android:textColor="@color/white"
+        android:textSize="11sp"
+        app:cornerRadius="4dp"
+        tools:visibility="visible" />
+</LinearLayout>

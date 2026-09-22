@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <!-- Wi-Fi 名称 -->
+    <LinearLayout
+        style="@style/DemoSettingRow">
+
+        <TextView
+            style="@style/DemoSettingLabel"
+            android:text="@string/wifi_name" />
+
+        <TextView
+            android:id="@+id/wifi_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:text="—" />
+    </LinearLayout>
+
+    <!-- Wi-Fi 密码 -->
+    <LinearLayout
+        style="@style/DemoSettingRow">
+
+        <TextView
+            style="@style/DemoSettingLabel"
+            android:text="@string/wifi_password" />
+
+        <TextView
+            android:id="@+id/wifi_password"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:text="—" />
+    </LinearLayout>
+
+    <!-- MAC 地址（不可用时隐藏） -->
+    <LinearLayout
+        android:id="@+id/wifi_mac_row"
+        style="@style/DemoSettingRow">
+
+        <TextView
+            style="@style/DemoSettingLabel"
+            android:text="@string/wifi_mac_address" />
+
+        <TextView
+            android:id="@+id/wifi_mac"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:text="—" />
+    </LinearLayout>
+
+    <!-- 当前信道（含刷新按钮） -->
+    <LinearLayout
+        style="@style/DemoSettingRow">
+
+        <TextView
+            style="@style/DemoSettingLabel"
+            android:text="@string/current_wifi_channel" />
+
+        <TextView
+            android:id="@+id/current_channel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:text="—" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_get_current_channel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="@string/get" />
+    </LinearLayout>
+
+    <!-- 当前国家码（含刷新按钮） -->
+    <LinearLayout
+        style="@style/DemoSettingRow">
+
+        <TextView
+            style="@style/DemoSettingLabel"
+            android:text="@string/current_wifi_country_code" />
+
+        <TextView
+            android:id="@+id/country_code"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:text="—" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_get_country"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="@string/get" />
+    </LinearLayout>
+
+    <!-- 设置国家码（Spinner 选择） -->
+    <LinearLayout
+        style="@style/DemoSettingRow">
+
+        <TextView
+            style="@style/DemoSettingLabel"
+            android:text="@string/set_wifi_country_code" />
+
+        <Spinner
+            android:id="@+id/spinner_set_country"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:entries="@array/wifi_country_codes" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_set_country"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/set" />
+    </LinearLayout>
+
+    <!-- 设置信道（Spinner 从相机读取后动态填充） -->
+    <LinearLayout
+        style="@style/DemoSettingRow">
+
+        <TextView
+            style="@style/DemoSettingLabel"
+            android:text="@string/set_wifi_channel" />
+
+        <Spinner
+            android:id="@+id/spinner_wifi_channel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_set_channel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/set" />
+    </LinearLayout>
+
+    <!-- Wi-Fi 开关控制 -->
+    <LinearLayout
+        style="@style/DemoSettingRow">
+
+        <TextView
+            style="@style/DemoSettingLabel"
+            android:layout_width="match_parent"
+            android:text="@string/wifi_control" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        style="@style/DemoSettingRow"
+        android:gravity="right">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_wifi_on"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/turn_on" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_wifi_off"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/turn_off" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_wifi_restart"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/restart" />
+    </LinearLayout>
+</LinearLayout>

@@ -1,0 +1,10 @@
+{
+  "schemaVersion": "1",
+  "requestId": "fixture",
+  "status": "no_snake",
+  "candidates": [],
+  "scoreType": "unavailable",
+  "qualityIssues": [],
+  "latencyMs": 0,
+  "resultSource": "mock"
+}

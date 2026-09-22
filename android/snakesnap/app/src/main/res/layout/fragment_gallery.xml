@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/demo_background"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="4dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="20dp">
+
+            <TextView
+                style="@style/DemoSectionTitle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/gallery" />
+
+            <include
+                android:id="@+id/layout_conn_status"
+                layout="@layout/layout_connection_status" />
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:orientation="horizontal">
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/tab_source_camera"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:layout_weight="1"
+            android:background="@drawable/selector_gallery_segment_tab"
+            android:minHeight="48dp"
+            android:text="@string/camera_files"
+            android:textAllCaps="false"
+            android:textColor="@color/selector_gallery_tab_text" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/tab_source_local"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/selector_gallery_segment_tab"
+            android:minHeight="48dp"
+            android:text="@string/local_files"
+            android:textAllCaps="false"
+            android:textColor="@color/selector_gallery_tab_text" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:orientation="horizontal">
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/tab_camera_all"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:background="@drawable/selector_gallery_filter_tab"
+            android:minWidth="0dp"
+            android:minHeight="36dp"
+            android:paddingHorizontal="14dp"
+            android:text="@string/tab_all"
+            android:textAllCaps="false"
+            android:textColor="@color/selector_gallery_filter_tab_text"
+            android:textSize="13sp" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/tab_camera_photo"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:background="@drawable/selector_gallery_filter_tab"
+            android:minWidth="0dp"
+            android:minHeight="36dp"
+            android:paddingHorizontal="14dp"
+            android:text="@string/tab_photo"
+            android:textAllCaps="false"
+            android:textColor="@color/selector_gallery_filter_tab_text"
+            android:textSize="13sp" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/tab_camera_video"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/selector_gallery_filter_tab"
+            android:minWidth="0dp"
+            android:minHeight="36dp"
+            android:paddingHorizontal="14dp"
+            android:text="@string/tab_video"
+            android:textAllCaps="false"
+            android:textColor="@color/selector_gallery_filter_tab_text"
+            android:textSize="13sp" />
+    </LinearLayout>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="8dp"
+        android:layout_weight="1">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_gallery"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingBottom="8dp"
+            tools:listitem="@layout/item_gallery_media" />
+
+    </FrameLayout>
+</LinearLayout>

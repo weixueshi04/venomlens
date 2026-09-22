@@ -1,0 +1,36 @@
+一拍知蛇｜郭侧交接包验证记录
+日期：2026-09-22
+
+范围
+- 验证交接目录中的代码、契约、fixtures 和名称映射。
+- 没有修改 Android/SDK，没有公网部署，没有调用 HHodata 或查询供应商配额。
+- 仅使用已安装的依赖；未验证在一台全新电脑上的依赖下载安装。
+
+离线回归
+- 原工作目录：Ran 48 tests，OK。
+- 独立交接目录：Ran 48 tests，OK。
+- 测试通过假 Adapter/HTTPX MockTransport 阻断供应商网络调用，账本测试使用临时目录。
+- 已覆盖颈棱蛇名称/别名、历史响应重放、unknown 混合候选及缓存回放。
+- 已知提示：Starlette/HTTPX 弃用提示，以及畸形 multipart 用例的预期解析提示；测试均通过。
+
+本机 HTTP 验证
+- 从交接目录启动 Uvicorn，RECOGNITION_MODE=mock，LIVE_CALL_LIMIT=0，密钥和代理凭证置空。
+- 仅监听 127.0.0.1 的临时端口，测试图片为内存生成的纯色 JPEG。
+- candidates: 200 / mock
+- multiple: 200 / mock
+- uncertain: 200 / mock
+- no_snake: 200 / mock
+- pending: 202 / mock
+- timeout: 504 / mock
+- invalid_output: 502 / mock
+- 每个场景的 requestId 与请求一致。
+- pending 后一次手动 refresh: 200 / candidates / mock。
+- 无效 JPEG: 400；超限图片: 413；未知模拟场景: 400；额外表单字段: 400。
+- 验证前后 /healthz 均为 status=ok、mode=mock、localCallLimit=0、localCallsUsed=0。
+- 本次验证进程已停止，交接目录未生成 .runtime。
+
+交付边界
+- 新增真实调用：0。
+- 历史真实外发：上传1次、结果查询1次；郭侧正式账本累计2，不在包内。
+- 供应商当前余额未查询；模拟实例的0次不代表正式账本或供应商余额。
+- Android/影石真机、真实场景效果、毒性/医疗资料、公网部署均未因本次打包获得验证。

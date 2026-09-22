@@ -1,0 +1,463 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:clipToPadding="false"
+    android:fillViewport="true"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="4dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="20dp">
+
+                <TextView
+                    style="@style/DemoSectionTitle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/settings" />
+
+                <include
+                    android:id="@+id/layout_conn_status"
+                    layout="@layout/layout_connection_status" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="4dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:id="@+id/module_log_header"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="?attr/selectableItemBackground"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:padding="16dp">
+
+                    <TextView
+                        style="@style/DemoSubTitle"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:text="@string/log_management" />
+
+                    <ImageView
+                        android:id="@+id/arrow_log"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:contentDescription="@null"
+                        android:src="@android:drawable/arrow_down_float" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/module_log_content"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingHorizontal="16dp"
+                    android:paddingBottom="12dp">
+
+                    <LinearLayout style="@style/DemoSettingRow">
+
+                        <TextView
+                            style="@style/DemoSettingLabel"
+                            android:text="@string/capture_sdk_log_realtime" />
+
+                        <androidx.appcompat.widget.SwitchCompat
+                            android:id="@+id/switch_sdk_log"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:checked="true" />
+                    </LinearLayout>
+
+                    <!-- dumper 真实运行状态；与上方用户开关区分 -->
+                    <LinearLayout style="@style/DemoSettingRow">
+
+                        <TextView
+                            style="@style/DemoSettingLabel"
+                            android:text="@string/demo_log_dumper_status" />
+
+                        <TextView
+                            android:id="@+id/text_dumper_status"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            tools:text="@string/demo_log_dumper_status_running" />
+                    </LinearLayout>
+
+                    <LinearLayout style="@style/DemoSettingRow">
+
+                        <TextView
+                            style="@style/DemoSettingLabel"
+                            android:text="@string/set_sdk_log_level" />
+
+                        <Spinner
+                            android:id="@+id/spinner_log_level"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content" />
+                    </LinearLayout>
+
+                    <LinearLayout style="@style/DemoSettingRow">
+
+                        <TextView
+                            style="@style/DemoSettingLabel"
+                            android:text="@string/export_demo_log" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btn_export_demo_log"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/export" />
+                    </LinearLayout>
+
+                    <LinearLayout style="@style/DemoSettingRow">
+
+                        <TextView
+                            style="@style/DemoSettingLabel"
+                            android:text="@string/export_camera_log" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btn_export_camera_log"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/export" />
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="4dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:id="@+id/module_wifi_header"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="?attr/selectableItemBackground"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:padding="16dp">
+
+                    <TextView
+                        style="@style/DemoSubTitle"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:text="@string/wifi_management" />
+
+                    <ImageView
+                        android:id="@+id/arrow_wifi"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:contentDescription="@null"
+                        android:src="@android:drawable/arrow_down_float" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/module_wifi_content"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingHorizontal="16dp"
+                    android:paddingBottom="12dp">
+
+                    <include
+                        android:id="@+id/wifi_section"
+                        layout="@layout/layout_settings_wifi_section" />
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="4dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:id="@+id/module_activation_header"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="?attr/selectableItemBackground"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:padding="16dp">
+
+                    <TextView
+                        style="@style/DemoSubTitle"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:text="@string/activation_management" />
+
+                    <ImageView
+                        android:id="@+id/arrow_activation"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:contentDescription="@null"
+                        android:src="@android:drawable/arrow_down_float" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/module_activation_content"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingHorizontal="16dp"
+                    android:paddingBottom="12dp">
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/activation_id">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/activation_id"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="text" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:hint="@string/activation_secret_key">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/activation_secret"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="text" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_activate"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="@string/activate" />
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="24dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="4dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <LinearLayout style="@style/DemoSettingRow">
+
+                    <TextView
+                        style="@style/DemoSettingLabel"
+                        android:text="@string/prompt_mute" />
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/switch_mute"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:checked="true" />
+
+                </LinearLayout>
+
+                <LinearLayout style="@style/DemoSettingRow">
+
+                    <TextView
+                        style="@style/DemoSettingLabel"
+                        android:text="@string/storage_management" />
+
+                </LinearLayout>
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recycler_storage_list"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:nestedScrollingEnabled="false"
+                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+
+                <LinearLayout style="@style/DemoSettingRow">
+
+                    <TextView
+                        style="@style/DemoSettingLabel"
+                        android:text="@string/camera_lock_screen" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_camera_lock"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/lock_screen" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/row_wake_picker"
+                    style="@style/DemoSettingRow">
+
+                    <TextView
+                        style="@style/DemoSettingLabel"
+                        android:text="@string/wake_module_title" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_wake_picker"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/wake_btn_pick" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/row_ble_auth"
+                    style="@style/DemoSettingRow"
+                    android:visibility="gone">
+
+                    <TextView
+                        style="@style/DemoSettingLabel"
+                        android:text="@string/ble_auth_title" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_ble_auth"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/ble_auth_btn" />
+                </LinearLayout>
+
+                <LinearLayout style="@style/DemoSettingRow">
+
+                    <TextView
+                        style="@style/DemoSettingLabel"
+                        android:text="@string/shutdown" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_shutdown"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/shutdown" />
+                </LinearLayout>
+
+                <LinearLayout style="@style/DemoSettingRow">
+
+                    <TextView
+                        style="@style/DemoSettingLabel"
+                        android:text="@string/gyro_calibration" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_calibrate_gyro"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/calibrate" />
+                </LinearLayout>
+
+                <LinearLayout style="@style/DemoSettingRow">
+
+                    <TextView
+                        style="@style/DemoSettingLabel"
+                        android:text="@string/firmware_upgrade" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_firmware"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/upgrade" />
+                </LinearLayout>
+
+                <LinearLayout style="@style/DemoSettingRow">
+
+                    <TextView
+                        style="@style/DemoSettingLabel"
+                        android:text="@string/sharpness_setting" />
+
+                    <Spinner
+                        android:id="@+id/spinner_sharpness"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:entries="@array/sharpness_levels" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_sharpness"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/set" />
+                </LinearLayout>
+
+                <LinearLayout style="@style/DemoSettingRow">
+
+                    <TextView
+                        style="@style/DemoSettingLabel"
+                        android:text="@string/encoding_format_setting" />
+
+                    <Spinner
+                        android:id="@+id/spinner_encoding"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:entries="@array/encoding_formats" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_encoding"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/set" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/ll_fisheye_stitch"
+                    style="@style/DemoSettingRow">
+
+                    <TextView
+                        style="@style/DemoSettingLabel"
+                        android:text="@string/fisheye_stitch_setting" />
+
+                    <androidx.appcompat.widget.AppCompatImageView
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:layout_marginEnd="20dp"
+                        android:src="@drawable/ic_arrow_right" />
+
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

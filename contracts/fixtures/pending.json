@@ -1,0 +1,11 @@
+{
+  "schemaVersion": "1",
+  "requestId": "fixture",
+  "status": "pending",
+  "candidates": [],
+  "scoreType": "unavailable",
+  "qualityIssues": [],
+  "latencyMs": 0,
+  "resultSource": "mock",
+  "recognitionId": "0000000000000000000000000000000000000000000000000000000000000000"
+}

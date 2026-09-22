@@ -1,0 +1,63 @@
+# Vendor SDKs and downloaded archives
+/SDK/
+*.zip
+*.7z
+*.rar
+*.tar
+*.tar.gz
+
+# Android and Gradle outputs
+**/.gradle/
+**/build/
+**/.cxx/
+**/.externalNativeBuild/
+**/local.properties
+**/.idea/
+*.iml
+*.apk
+*.aab
+
+# Python environments and runtime state
+.venv/
+venv/
+**/__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.runtime/
+*.sqlite3
+*.sqlite3-*
+
+# Logs and local artifacts
+/logs/
+*.log
+*.tmp
+*.temp
+/.handoff-review/
+/temp/
+/分类整理/
+
+# Secrets and signing material
+.env
+.env.*
+!.env.example
+**/api.txt
+**/credentials.json
+**/credentials.*.json
+**/secrets.*
+**/keystore.properties
+**/signing.properties
+*.jks
+*.keystore
+*.p12
+*.pfx
+*.pem
+*.key
+id_rsa
+id_rsa.*
+
+# OS metadata
+.DS_Store
+Thumbs.db
+Desktop.ini

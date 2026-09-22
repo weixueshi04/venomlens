@@ -1,0 +1,13 @@
+{
+  "schemaVersion": "1",
+  "requestId": "fixture",
+  "status": "uncertain",
+  "candidates": [
+    {"speciesId": "pantherophis_guttatus", "commonName": "玉米蛇", "scientificName": "Pantherophis guttatus", "score": null, "providerScore": null},
+    {"speciesId": "lampropeltis_californiae", "commonName": "加州王蛇", "scientificName": "Lampropeltis californiae", "score": null, "providerScore": null}
+  ],
+  "scoreType": "unavailable",
+  "qualityIssues": [],
+  "latencyMs": 0,
+  "resultSource": "mock"
+}

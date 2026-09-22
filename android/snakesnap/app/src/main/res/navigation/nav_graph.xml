@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/connectionFragment">
+
+    <fragment
+        android:id="@+id/connectionFragment"
+        android:name="com.insta360.kmpsdk.demo.ui.connection.ConnectionFragment"
+        android:label="@string/nav_connection"
+        tools:layout="@layout/fragment_connection">
+        <action
+            android:id="@+id/action_connectionFragment_to_previewFragment"
+            app:destination="@id/previewFragment" />
+        <action
+            android:id="@+id/action_connectionFragment_to_captureFragment"
+            app:destination="@id/captureFragment" />
+        <action
+            android:id="@+id/action_connectionFragment_to_liveStreamFragment"
+            app:destination="@id/liveStreamFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/galleryFragment"
+        android:name="com.insta360.kmpsdk.demo.ui.gallery.GalleryFragment"
+        android:label="@string/nav_gallery"
+        tools:layout="@layout/fragment_gallery">
+        <action
+            android:id="@+id/action_galleryFragment_to_videoPlayerFragment"
+            app:destination="@id/videoPlayerFragment" />
+        <action
+            android:id="@+id/action_galleryFragment_to_imagePlayerFragment"
+            app:destination="@id/imagePlayerFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/settingsFragment"
+        android:name="com.insta360.kmpsdk.demo.ui.settings.SettingsFragment"
+        android:label="@string/nav_settings"
+        tools:layout="@layout/fragment_settings" >
+        <action
+            android:id="@+id/action_settingsFragment_to_stitchFragment"
+            app:destination="@id/stitchFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/unitTestFragment"
+        android:name="com.insta360.kmpsdk.demo.ui.unittest.UnitTestFragment"
+        android:label="@string/nav_unittest"
+        tools:layout="@layout/fragment_unit_test" />
+
+    <fragment
+        android:id="@+id/previewFragment"
+        android:name="com.insta360.kmpsdk.demo.ui.capture.PreviewFragment"
+        android:label="拍摄（预览）"
+        tools:layout="@layout/fragment_preview" />
+
+    <fragment
+        android:id="@+id/captureFragment"
+        android:name="com.insta360.kmpsdk.demo.ui.capture.CaptureFragment"
+        android:label="拍摄（无预览）"
+        tools:layout="@layout/fragment_capture" />
+
+    <fragment
+        android:id="@+id/liveStreamFragment"
+        android:name="com.insta360.kmpsdk.demo.ui.livestream.LiveStreamFragment"
+        android:label="直播推流"
+        tools:layout="@layout/fragment_live_stream" />
+
+    <fragment
+        android:id="@+id/videoPlayerFragment"
+        android:name="com.insta360.kmpsdk.demo.ui.player.video.VideoPlayerFragment"
+        android:label="视频播放"
+        tools:layout="@layout/fragment_video_player" />
+
+    <fragment
+        android:id="@+id/imagePlayerFragment"
+        android:name="com.insta360.kmpsdk.demo.ui.player.image.ImagePlayerFragment"
+        android:label="图片播放"
+        tools:layout="@layout/fragment_image_player" />
+
+    <fragment
+        android:id="@+id/stitchFragment"
+        android:name="com.insta360.kmpsdk.demo.ui.stitch.StitchFragment"
+        android:label="拼接与合成"
+        tools:layout="@layout/fragment_stitch" />
+
+
+</navigation>

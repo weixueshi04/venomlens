@@ -1,0 +1,10 @@
+{
+  "schemaVersion": "1",
+  "requestId": "fixture",
+  "status": "candidates",
+  "candidates": [{"speciesId": "pantherophis_guttatus", "commonName": "玉米蛇", "scientificName": "Pantherophis guttatus", "score": null, "providerScore": null}],
+  "scoreType": "unavailable",
+  "qualityIssues": [],
+  "latencyMs": 0,
+  "resultSource": "mock"
+}

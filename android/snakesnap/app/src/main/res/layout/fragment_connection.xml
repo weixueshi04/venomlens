@@ -1,0 +1,320 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:clipToPadding="false"
+    android:fillViewport="true"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="4dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        style="@style/DemoSectionTitle"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/app_name" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_wifi"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="6dp"
+                        android:layout_weight="1"
+                        android:backgroundTint="@color/demo_button_dark"
+                        android:text="@string/wifi_connect"
+                        android:textColor="@color/white" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_scan"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="6dp"
+                        android:layout_weight="1"
+                        android:backgroundTint="@color/demo_button_dark"
+                        android:text="@string/bluetooth_scan"
+                        android:textColor="@color/white" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_usb"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:backgroundTint="@color/demo_button_dark"
+                        android:text="@string/usb_connect"
+                        android:textColor="@color/white" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/connection_result"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:gravity="center"
+                    android:minHeight="48dp"
+                    android:textColor="@color/demo_secondary_text"
+                    android:textSize="15sp"
+                    tools:text="@string/please_select_connection_method" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/scan_recycler"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:nestedScrollingEnabled="false"
+                    android:visibility="gone"
+                    tools:listitem="@layout/item_scan_device"
+                    tools:visibility="visible" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/status_text"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:textColor="@color/demo_primary_text"
+                        android:textSize="15sp"
+                        tools:text="@string/not_connected" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/disconnect_btn"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:enabled="false"
+                        android:text="@string/disconnect" />
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/device_info_card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:visibility="gone"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="4dp"
+            tools:visibility="visible">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <TextView
+                    style="@style/DemoSectionTitle"
+                    android:layout_marginBottom="12dp"
+                    android:text="@string/device_info" />
+
+                <TextView
+                    style="@style/DemoSubTitle"
+                    android:text="@string/static_info" />
+
+                <GridLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:columnCount="2"
+                    android:paddingTop="8dp">
+
+                    <TextView
+                        style="@style/DemoInfoLabel"
+                        android:text="@string/camera_model" />
+
+                    <TextView
+                        android:id="@+id/camera_model"
+                        style="@style/DemoInfoValue"
+                        tools:text="X3" />
+
+                    <TextView
+                        style="@style/DemoInfoLabel"
+                        android:text="@string/camera_sn" />
+
+                    <TextView
+                        android:id="@+id/camera_sn"
+                        style="@style/DemoInfoValue"
+                        tools:text="SN" />
+
+                    <TextView
+                        style="@style/DemoInfoLabel"
+                        android:text="@string/firmware_version" />
+
+                    <TextView
+                        android:id="@+id/firmware_version"
+                        style="@style/DemoInfoValue" />
+
+                    <TextView
+                        style="@style/DemoInfoLabel"
+                        android:text="@string/activation_time" />
+
+                    <TextView
+                        android:id="@+id/activate_time"
+                        style="@style/DemoInfoValue" />
+
+                    <TextView
+                        style="@style/DemoInfoLabel"
+                        android:text="@string/sd_total_capacity" />
+
+                    <TextView
+                        android:id="@+id/sd_total"
+                        style="@style/DemoInfoValue" />
+
+                    <TextView
+                        style="@style/DemoInfoLabel"
+                        android:text="@string/internal_storage_total_capacity" />
+
+                    <TextView
+                        android:id="@+id/internal_total"
+                        style="@style/DemoInfoValue" />
+                </GridLayout>
+
+                <TextView
+                    style="@style/DemoSubTitle"
+                    android:layout_marginTop="16dp"
+                    android:text="@string/dynamic_info" />
+
+                <GridLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:columnCount="2"
+                    android:paddingTop="8dp">
+
+                    <TextView
+                        style="@style/DemoInfoLabel"
+                        android:text="@string/sd_remaining_capacity" />
+
+                    <TextView
+                        android:id="@+id/sd_remaining"
+                        style="@style/DemoInfoValue" />
+
+                    <TextView
+                        style="@style/DemoInfoLabel"
+                        android:text="@string/sd_status" />
+
+                    <TextView
+                        android:id="@+id/sd_status"
+                        style="@style/DemoInfoValue" />
+
+                    <TextView
+                        style="@style/DemoInfoLabel"
+                        android:text="@string/internal_storage_remaining_capacity" />
+
+                    <TextView
+                        android:id="@+id/internal_remaining"
+                        style="@style/DemoInfoValue" />
+
+                    <TextView
+                        style="@style/DemoInfoLabel"
+                        android:text="@string/internal_storage_status" />
+
+                    <TextView
+                        android:id="@+id/internal_status"
+                        style="@style/DemoInfoValue" />
+
+                    <TextView
+                        style="@style/DemoInfoLabel"
+                        android:text="@string/battery_level" />
+
+                    <TextView
+                        android:id="@+id/battery_level"
+                        style="@style/DemoInfoValue" />
+
+                    <TextView
+                        style="@style/DemoInfoLabel"
+                        android:text="@string/charging_status" />
+
+                    <TextView
+                        android:id="@+id/charging_status"
+                        style="@style/DemoInfoValue" />
+
+                    <TextView
+                        style="@style/DemoInfoLabel"
+                        android:text="@string/camera_media_time" />
+
+                    <TextView
+                        android:id="@+id/camera_time"
+                        style="@style/DemoInfoValue" />
+                </GridLayout>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/refresh_dynamic_btn"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="@string/refresh_dynamic_info" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <LinearLayout
+            android:id="@+id/entry_capture_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:orientation="vertical">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/entry_no_preview"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:backgroundTint="@color/demo_button_dark"
+                android:text="@string/capture_page_no_preview"
+                android:textColor="@color/white" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/entry_preview"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:backgroundTint="@color/demo_button_dark"
+                android:text="@string/capture_page_with_preview"
+                android:textColor="@color/white" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/entry_live_stream"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:backgroundTint="@color/demo_button_dark"
+                android:text="@string/live_stream_entry"
+                android:textColor="@color/white" />
+        </LinearLayout>
+    </LinearLayout>
+
+</androidx.core.widget.NestedScrollView>

@@ -1,0 +1,3 @@
+sdk.dir=C:/path/to/Android/Sdk
+insta360.maven.username=<from Insta360 SDK documentation>
+insta360.maven.password=<from Insta360 SDK documentation>

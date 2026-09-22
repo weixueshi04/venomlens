@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- 与 zip 输出目录一致：context.cacheDir 下任意子路径 -->
+    <cache-path name="cache" path="." />
+    <!-- 分享用 zip 放在外部应用专属目录，部分系统「保存到文件」对 cache 流式读取更挑剔 -->
+    <external-files-path name="external_files" path="." />
+</paths>

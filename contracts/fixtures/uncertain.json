@@ -1,0 +1,10 @@
+{
+  "schemaVersion": "1",
+  "requestId": "fixture",
+  "status": "uncertain",
+  "candidates": [],
+  "scoreType": "unavailable",
+  "qualityIssues": ["blurred", "too_small"],
+  "latencyMs": 0,
+  "resultSource": "mock"
+}

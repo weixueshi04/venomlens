@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="purple_200">#FFBB86FC</color>
+    <color name="purple_500">#FF6200EE</color>
+    <color name="purple_700">#FF3700B3</color>
+    <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_700">#FF018786</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+
+    <color name="demo_background">#F5F5F7</color>
+    <color name="demo_primary_text">#1D1D1F</color>
+    <color name="demo_secondary_text">#666666</color>
+    <color name="demo_hint">#999999</color>
+    <color name="demo_accent">#007AFF</color>
+    <color name="demo_button_dark">#1D1D1F</color>
+    <color name="demo_card">#FFFFFF</color>
+    <color name="demo_divider">#F0F0F0</color>
+    <color name="demo_green">#4CAF50</color>
+    <color name="demo_wifi_aware">#7E57C2</color>
+    <color name="demo_badge_bg">#E8F5E9</color>
+    <color name="demo_badge_text">#2E7D32</color>
+    <color name="demo_yellow">#ff9500</color>
+    <color name="demo_gallery_filter_tab_selected_bg">#E8F4FF</color>
+    <!-- 异常 / 失败状态红 -->
+    <color name="demo_error_red">#FF3B30</color>
+    <!-- 直播推流停止按钮红色（与异常状态同色） -->
+    <color name="live_red">@color/demo_error_red</color>
+    <!-- 全屏阻塞遮罩（busy 时拦截触摸） -->
+    <color name="demo_blocking_scrim">#80000000</color>
+    <color name="demo_blocking_progress_track">#4DFFFFFF</color>
+</resources>

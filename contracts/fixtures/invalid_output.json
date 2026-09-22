@@ -1,0 +1,5 @@
+{
+  "requestId": "fixture",
+  "resultSource": "mock",
+  "error": {"code": "INVALID_MODEL_OUTPUT", "message": "模拟模型格式错误，未调用真实模型"}
+}

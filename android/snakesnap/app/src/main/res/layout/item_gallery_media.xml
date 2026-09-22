@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="4dp"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="2dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="8dp">
+
+        <ImageView
+            android:id="@+id/iv_thumb"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:background="@color/demo_divider"
+            android:gravity="center"
+            android:scaleType="fitXY"
+            app:layout_constraintDimensionRatio="2:1"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageView
+            android:id="@+id/iv_function_mode"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_marginStart="2dp"
+            android:layout_marginBottom="1dp"
+            android:src="@drawable/ic_capture_mode_bullettime"
+            app:layout_constraintBottom_toBottomOf="@+id/iv_thumb"
+            app:layout_constraintStart_toStartOf="@+id/iv_thumb" />
+
+
+        <TextView
+            android:id="@+id/file_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:textColor="@color/demo_primary_text"
+            android:textSize="11sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/iv_thumb"
+            tools:layout_editor_absoluteX="8dp"
+            tools:text="IMG_xxx.insp" />
+
+        <TextView
+            android:id="@+id/file_size"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/gallery_file_size"
+            android:textColor="@color/demo_hint"
+            android:textSize="11sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/file_name" />
+
+        <TextView
+            android:id="@+id/file_size_value"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:lines="1"
+            android:textColor="@color/demo_hint"
+            android:textSize="11sp"
+            app:layout_constraintBottom_toBottomOf="@id/file_size"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/file_size"
+            app:layout_constraintTop_toTopOf="@id/file_size"
+            tools:text="25 MB" />
+
+        <TextView
+            android:id="@+id/file_resolution"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/gallery_file_resolution"
+            android:textColor="@color/demo_hint"
+            android:textSize="11sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/file_size" />
+
+        <TextView
+            android:id="@+id/file_resolution_value"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:lines="1"
+            android:textColor="@color/demo_hint"
+            android:textSize="11sp"
+            app:layout_constraintBottom_toBottomOf="@id/file_resolution"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/file_resolution"
+            app:layout_constraintTop_toTopOf="@id/file_resolution"
+            tools:text="1920x1080" />
+
+        <TextView
+            android:id="@+id/file_date"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/gallery_file_date"
+            android:textColor="@color/demo_hint"
+            android:textSize="11sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/file_resolution" />
+
+        <TextView
+            android:id="@+id/file_date_value"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:lines="1"
+            android:textColor="@color/demo_hint"
+            android:textSize="11sp"
+            app:layout_constraintBottom_toBottomOf="@id/file_date"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/file_date"
+            app:layout_constraintTop_toTopOf="@id/file_date"
+            tools:text="2026-03-24" />
+
+
+        <TextView
+            android:id="@+id/file_video_duration"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/gallery_file_video_duration"
+            android:textColor="@color/demo_hint"
+            android:textSize="11sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/file_date" />
+
+        <TextView
+            android:id="@+id/file_video_duration_value"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:lines="1"
+            android:textColor="@color/demo_hint"
+            android:textSize="11sp"
+            app:layout_constraintBottom_toBottomOf="@id/file_video_duration"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/file_video_duration"
+            app:layout_constraintTop_toTopOf="@id/file_video_duration"
+            tools:text="03:50" />
+
+        <TextView
+            android:id="@+id/file_camera_type"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/gallery_file_camera_type"
+            android:textColor="@color/demo_hint"
+            android:textSize="11sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/file_video_duration" />
+
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/file_camera_type_value"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:autoSizeMaxTextSize="11sp"
+            android:autoSizeMinTextSize="6sp"
+            android:autoSizeStepGranularity="0.5sp"
+            android:autoSizeTextType="uniform"
+            android:lines="1"
+            android:maxLines="1"
+            android:textColor="@color/demo_hint"
+            android:textSize="11sp"
+            app:layout_constraintBottom_toBottomOf="@id/file_camera_type"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/file_camera_type"
+            app:layout_constraintTop_toTopOf="@id/file_camera_type"
+            tools:text="Insta360 Ace Pro 2" />
+
+        <View
+            android:id="@+id/line"
+            android:layout_width="0dp"
+            android:layout_height="0.5dp"
+            android:layout_marginTop="100dp"
+            android:background="@color/demo_hint"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/file_name" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_download"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            android:paddingHorizontal="0dp"
+            android:paddingVertical="0dp"
+            android:text="@string/gallery_operate_download"
+            app:layout_constraintEnd_toStartOf="@+id/btn_delete"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/line" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_delete"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:paddingHorizontal="0dp"
+            android:paddingVertical="0dp"
+            android:text="@string/gallery_operate_delete"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/btn_download"
+            app:layout_constraintTop_toBottomOf="@+id/line" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <com.insta360.kmpsdk.demo.widget.DownloadingView
+        android:id="@+id/downloading_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone" />
+
+    <com.insta360.kmpsdk.demo.widget.DeletingView
+        android:id="@+id/deleting_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone" />
+</com.google.android.material.card.MaterialCardView>

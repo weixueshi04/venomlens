@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 设置项行高：与行内 Switch / Spinner / MaterialButton 的固有高度对齐，
+         使纯文本行不至于比含控件的行明显矮一截 -->
+    <dimen name="demo_setting_row_min_height">48dp</dimen>
+</resources>
