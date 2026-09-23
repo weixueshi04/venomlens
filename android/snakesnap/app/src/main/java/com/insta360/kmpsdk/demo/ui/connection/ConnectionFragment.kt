@@ -68,6 +68,9 @@ class ConnectionFragment : Fragment() {
         binding.entryPreview.setOnClickListener {
             findNavController().navigate(R.id.action_connectionFragment_to_previewFragment)
         }
+        binding.entryEmergencyFlow.setOnClickListener {
+            findNavController().navigate(R.id.action_connectionFragment_to_emergencyFlowFragment)
+        }
         binding.entryNoPreview.setOnClickListener {
             findNavController().navigate(R.id.action_connectionFragment_to_captureFragment)
         }

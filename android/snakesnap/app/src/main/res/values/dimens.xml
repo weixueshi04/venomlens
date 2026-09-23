@@ -3,4 +3,10 @@
     <!-- 设置项行高：与行内 Switch / Spinner / MaterialButton 的固有高度对齐，
          使纯文本行不至于比含控件的行明显矮一截 -->
     <dimen name="demo_setting_row_min_height">48dp</dimen>
+
+    <!-- 紧急一键流程：候选条目内边距、间距与触控目标下限 -->
+    <dimen name="emergency_candidate_padding_h">16dp</dimen>
+    <dimen name="emergency_candidate_padding_v">12dp</dimen>
+    <dimen name="emergency_candidate_gap">8dp</dimen>
+    <dimen name="emergency_touch_target_min">48dp</dimen>
 </resources>

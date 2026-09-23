@@ -1,0 +1,286 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/emergency_bg">
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:fillViewport="true"
+        android:paddingHorizontal="20dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="28dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- 顶栏：返回 + 连接态（复用 layout_connection_status） -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:minHeight="48dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/back_link"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="?attr/selectableItemBackground"
+                    android:minHeight="48dp"
+                    android:gravity="center_vertical"
+                    android:paddingHorizontal="8dp"
+                    android:text="@string/emergency_flow_back"
+                    android:textColor="@color/emergency_accent"
+                    android:textSize="15sp" />
+
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:layout_weight="1" />
+
+                <include
+                    android:id="@+id/layout_conn_status"
+                    layout="@layout/layout_connection_status" />
+            </LinearLayout>
+
+            <!-- 未连接提示 -->
+            <TextView
+                android:id="@+id/connect_hint"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/emergency_flow_need_connection"
+                android:textColor="@color/emergency_mock_badge"
+                android:textSize="14sp"
+                android:visibility="gone"
+                tools:visibility="visible" />
+
+            <!-- 安抚文案：克制、不制造恐慌 -->
+            <TextView
+                android:id="@+id/calm_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="28dp"
+                android:gravity="center"
+                android:text="@string/emergency_flow_calm"
+                android:textColor="@color/emergency_ink"
+                android:textSize="22sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/calm_sub_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:gravity="center"
+                android:text="@string/emergency_flow_calm_sub"
+                android:textColor="@color/emergency_ink_soft"
+                android:textSize="15sp" />
+
+            <!-- 超大主按钮：触控目标远超 48dp 下限 -->
+            <TextView
+                android:id="@+id/capture_button"
+                android:layout_width="match_parent"
+                android:layout_height="132dp"
+                android:layout_marginTop="26dp"
+                android:background="@drawable/bg_emergency_capture"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center"
+                android:text="@string/emergency_flow_capture_button"
+                android:textColor="@color/white"
+                android:textSize="30sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/capture_hint"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:gravity="center"
+                android:text="@string/emergency_flow_capture_hint"
+                android:textColor="@color/emergency_ink_soft"
+                android:textSize="13sp" />
+
+            <!-- 阶段状态区：每一步都显示，不静默 -->
+            <LinearLayout
+                android:id="@+id/stage_panel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:background="@drawable/bg_card"
+                android:orientation="vertical"
+                android:padding="18dp"
+                android:visibility="gone"
+                tools:visibility="visible">
+
+                <TextView
+                    android:id="@+id/stage_text"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/emergency_ink"
+                    android:textSize="17sp"
+                    android:textStyle="bold"
+                    tools:text="正在从相机取回照片…" />
+
+                <TextView
+                    android:id="@+id/stage_detail"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:textColor="@color/emergency_ink_soft"
+                    android:textSize="14sp"
+                    tools:text="第 3 次尝试匹配…" />
+
+                <ProgressBar
+                    android:id="@+id/stage_progress"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:max="100"
+                    android:visibility="gone"
+                    tools:progress="42"
+                    tools:visibility="visible" />
+
+                <!-- MOCK 常驻标注：红底白字，只要展示结果就一定在 -->
+                <TextView
+                    android:id="@+id/mock_badge"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:background="@drawable/bg_emergency_mock_badge"
+                    android:gravity="center"
+                    android:paddingVertical="8dp"
+                    android:text="@string/emergency_flow_mock_badge"
+                    android:textColor="@color/white"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:visibility="gone"
+                    tools:visibility="visible" />
+
+                <TextView
+                    android:id="@+id/image_warning"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:textColor="@color/emergency_ink_soft"
+                    android:textSize="13sp"
+                    android:visibility="gone"
+                    tools:text="无法读取图片，仍可直接记录伤情。"
+                    tools:visibility="visible" />
+
+                <TextView
+                    android:id="@+id/summary_text"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:textColor="@color/emergency_ink"
+                    android:textIsSelectable="true"
+                    android:textSize="14sp"
+                    android:visibility="gone"
+                    tools:text="【MOCK · 模拟结果】\n候选蛇种（不代表已确认）"
+                    tools:visibility="visible" />
+
+                <LinearLayout
+                    android:id="@+id/candidate_host"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:orientation="vertical" />
+            </LinearLayout>
+
+            <!-- 求助出口：失败态下依然可点，永不隐藏 -->
+            <TextView
+                android:id="@+id/help_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:text="@string/emergency_flow_help_title"
+                android:textColor="@color/emergency_ink"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:visibility="gone"
+                tools:visibility="visible" />
+
+            <TextView
+                android:id="@+id/help_bitten"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bg_emergency_help"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center"
+                android:minHeight="64dp"
+                android:paddingHorizontal="16dp"
+                android:text="@string/emergency_flow_help_bitten"
+                android:textColor="@color/emergency_ink"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:visibility="gone"
+                tools:visibility="visible" />
+
+            <TextView
+                android:id="@+id/help_not_bitten"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/bg_emergency_help"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center"
+                android:minHeight="64dp"
+                android:paddingHorizontal="16dp"
+                android:text="@string/emergency_flow_help_not_bitten"
+                android:textColor="@color/emergency_ink"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:visibility="gone"
+                tools:visibility="visible" />
+
+            <TextView
+                android:id="@+id/help_hospital"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/bg_emergency_help"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center"
+                android:minHeight="64dp"
+                android:paddingHorizontal="16dp"
+                android:text="@string/emergency_flow_help_hospital"
+                android:textColor="@color/emergency_ink"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:visibility="gone"
+                tools:visibility="visible" />
+
+            <TextView
+                android:id="@+id/help_disclaimer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:text="@string/emergency_flow_disclaimer"
+                android:textColor="@color/emergency_ink_soft"
+                android:textSize="12sp"
+                android:visibility="gone"
+                tools:visibility="visible" />
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- 拍摄命令在途遮罩：复用 CameraCaptureViewModel 的 busy/captureCommand 语义 -->
+    <com.insta360.kmpsdk.demo.widget.LoadingView
+        android:id="@+id/blocking_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        tools:visibility="gone" />
+</FrameLayout>

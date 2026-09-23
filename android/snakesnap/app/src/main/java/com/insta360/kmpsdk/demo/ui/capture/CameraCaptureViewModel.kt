@@ -33,7 +33,14 @@ private const val SELF_TIMER_PARAM_KEY = "photography_self_timer"
 enum class CaptureCommandPhase { STARTING, STOPPING }
 
 sealed interface CaptureUiEffect {
-    data class CaptureFinished(val functionMode: FunctionMode) : CaptureUiEffect
+    /**
+     * 拍摄完成。[filePaths] 为相机侧文件路径列表（onCaptureFinish 回调原样透传），
+     * 紧急一键流程据此从相机取回照片；预览页只关心 [functionMode]，忽略 [filePaths]。
+     */
+    data class CaptureFinished(
+        val functionMode: FunctionMode,
+        val filePaths: List<String>,
+    ) : CaptureUiEffect
 
     // TODO: 临时兜底，等相机固件修复后移除。
     //  部分机型改视频分辨率后相机侧会自行重启预览流，但不回调任何事件；预览侧需兜底重启预览流。
@@ -838,7 +845,7 @@ class CameraCaptureViewModel(
                             loadingText = null,
                         )
                     }
-                    _effect.tryEmit(CaptureUiEffect.CaptureFinished(functionMode))
+                    _effect.tryEmit(CaptureUiEffect.CaptureFinished(functionMode, filePaths))
                     viewModelScope.launch {
                         val cap = cameraDeviceProvider()?.capture ?: return@launch
                         resyncParamsAfterCapture(cap)

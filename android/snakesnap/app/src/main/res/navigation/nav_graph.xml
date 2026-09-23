@@ -19,6 +19,9 @@
         <action
             android:id="@+id/action_connectionFragment_to_liveStreamFragment"
             app:destination="@id/liveStreamFragment" />
+        <action
+            android:id="@+id/action_connectionFragment_to_emergencyFlowFragment"
+            app:destination="@id/emergencyFlowFragment" />
     </fragment>
 
     <fragment
@@ -61,6 +64,12 @@
         android:name="com.insta360.kmpsdk.demo.ui.capture.CaptureFragment"
         android:label="拍摄（无预览）"
         tools:layout="@layout/fragment_capture" />
+
+    <fragment
+        android:id="@+id/emergencyFlowFragment"
+        android:name="com.insta360.kmpsdk.demo.ui.emergency.EmergencyFlowFragment"
+        android:label="@string/emergency_flow_title"
+        tools:layout="@layout/fragment_emergency_flow" />
 
     <fragment
         android:id="@+id/liveStreamFragment"

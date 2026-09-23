@@ -518,4 +518,42 @@
     <string name="live_push_failed_code">Streaming failed (code=%1$d)</string>
     <string name="live_camera_disconnected">Camera not connected</string>
     <string name="live_unknown_error">Unknown error</string>
+
+    <!-- Emergency one-tap flow: capture -> download to phone -> MOCK analysis -> case card / hospital -->
+    <string name="emergency_flow_entry">Emergency Flow</string>
+    <string name="emergency_flow_title">Emergency Flow</string>
+    <string name="emergency_flow_back">Back to Connect</string>
+    <string name="emergency_flow_need_connection">Please connect your Insta360 camera on the Connect page first</string>
+    <string name="emergency_flow_calm">Take it slow, one step at a time.</string>
+    <string name="emergency_flow_calm_sub">Press the button to capture the scene; the app fetches the photo and shows candidate analysis automatically. You can also shoot with the camera\'s own shutter button.</string>
+    <string name="emergency_flow_capture_button">EMERGENCY CAPTURE</string>
+    <string name="emergency_flow_capture_hint">Self-timer is force-disabled: shoot the moment you press. The next step starts automatically.</string>
+    <string name="emergency_flow_stage_fetching">Fetching the photo from the camera…</string>
+    <string name="emergency_flow_fetch_retry_detail">Match attempt %1$d… (the camera needs a moment to write to the card)</string>
+    <string name="emergency_flow_download_progress">Downloading %1$d%%</string>
+    <string name="emergency_flow_stage_preparing">Preparing the image…</string>
+    <string name="emergency_flow_image_ready">JPEG ready: %1$d × %2$d, %3$d KiB (orientation corrected, re-encoded, original EXIF stripped)</string>
+    <string name="emergency_flow_stage_recognizing">Generating candidate analysis (MOCK)…</string>
+    <string name="emergency_flow_stage_done">Candidate analysis ready</string>
+    <string name="emergency_flow_mock_badge">MOCK · simulated result, not real recognition</string>
+    <string name="emergency_flow_image_unavailable">Could not read the image; you can still record the injury.</string>
+    <string name="emergency_flow_image_io_failed">Could not read the image; you can still record the injury.</string>
+    <string name="emergency_flow_image_security_failed">Could not access the image; you can still record the injury.</string>
+    <string name="emergency_flow_image_invalid_failed">Image invalid or over the 2 MB limit; you can still record the injury.</string>
+    <string name="emergency_flow_video_skipped_title">That was a video, so no analysis</string>
+    <string name="emergency_flow_video_skipped_detail">The emergency flow handles photos only. You can still record the injury and get help.</string>
+    <string name="emergency_flow_fetch_failed_title">Could not fetch the photo</string>
+    <string name="emergency_flow_fetch_failed_detail">No match in the camera gallery after about 10 seconds. You can download it manually on the Gallery page. You can still record the injury and get help.</string>
+    <string name="emergency_flow_download_failed_title">Photo download failed</string>
+    <string name="emergency_flow_download_failed_detail">An error occurred while fetching the photo. You can download it manually on the Gallery page. You can still record the injury and get help.</string>
+    <string name="emergency_flow_local_missing_title">Local photo unavailable</string>
+    <string name="emergency_flow_local_missing_detail">Download finished but the file could not be located on the phone. You can still record the injury and get help.</string>
+    <string name="emergency_flow_recognition_failed_title">Candidate analysis not completed</string>
+    <string name="emergency_flow_recognition_no_result">The simulated analysis returned no result; it does not retry automatically. You can still record the injury and get help.</string>
+    <string name="emergency_flow_help_title">Next: record the injury or get help</string>
+    <string name="emergency_flow_help_bitten">Record injury (bitten)</string>
+    <string name="emergency_flow_help_not_bitten">Not bitten / keep distance</string>
+    <string name="emergency_flow_help_hospital">Hospital contacts &amp; help</string>
+    <string name="emergency_flow_candidate_suffix">· offline reference (not a diagnosis)</string>
+    <string name="emergency_flow_disclaimer">This page is a MOCK demo: it produces no diagnosis, candidates are not confirmed, there is no reliable confidence score, and results cannot rule out danger or replace medical judgment. The original image is never uploaded and location is never auto-detected.</string>
 </resources>

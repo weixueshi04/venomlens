@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      紧急一键流程配色：晨雾浅色、克制、不制造恐慌。
+      深色只用在主按钮上形成高对比触控目标，其余保持低饱和浅底。
+      红色仅用于「MOCK/模拟」标注，与 Web 端公益化重设计一致：
+      红 = 这是模拟数据，而不是红 = 危险。
+    -->
+    <color name="emergency_bg">#F1F5F7</color>
+    <color name="emergency_surface">#FFFFFF</color>
+    <color name="emergency_ink">#1B2A32</color>
+    <color name="emergency_ink_soft">#5C6B73</color>
+    <color name="emergency_mist">#DCE6EB</color>
+    <color name="emergency_accent">#12657F</color>
+    <color name="emergency_accent_pressed">#0C4B5F</color>
+    <color name="emergency_accent_disabled">#B9C6CC</color>
+    <color name="emergency_help_soft">#EAF2F5</color>
+    <color name="emergency_mock_badge">#C62828</color>
+</resources>

@@ -45,7 +45,7 @@ class MainActivity : AppCompatActivity() {
         navController.addOnDestinationChangedListener { _, destination, _ ->
             val hideBottom =
                 when (destination.id) {
-                    R.id.previewFragment, R.id.captureFragment, R.id.liveStreamFragment, R.id.videoPlayerFragment, R.id.imagePlayerFragment, R.id.stitchFragment -> true
+                    R.id.previewFragment, R.id.captureFragment, R.id.liveStreamFragment, R.id.videoPlayerFragment, R.id.imagePlayerFragment, R.id.stitchFragment, R.id.emergencyFlowFragment -> true
                     else -> false
                 }
             binding.bottomNav.visibility = if (hideBottom) View.GONE else View.VISIBLE

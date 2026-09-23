@@ -518,4 +518,42 @@
     <string name="live_push_failed_code">推流失败 (code=%1$d)</string>
     <string name="live_camera_disconnected">相机未连接</string>
     <string name="live_unknown_error">未知错误</string>
+
+    <!-- 紧急一键流程（EmergencyFlow）：拍照 → 下载到手机 → MOCK 分析 → 病例卡/医院求助 -->
+    <string name="emergency_flow_entry">紧急一键流程</string>
+    <string name="emergency_flow_title">紧急一键流程</string>
+    <string name="emergency_flow_back">返回连接页</string>
+    <string name="emergency_flow_need_connection">请先在「连接」页连接影石相机</string>
+    <string name="emergency_flow_calm">别急，我们一步步来。</string>
+    <string name="emergency_flow_calm_sub">按下按钮拍下现场，App 会自动取回照片并给出候选分析；也可以直接用相机机身按键拍照。</string>
+    <string name="emergency_flow_capture_button">紧急拍照</string>
+    <string name="emergency_flow_capture_hint">已强制关闭自拍倒计时，按下即拍。拍摄完成会自动进入下一步。</string>
+    <string name="emergency_flow_stage_fetching">正在从相机取回照片…</string>
+    <string name="emergency_flow_fetch_retry_detail">第 %1$d 次尝试匹配相机文件…（相机写卡需要一点时间）</string>
+    <string name="emergency_flow_download_progress">下载中 %1$d%%</string>
+    <string name="emergency_flow_stage_preparing">正在准备图片…</string>
+    <string name="emergency_flow_image_ready">已准备 JPEG：%1$d × %2$d，%3$d KiB（已校正方向、重新编码，不保留原始 EXIF）</string>
+    <string name="emergency_flow_stage_recognizing">正在生成候选分析（MOCK）…</string>
+    <string name="emergency_flow_stage_done">已生成候选分析</string>
+    <string name="emergency_flow_mock_badge">MOCK · 模拟结果，非真实识别</string>
+    <string name="emergency_flow_image_unavailable">无法读取图片，仍可直接记录伤情。</string>
+    <string name="emergency_flow_image_io_failed">无法读取图片，仍可直接记录伤情。</string>
+    <string name="emergency_flow_image_security_failed">无法访问该图片，仍可直接记录伤情。</string>
+    <string name="emergency_flow_image_invalid_failed">图片无效或超出 2 MB 限制，仍可直接记录伤情。</string>
+    <string name="emergency_flow_video_skipped_title">本次是视频，未进入分析</string>
+    <string name="emergency_flow_video_skipped_detail">紧急流程只处理照片。仍可记录伤情和求助。</string>
+    <string name="emergency_flow_fetch_failed_title">未能取回照片</string>
+    <string name="emergency_flow_fetch_failed_detail">等待约 10 秒后仍未在相机相册中匹配到刚拍的照片，可在「相册」页手动下载。仍可记录伤情和求助。</string>
+    <string name="emergency_flow_download_failed_title">照片下载失败</string>
+    <string name="emergency_flow_download_failed_detail">从相机取回照片时出错，可在「相册」页手动下载。仍可记录伤情和求助。</string>
+    <string name="emergency_flow_local_missing_title">本地照片不可用</string>
+    <string name="emergency_flow_local_missing_detail">下载已完成，但未能在手机上定位到图片文件。仍可记录伤情和求助。</string>
+    <string name="emergency_flow_recognition_failed_title">候选分析未完成</string>
+    <string name="emergency_flow_recognition_no_result">模拟分析未返回结果；不自动重试。仍可记录伤情和求助。</string>
+    <string name="emergency_flow_help_title">下一步：记录伤情或求助</string>
+    <string name="emergency_flow_help_bitten">记录伤情（已被咬）</string>
+    <string name="emergency_flow_help_not_bitten">未被咬 / 保持距离</string>
+    <string name="emergency_flow_help_hospital">医院联系与求助</string>
+    <string name="emergency_flow_candidate_suffix">· 离线比对资料（非诊断）</string>
+    <string name="emergency_flow_disclaimer">本页面为 MOCK 模拟演示：不生成诊断结论，候选不代表已确认，无可靠置信度，识别结果不能用于排除危险或替代医疗判断。原图不上传、不自动定位。</string>
 </resources>

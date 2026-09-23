@@ -289,6 +289,19 @@
             android:layout_marginTop="16dp"
             android:orientation="vertical">
 
+            <!-- 紧急一键流程：连接成功即可见，置于所有调试入口之前、最显眼位置 -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/entry_emergency_flow"
+                android:layout_width="match_parent"
+                android:layout_height="64dp"
+                android:layout_marginBottom="12dp"
+                android:backgroundTint="@color/emergency_accent"
+                android:text="@string/emergency_flow_entry"
+                android:textColor="@color/white"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                app:cornerRadius="12dp" />
+
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/entry_no_preview"
                 android:layout_width="match_parent"

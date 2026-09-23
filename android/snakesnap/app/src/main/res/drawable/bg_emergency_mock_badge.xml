@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- MOCK 标注：红底白字、常驻结果区顶部，保证「这是模拟」不可能被忽略。 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@color/emergency_mock_badge" />
+    <corners android:radius="6dp" />
+</shape>
