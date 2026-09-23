@@ -13,9 +13,7 @@ def _display_texts(entry):
     yield "commonName", entry.get("commonName") or ""
     for a in entry.get("aliases") or []:
         yield "aliases.alias", a.get("alias") or ""
-    cp = entry.get("comparisonProfile")
-    if not cp:
-        return
+    cp = entry.get("comparisonProfile") or {}
     yield "comparisonProfile.hook", cp.get("hook") or ""
     for i, s in enumerate(cp.get("layChecklist") or []):
         yield f"comparisonProfile.layChecklist[{i}]", s
@@ -28,24 +26,54 @@ def _display_texts(entry):
 
 
 class DisplayChineseOnlyTests(unittest.TestCase):
-    def setUp(self):
-        self.entries = json.loads(SPECIES.read_text(encoding="utf-8"))
-
     def test_display_fields_contain_no_latin_letters(self):
+        entries = json.loads(SPECIES.read_text(encoding="utf-8"))
         bad = []
-        for e in self.entries:
+        for e in entries:
             for field, text in _display_texts(e):
                 if ASCII.search(text):
                     bad.append(f"{e.get('speciesId')}.{field}: {text}")
         self.assertEqual([], bad, "展示文案出现拉丁字母：" + "；".join(bad))
 
-    def test_english_common_names_not_in_display_layer(self):
-        for e in self.entries:
-            en = e.get("englishCommonName") or ""
-            for field, text in _display_texts(e):
-                for token in re.findall(r"[A-Za-z]+", en):
-                    if len(token) > 3 and token in text:
-                        self.fail(f"{e.get('speciesId')}.{field} 泄漏英文名 {token}")
+    def test_english_image_role_detected_without_comparison_profile(self):
+        for profile in ({}, {"comparisonProfile": None}, {"comparisonProfile": {}}):
+            with self.subTest(profile=profile):
+                entry = {**profile, "referenceImages": [{"role": "head detail"}]}
+                bad = [(field, text) for field, text in _display_texts(entry) if ASCII.search(text)]
+                self.assertEqual([("referenceImages[0].role", "head detail")], bad)
+
+    def test_chinese_display_texts_allow_english_technical_fields(self):
+        entry = {
+            "commonName": "测试蛇",
+            "aliases": [{"alias": "测试别名"}],
+            "englishCommonName": "Test Snake",
+            "scientificName": "Testus serpentis",
+            "comparisonProfile": {
+                "hook": "观察身体花纹",
+                "layChecklist": ["背部有斑纹"],
+                "doNot": ["不要靠近"],
+                "layLookAlikes": [{"layHowToTell": "观察头部形状"}],
+            },
+            "referenceImages": [{"role": "头部特写", "rights": "CC BY", "author": "TestAuthor"}],
+        }
+        bad = [(field, text) for field, text in _display_texts(entry) if ASCII.search(text)]
+        self.assertEqual([], bad)
+
+    def test_latin_in_each_description_field_is_detected(self):
+        text = "说明含 A"
+        cases = (
+            ("commonName", {"commonName": text}),
+            ("aliases.alias", {"aliases": [{"alias": text}]}),
+            ("comparisonProfile.hook", {"comparisonProfile": {"hook": text}}),
+            ("comparisonProfile.layChecklist[0]", {"comparisonProfile": {"layChecklist": [text]}}),
+            ("comparisonProfile.doNot[0]", {"comparisonProfile": {"doNot": [text]}}),
+            ("comparisonProfile.layLookAlikes[0].layHowToTell",
+             {"comparisonProfile": {"layLookAlikes": [{"layHowToTell": text}]}}),
+        )
+        for expected_field, entry in cases:
+            with self.subTest(field=expected_field):
+                bad = [(field, value) for field, value in _display_texts(entry) if ASCII.search(value)]
+                self.assertEqual([(expected_field, text)], bad)
 
 
 if __name__ == "__main__":

@@ -1,25 +1,36 @@
 {
- "speciesId": "gloydius_brevicaudus",
- "retrievedAt": "2026-09-23",
- "curatedBy": "郭浩天侧AI目视筛选（演示草稿，未经人工审核）",
- "referenceImages": [
-  {
-   "file": "ref_01.jpg",
-   "role": "主图：盘姿抬头、斑纹与头侧清晰",
-   "source": "iNaturalist 观察页（见 sourcePage）",
-   "rights": "按 cc-by 许可使用，作者 sunjiao",
-   "sourcePage": "https://www.inaturalist.org/observations/346148643",
-   "photoId": 630930815
-  },
-  {
-   "file": "ref_02.jpg",
-   "role": "辅图：全身比例与短尾",
-   "source": "iNaturalist 观察页（见 sourcePage）",
-   "rights": "按 cc-by 许可使用，作者 theo_busschau",
-   "sourcePage": "https://www.inaturalist.org/observations/334481608",
-   "photoId": 607428935
-  }
- ],
- "rejectNote": "淘汰图见 _candidates/；策展教训：附件回传顺序不可靠，须按内容复核",
- "attributionNotice": "照片按各自许可证使用；App 内展示作者与许可证"
+  "speciesId": "gloydius_brevicaudus",
+  "retrievedAt": "2026-09-23",
+  "curatedBy": "郭浩天侧AI目视筛选（演示草稿，未经人工审核）",
+  "referenceImages": [
+    {
+      "file": "ref_01.jpg",
+      "role": "主图：盘姿抬头、斑纹与头侧清晰",
+      "source": "iNaturalist 观察页（见 sourcePage）",
+      "rights": "按 cc-by 许可使用，作者 sunjiao",
+      "sourcePage": "https://www.inaturalist.org/observations/346148643",
+      "photoId": 630930815,
+      "sourceStatus": "pending_review",
+      "reviewStatus": "pending_review",
+      "publishedFile": "data/card_images/gloydius_brevicaudus/01.jpg",
+      "publishedSha256": "0e918bf96d735eb19416728f03516743793d62f370b06be4236917e885e943b9",
+      "bindingNote": "现有记录缺少下载文件与照片编号的可信绑定；公开来源核对连接超时，暂不发布。"
+    },
+    {
+      "file": "ref_02.jpg",
+      "role": "辅图：全身比例与短尾",
+      "source": "iNaturalist 观察页（见 sourcePage）",
+      "rights": "按 cc-by 许可使用，作者 theo_busschau",
+      "sourcePage": "https://www.inaturalist.org/observations/334481608",
+      "photoId": 607428935,
+      "sourceStatus": "pending_review",
+      "reviewStatus": "pending_review",
+      "publishedFile": "data/card_images/gloydius_brevicaudus/02.jpg",
+      "publishedSha256": "83d8d9273d42e4b4ce7a26cdbae583eb0c043dfb3bd83f48275515d2fccdf44b",
+      "bindingNote": "现有记录缺少下载文件与照片编号的可信绑定；公开来源核对连接超时，暂不发布。"
+    }
+  ],
+  "rejectNote": "淘汰图见 _candidates/；策展教训：附件回传顺序不可靠，须按内容复核",
+  "attributionNotice": "照片按各自许可证使用；App 内展示作者与许可证",
+  "publicationPolicy": "仅 sourceStatus 为 team_declared 或 record_matched 的图片可进入标注过的演示包；正常模式还须独立人工审核。其余保留本地待核，不随包发布。"
 }

@@ -9,12 +9,19 @@
     "riskStatus": "unknown",
     "referenceImages": [
       {
-        "file": "data/reference_images/pantherophis_guttatus/team_02.jpg",
+        "file": "data/card_images/pantherophis_guttatus/01.jpg",
         "role": "主图：全身体色与花纹",
         "source": "团队 2026-09-19 自贡调研实拍（血红派品系）",
         "rights": "团队自有",
         "curated": true,
-        "note": "隔玻璃拍摄有轻微反光；品系色不代表野生型"
+        "note": "隔玻璃拍摄有轻微反光；品系色不代表野生型",
+        "originalFile": "data/reference_images/pantherophis_guttatus/team_02.jpg",
+        "reviewStatus": "pending_review",
+        "reviewedBy": null,
+        "reviewedAt": null,
+        "sourceStatus": "team_declared",
+        "sourceCheck": "团队自有为既有交接声明，非独立权利或物种审核。",
+        "publishedSha256": "31701e941010a6531beed3af2cb1133ed669659496c110d2615835d711f811fc"
       }
     ],
     "externalRefs": [
@@ -51,7 +58,10 @@
           "ref": "分类整理/03_玉米蛇 与 9/19 调研录音",
           "checkedAt": "2026-09-23"
         }
-      ]
+      ],
+      "reviewStatus": "pending_review",
+      "reviewedBy": null,
+      "reviewedAt": null
     },
     "source": "项目背景中的素材类别；学名映射待人工核对，仅作开发联调"
   },
@@ -90,20 +100,36 @@
     "riskStatus": "unknown",
     "referenceImages": [
       {
-        "file": "data/reference_images/pseudagkistrodon_rudis/ref_01_head_coiled.jpg",
+        "file": "data/card_images/pseudagkistrodon_rudis/01.jpg",
         "role": "主图：头部与体色斑纹",
-        "source": "iNaturalist 观察页（见 sourcePage）",
+        "source": "来源关联待复核；旧链接已确认指向其他物种，禁止按旧链接署名发布",
         "rights": "署名许可（cc-by），作者 haocong_cat",
-        "sourcePage": "https://www.inaturalist.org/observations/396535501",
-        "curated": true
+        "curated": true,
+        "originalFile": "data/reference_images/pseudagkistrodon_rudis/ref_01_head_coiled.jpg",
+        "reviewStatus": "pending_review",
+        "reviewedBy": null,
+        "reviewedAt": null,
+        "sourceStatus": "pending_review",
+        "sourceCheck": "现有记录缺少下载文件与照片编号的可信绑定；公开来源核对连接超时，暂不发布。",
+        "publishedSha256": "5847272a154fc27728c036d20c69576caf8b0d97fe8c9be670c8a60d8ba0ed00",
+        "rejectedSourcePage": "https://www.inaturalist.org/observations/396535501",
+        "sourceConflict": "species.json 与 meta.json 的观察编号不一致，实际图片与照片编号尚未独立核对"
       },
       {
-        "file": "data/reference_images/pseudagkistrodon_rudis/ref_02_dorsal.jpg",
+        "file": "data/card_images/pseudagkistrodon_rudis/02.jpg",
         "role": "辅图：背面斑纹",
-        "source": "iNaturalist 观察页（见 sourcePage）",
+        "source": "来源关联待复核；旧链接已确认指向其他物种，禁止按旧链接署名发布",
         "rights": "公有领域（cc0），作者 fdn",
-        "sourcePage": "https://www.inaturalist.org/observations/392262413",
-        "curated": true
+        "curated": true,
+        "originalFile": "data/reference_images/pseudagkistrodon_rudis/ref_02_dorsal.jpg",
+        "reviewStatus": "pending_review",
+        "reviewedBy": null,
+        "reviewedAt": null,
+        "sourceStatus": "pending_review",
+        "sourceCheck": "现有记录缺少下载文件与照片编号的可信绑定；公开来源核对连接超时，暂不发布。",
+        "publishedSha256": "cc83f2a5b0f10bb484f6aab9cf2e0533c1d5d24ed088d1a2b40b1768f1c94ff7",
+        "rejectedSourcePage": "https://www.inaturalist.org/observations/392262413",
+        "sourceConflict": "species.json 与 meta.json 的观察编号不一致，实际图片与照片编号尚未独立核对"
       }
     ],
     "externalRefs": [
@@ -145,7 +171,10 @@
           "ref": "待团队复核文案与特征",
           "checkedAt": null
         }
-      ]
+      ],
+      "reviewStatus": "pending_review",
+      "reviewedBy": null,
+      "reviewedAt": null
     },
     "source": "2026-09-22 郭浩天核验测试图片为颈棱蛇，并提供别名“伪腹蛇”（保留用户原文）；学名与英文名对应同次 HHodata 返回的 Pseudagkistrodon rudis / Red Keelback。仅核验名称映射，毒性资料与参考图授权另行核验。"
   },
@@ -160,18 +189,32 @@
     "demoDraft": true,
     "referenceImages": [
       {
-        "file": "data/reference_images/heterodon_nasicus/ref_01.jpg",
+        "file": "data/card_images/heterodon_nasicus/01.jpg",
         "role": "主图：野生型体色与花纹",
         "source": "iNaturalist 观察页（见 sourcePage）",
         "rights": "按 cc0 许可使用，作者 k-simpkins",
         "sourcePage": "https://www.inaturalist.org/observations/375414776",
-        "photoId": 686290828
+        "photoId": 686290828,
+        "originalFile": "data/reference_images/heterodon_nasicus/ref_01.jpg",
+        "reviewStatus": "pending_review",
+        "reviewedBy": null,
+        "reviewedAt": null,
+        "sourceStatus": "pending_review",
+        "sourceCheck": "现有记录缺少下载文件与照片编号的可信绑定；公开来源核对连接超时，暂不发布。",
+        "publishedSha256": "4a520e229d051edce91291ccc4455d97c8ff5862e49812fb8a471b18fcaed51e"
       },
       {
-        "file": "data/reference_images/heterodon_nasicus/ref_02.jpg",
+        "file": "data/card_images/heterodon_nasicus/02.jpg",
         "role": "辅图：宠物品系花色（团队实拍）",
         "source": "团队 2026-09-19 自贡调研实拍（太阳爆炸品系）",
-        "rights": "团队自有"
+        "rights": "团队自有",
+        "originalFile": "data/reference_images/heterodon_nasicus/ref_02.jpg",
+        "reviewStatus": "pending_review",
+        "reviewedBy": null,
+        "reviewedAt": null,
+        "sourceStatus": "team_declared",
+        "sourceCheck": "团队自有为既有交接声明，非独立权利或物种审核。",
+        "publishedSha256": "3e8dc1553e4972ad771f7260be855df30cb468a7bbf9b55027fd28d06216a633"
       }
     ],
     "externalRefs": [
@@ -214,7 +257,10 @@
           "ref": "分类整理/05_猪鼻蛇",
           "checkedAt": "2026-09-23"
         }
-      ]
+      ],
+      "reviewStatus": "pending_review",
+      "reviewedBy": null,
+      "reviewedAt": null
     }
   },
   {
@@ -228,20 +274,34 @@
     "demoDraft": true,
     "referenceImages": [
       {
-        "file": "data/reference_images/lycodon_rufozonatus/ref_01.jpg",
+        "file": "data/card_images/lycodon_rufozonatus/01.jpg",
         "role": "主图：黑底红横纹全侧身",
         "source": "iNaturalist 观察页（见 sourcePage）",
         "rights": "按 cc-by 许可使用，作者 jayparoline",
         "sourcePage": "https://www.inaturalist.org/observations/388979721",
-        "photoId": 712479485
+        "photoId": 712479485,
+        "originalFile": "data/reference_images/lycodon_rufozonatus/ref_01.jpg",
+        "reviewStatus": "pending_review",
+        "reviewedBy": null,
+        "reviewedAt": null,
+        "sourceStatus": "pending_review",
+        "sourceCheck": "现有记录缺少下载文件与照片编号的可信绑定；公开来源核对连接超时，暂不发布。",
+        "publishedSha256": "7e7c115985c98667b991fcf68c0f6caa73729cc76d4d442de8a84f93798d5a78"
       },
       {
-        "file": "data/reference_images/lycodon_rufozonatus/ref_02.jpg",
+        "file": "data/card_images/lycodon_rufozonatus/02.jpg",
         "role": "辅图：夜间树干上环纹",
         "source": "iNaturalist 观察页（见 sourcePage）",
         "rights": "按 cc-by 许可使用，作者 yunglunlin",
         "sourcePage": "https://www.inaturalist.org/observations/398926326",
-        "photoId": 731860480
+        "photoId": 731860480,
+        "originalFile": "data/reference_images/lycodon_rufozonatus/ref_02.jpg",
+        "reviewStatus": "pending_review",
+        "reviewedBy": null,
+        "reviewedAt": null,
+        "sourceStatus": "pending_review",
+        "sourceCheck": "现有记录缺少下载文件与照片编号的可信绑定；公开来源核对连接超时，暂不发布。",
+        "publishedSha256": "c10b9c145137f558f83bb0b894c0fe1e6854ef939b136f703d415a17a1f059ea"
       }
     ],
     "externalRefs": [
@@ -264,7 +324,7 @@
       "layLookAlikes": [
         {
           "speciesId": "sinomicrurus_macclellandi",
-          "layHowToTell": "珊瑚蛇类环纹更规则细密，照片难分，交给医生"
+          "layHowToTell": "相似环纹可能出现在不同蛇种，不能只凭环纹间距判断；无法确认时按未知处理。"
         }
       ],
       "doNot": [
@@ -283,7 +343,10 @@
           "ref": "2026-09-23 用户确认仅演示跑通、未经人工审核",
           "checkedAt": "2026-09-23"
         }
-      ]
+      ],
+      "reviewStatus": "pending_review",
+      "reviewedBy": null,
+      "reviewedAt": null
     }
   },
   {
@@ -297,20 +360,34 @@
     "demoDraft": true,
     "referenceImages": [
       {
-        "file": "data/reference_images/gloydius_brevicaudus/ref_01.jpg",
+        "file": "data/card_images/gloydius_brevicaudus/01.jpg",
         "role": "主图：盘姿抬头、斑纹与头侧清晰",
         "source": "iNaturalist 观察页（见 sourcePage）",
         "rights": "按 cc-by 许可使用，作者 sunjiao",
         "sourcePage": "https://www.inaturalist.org/observations/346148643",
-        "photoId": 630930815
+        "photoId": 630930815,
+        "originalFile": "data/reference_images/gloydius_brevicaudus/ref_01.jpg",
+        "reviewStatus": "pending_review",
+        "reviewedBy": null,
+        "reviewedAt": null,
+        "sourceStatus": "pending_review",
+        "sourceCheck": "现有记录缺少下载文件与照片编号的可信绑定；公开来源核对连接超时，暂不发布。",
+        "publishedSha256": "0e918bf96d735eb19416728f03516743793d62f370b06be4236917e885e943b9"
       },
       {
-        "file": "data/reference_images/gloydius_brevicaudus/ref_02.jpg",
+        "file": "data/card_images/gloydius_brevicaudus/02.jpg",
         "role": "辅图：全身比例与短尾",
         "source": "iNaturalist 观察页（见 sourcePage）",
         "rights": "按 cc-by 许可使用，作者 theo_busschau",
         "sourcePage": "https://www.inaturalist.org/observations/334481608",
-        "photoId": 607428935
+        "photoId": 607428935,
+        "originalFile": "data/reference_images/gloydius_brevicaudus/ref_02.jpg",
+        "reviewStatus": "pending_review",
+        "reviewedBy": null,
+        "reviewedAt": null,
+        "sourceStatus": "pending_review",
+        "sourceCheck": "现有记录缺少下载文件与照片编号的可信绑定；公开来源核对连接超时，暂不发布。",
+        "publishedSha256": "83d8d9273d42e4b4ce7a26cdbae583eb0c043dfb3bd83f48275515d2fccdf44b"
       }
     ],
     "externalRefs": [
@@ -333,13 +410,13 @@
       "layLookAlikes": [
         {
           "speciesId": "pseudagkistrodon_rudis",
-          "layHowToTell": "颈棱蛇斑更方、身子更瘦；照片拿不准就按未知处理"
+          "layHowToTell": "颈棱蛇及其他蛇种可能呈现相似斑纹，单凭照片不足以排除混淆。"
         }
       ],
       "doNot": [
         "不要靠近确认特征",
         "不要用头形或尾色判断有没有毒",
-        "按可能有毒处理：被咬伤立即就医并把本卡给医生"
+        "被咬伤后尽快联系急救并就医，不等待物种比对"
       ],
       "techNotes": {
         "外形特征": "草稿：民间与文献多记为有毒，毒性资料待核验",
@@ -352,7 +429,10 @@
           "ref": "2026-09-23 用户确认仅演示跑通、未经人工审核",
           "checkedAt": "2026-09-23"
         }
-      ]
+      ],
+      "reviewStatus": "pending_review",
+      "reviewedBy": null,
+      "reviewedAt": null
     }
   }
 ]

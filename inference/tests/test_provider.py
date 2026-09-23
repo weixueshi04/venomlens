@@ -132,7 +132,7 @@ class ProviderTests(unittest.IsolatedAsyncioTestCase):
     async def test_verified_keelback_names_and_aliases_map_to_one_species(self):
         catalog = json.loads((ROOT / "data/species.json").read_text(encoding="utf-8"))
         provider = HhodataProvider("test-key", "R", catalog)
-        for name in ("颈棱蛇", "Red Keelback", "Pseudagkistrodon rudis", "伪腹蛇",
+        for name in ("颈棱蛇", "Red Keelback", "False Habu", "Pseudagkistrodon rudis", "伪腹蛇",
                      "  PSEUDAGKISTRODON RUDIS  "):
             with self.subTest(name=name):
                 result = provider.parse([1000, [{"list": [[97.6, name, 9316, "R"]]}]])
@@ -150,6 +150,49 @@ class ProviderTests(unittest.IsolatedAsyncioTestCase):
             self.assertTrue(img.get("rights"))
             self.assertTrue(img.get("source"))
         self.assertEqual(entry["comparisonProfile"]["venomInfoStatus"], "unknown")
+
+    async def test_english_common_name_splits_before_fullwidth_annotation(self):
+        catalog = [{
+            "speciesId": "test_keelback", "commonName": "测试颈棱蛇",
+            "scientificName": "Testus keelbackus", "verificationStatus": "verified",
+            "englishCommonName": "Red Keelback / False Habu（说明 / Annotation Only）",
+            "aliases": [],
+        }]
+        provider = HhodataProvider("test-key-not-real", "R", catalog)
+        for name in ("Red Keelback", "False Habu"):
+            with self.subTest(name=name):
+                result = provider.parse([1000, [{"list": [[97.6, name, 1, "test"]]}]])
+                self.assertEqual(result.status, "candidates")
+                self.assertEqual(result.candidates, [{
+                    "speciesId": "test_keelback", "commonName": "测试颈棱蛇",
+                    "scientificName": "Testus keelbackus", "score": None, "providerScore": 97.6,
+                }])
+        for name in ("Annotation Only", "Annotation Only）"):
+            with self.subTest(annotation=name):
+                result = provider.parse([1000, [{"list": [[97.6, name, 1, "test"]]}]])
+                self.assertEqual((result.status, result.candidates), ("uncertain", []))
+
+    async def test_object_alias_alone_matches_only_its_species(self):
+        catalog = [CATALOG[0], {
+            "speciesId": "test_object_alias", "commonName": "测试别名蛇",
+            "scientificName": "Testus aliasus", "verificationStatus": "verified",
+            "aliases": [{"alias": "Object Alias"}],
+        }]
+        provider = HhodataProvider("test-key-not-real", "R", catalog)
+        result = provider.parse([1000, [{"list": [[97.6, "Object Alias", 1, "test"]]}]])
+        self.assertEqual(result.status, "candidates")
+        self.assertEqual(result.candidates, [{
+            "speciesId": "test_object_alias", "commonName": "测试别名蛇",
+            "scientificName": "Testus aliasus", "score": None, "providerScore": 97.6,
+        }])
+
+    async def test_legacy_english_string_alias_matches_without_other_names(self):
+        result = self.provider().parse([1000, [{"list": [[97.6, "Corn Snake", 1, "test"]]}]])
+        self.assertEqual(result.status, "candidates")
+        self.assertEqual(result.candidates, [{
+            "speciesId": "test_corn", "commonName": "玉米蛇",
+            "scientificName": "Pantherophis guttatus", "score": None, "providerScore": 97.6,
+        }])
 
     async def test_existing_project_species_remain_unverified(self):
         catalog = json.loads((ROOT / "data/species.json").read_text(encoding="utf-8"))

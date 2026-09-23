@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' blob:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>一拍知蛇 · 物种卡离线演示</title>
+  <link rel="stylesheet" href="cards.css">
+  <script src="cards.js" defer></script>
+</head>
+<body>
+  <header class="topbar"><a class="brand" href="#">一拍知蛇<span>两爬青年 / BOLDMAKER 2026</span></a><span class="pill lime">本机离线演示 · MOCK</span></header>
+  <main>
+    <section class="intro"><div><p class="eyebrow">看见候选，也看见不确定。</p><h1>不止知道名字，<br>把照片放在一起看。</h1></div><p class="intro-note">以下为固定模拟响应与物种卡设计预览，<strong>不是对所选照片的真实识别</strong>。照片只在当前浏览器显示，不上传、不保存，不产生模型调用。</p></section>
+    <div class="workspace">
+      <aside class="capture panel">
+        <div class="section-title"><h2>你的照片</h2><span class="mini-label">仅本机预览</span></div>
+        <label class="image-picker" for="image-input"><img id="input-preview" alt="所选本地照片预览" hidden><span id="image-placeholder">＋<br><b>选择一张已有照片</b><small>JPEG · 最多 2 MB<br>不用为演示靠近或拍摄蛇</small></span></label>
+        <input id="image-input" type="file" accept="image/jpeg"><p id="image-info" class="muted">不选照片也可演示固定响应。</p><button id="clear-image" class="text-button" type="button">清除照片与旧结果</button>
+        <div class="separator"></div>
+        <label class="field-label" for="scenario">模拟识别场景</label><select id="scenario"><option value="candidates">单候选</option><option value="multiple">不确定 · 多候选</option><option value="uncertain">无法判断</option><option value="no_snake">未检测到蛇</option><option value="pending">识别处理中</option><option value="timeout">请求超时</option><option value="invalid_output">输出格式错误</option></select>
+        <button id="run" class="primary" type="button" disabled>演示识别</button><button id="refresh" class="secondary" type="button" hidden>手动查询一次</button>
+        <label class="switch"><input id="strict" type="checkbox">仅显示已核验材料</label><p class="muted">开关只预览审核策略；两种模式都不会联网识别。</p>
+        <details class="catalog-picker"><summary>单独查看物种卡设计</summary><label class="field-label" for="catalog">这里不是识别结果</label><select id="catalog"><option value="">选择物种</option></select></details>
+        <button id="help" class="help-button" type="button">已被咬伤？查看通用求助提醒</button>
+      </aside>
+      <section class="results" aria-live="polite" aria-busy="false">
+        <div class="result-head"><div><p id="result-source" class="eyebrow">等待演示</p><h2 id="result-title">候选不是结论。</h2></div><span id="request-id" class="request-id"></span></div>
+        <p id="result-note" class="muted">选择模拟场景，或单独预览物种卡；无法判断时，同样可以查看求助提醒。</p>
+        <div id="result-error" class="error" role="alert" hidden></div>
+        <div id="cards" class="cards"><div class="empty"><span>01 / 选择照片或场景</span><h3>原图、参考图与不确定性，<br>在同一屏被看见。</h3><p>物种名称、说明文案和照片分别审核。<br>未经审核的内容只用于带标记的演示。</p></div></div>
+        <section id="safety" class="safety" tabindex="-1"><p class="eyebrow">不随候选改变的安全底线</p><h2>不要等“认准了”，才去求助。</h2><ul id="safety-list"><li>与蛇保持距离，不追赶、触碰或为辨认而靠近。</li><li>候选和参考照片不能判断有毒无毒，也不能排除危险。</li><li>如已被咬伤，尽快联系急救并就医，不等待识别或照片比对。</li></ul><p>不提供诊断、用药或血清建议；本演示不提供医院实时库存。</p></section>
+      </section>
+    </div>
+    <footer>名称核验 ≠ 文案审核 ≠ 照片核验　·　参考照片不代表所有年龄、地区或宠物品系的外观。<br>卡片数据与识别响应分离，Android 可按 speciesId 接入；本页不是 Android 真机验收证据。</footer>
+  </main>
+  <dialog id="photo-dialog"><div class="dialog-top"><b>参考图放大查看</b><button id="close-dialog" class="secondary" type="button">关闭</button></div><img id="dialog-image" alt="参考图大图"><p id="dialog-credit"></p><p class="muted">仅比对已有照片，不要接近蛇确认细节。</p></dialog>
+</body>
+</html>

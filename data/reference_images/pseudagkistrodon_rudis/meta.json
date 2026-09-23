@@ -1,51 +1,64 @@
 {
- "speciesId": "pseudagkistrodon_rudis",
- "scientificName": "Pseudagkistrodon rudis",
- "commonName": "颈棱蛇",
- "taxonId": 1218628,
- "inatPreferredCommonName": "False Habu",
- "retrievedAt": "2026-09-23",
- "curatedBy": "郭浩天侧AI目视筛选，待郭复核",
- "referenceImages": [
-  {
-   "file": "cand_727535973.jpg",
-   "role": "主图：头部与体色斑纹",
-   "curated": true,
-   "photoId": 727535973,
-   "observationId": 396726615,
-   "photographer": "haocong_cat",
-   "license": "cc-by",
-   "sourcePage": "https://www.inaturalist.org/observations/396726615"
-  },
-  {
-   "file": "cand_717673397.jpg",
-   "role": "辅图：背面斑纹",
-   "curated": true,
-   "photoId": 717673397,
-   "observationId": 391653198,
-   "photographer": "fdn",
-   "license": "cc0",
-   "sourcePage": "https://www.inaturalist.org/observations/391653198"
-  }
- ],
- "rejected": [
-  {
-   "file": "_candidates/cand_685250679.jpg",
-   "reason": "路杀个体带血迹，公益演示禁用"
-  },
-  {
-   "file": "_candidates/cand_737022613.jpg",
-   "reason": "头部被遮挡，无法用于比对"
-  },
-  {
-   "file": "_candidates/cand_717673118.jpg",
-   "reason": "未目视，留档备选"
-  },
-  {
-   "file": "_candidates/cand_583278325.jpg",
-   "reason": "未目视，留档备选"
-  }
- ],
- "attributionNotice": "照片按各自 CC 许可证使用，App 内须展示作者与许可证；iNaturalist 观察页链接见 sourcePage",
- "scienceTextStatus": "待人工撰写审核；iNaturalist wikipedia_summary 仅英文种子，不直接上线"
+  "speciesId": "pseudagkistrodon_rudis",
+  "scientificName": "Pseudagkistrodon rudis",
+  "commonName": "颈棱蛇",
+  "taxonId": 1218628,
+  "inatPreferredCommonName": "False Habu",
+  "retrievedAt": "2026-09-23",
+  "curatedBy": "郭浩天侧AI目视筛选，待郭复核",
+  "referenceImages": [
+    {
+      "file": "ref_01_head_coiled.jpg",
+      "role": "主图：头部与体色斑纹",
+      "curated": true,
+      "photoId": 727535973,
+      "observationId": 396726615,
+      "photographer": "haocong_cat",
+      "license": "cc-by",
+      "sourcePage": "https://www.inaturalist.org/observations/396726615",
+      "previousFileLabel": "cand_727535973.jpg",
+      "sourceStatus": "pending_review",
+      "reviewStatus": "pending_review",
+      "publishedFile": "data/card_images/pseudagkistrodon_rudis/01.jpg",
+      "publishedSha256": "5847272a154fc27728c036d20c69576caf8b0d97fe8c9be670c8a60d8ba0ed00",
+      "bindingNote": "现有记录缺少下载文件与照片编号的可信绑定；公开来源核对连接超时，暂不发布。"
+    },
+    {
+      "file": "ref_02_dorsal.jpg",
+      "role": "辅图：背面斑纹",
+      "curated": true,
+      "photoId": 717673397,
+      "observationId": 391653198,
+      "photographer": "fdn",
+      "license": "cc0",
+      "sourcePage": "https://www.inaturalist.org/observations/391653198",
+      "previousFileLabel": "cand_717673397.jpg",
+      "sourceStatus": "pending_review",
+      "reviewStatus": "pending_review",
+      "publishedFile": "data/card_images/pseudagkistrodon_rudis/02.jpg",
+      "publishedSha256": "cc83f2a5b0f10bb484f6aab9cf2e0533c1d5d24ed088d1a2b40b1768f1c94ff7",
+      "bindingNote": "现有记录缺少下载文件与照片编号的可信绑定；公开来源核对连接超时，暂不发布。"
+    }
+  ],
+  "rejected": [
+    {
+      "file": "_candidates/cand_685250679.jpg",
+      "reason": "路杀个体带血迹，公益演示禁用"
+    },
+    {
+      "file": "_candidates/cand_737022613.jpg",
+      "reason": "头部被遮挡，无法用于比对"
+    },
+    {
+      "file": "_candidates/cand_717673118.jpg",
+      "reason": "未目视，留档备选"
+    },
+    {
+      "file": "_candidates/cand_583278325.jpg",
+      "reason": "未目视，留档备选"
+    }
+  ],
+  "attributionNotice": "照片按各自 CC 许可证使用，App 内须展示作者与许可证；iNaturalist 观察页链接见 sourcePage",
+  "scienceTextStatus": "待人工撰写审核；iNaturalist wikipedia_summary 仅英文种子，不直接上线",
+  "publicationPolicy": "仅 sourceStatus 为 team_declared 或 record_matched 的图片可进入标注过的演示包；正常模式还须独立人工审核。其余保留本地待核，不随包发布。"
 }
