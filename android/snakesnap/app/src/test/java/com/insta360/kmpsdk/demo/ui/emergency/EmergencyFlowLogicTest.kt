@@ -196,7 +196,7 @@ class EmergencyFlowLogicTest {
         val pending = renderRecognitionSummary(
             response(RecognitionStatus.PENDING, emptyList(), emptyList(), recognitionId = "0".repeat(64)),
         )
-        assertTrue(pending.contains("识别处理中；仅在人工确认后查询一次。"))
+        assertTrue(pending.contains("识别处理中；正在自动查询结果（间隔 2 秒、最多 5 次），超限后可人工查询一次。"))
         assertTrue(pending.contains("识别任务：${"0".repeat(64)}"))
     }
 
@@ -297,13 +297,93 @@ class EmergencyFlowLogicTest {
 
     @Test
     fun pendingSummaryNeverClaimsConfirmedResult() {
-        // pending 文案必须保持克制：只说「处理中、人工确认后查询一次」，不得出现确认/诊断表述。
+        // pending 文案必须保持克制：只说「处理中、有界自动查询、超限人工查询」，不得出现确认/诊断表述。
         val text = renderRecognitionSummary(
             response(RecognitionStatus.PENDING, emptyList(), emptyList(), recognitionId = "0".repeat(64)),
         )
-        assertTrue(text.contains("识别处理中；仅在人工确认后查询一次。"))
+        assertTrue(text.contains("识别处理中；正在自动查询结果（间隔 2 秒、最多 5 次），超限后可人工查询一次。"))
         assertFalse(text.contains("准确率"))
         assertFalse(text.contains("确诊"))
+    }
+
+    // ── pending 有界自动查询状态机（2026-09-24 契约修订：自动有界，绝不无限轮询）──
+
+    @Test
+    fun autoStepContinuesUntilAttemptLimitThenStopsToManual() {
+        val id = "0".repeat(64)
+        for (attempts in 0 until PendingRefreshPolicy.PENDING_REFRESH_MAX_ATTEMPTS) {
+            assertEquals(
+                "第 $attempts 次后仍应继续自动查询",
+                AutoRefreshStep.CONTINUE,
+                PendingRefreshPolicy.nextAutoStep(attempts, id, null, cancelled = false),
+            )
+        }
+        // 上限（5 次）用尽：停止自动，退回人工单次查询——不是失败，也不是无限轮询。
+        assertEquals(
+            AutoRefreshStep.STOP_TO_MANUAL,
+            PendingRefreshPolicy.nextAutoStep(
+                PendingRefreshPolicy.PENDING_REFRESH_MAX_ATTEMPTS, id, null, cancelled = false,
+            ),
+        )
+    }
+
+    @Test
+    fun autoStepStopsOnAnyErrorCodeWithoutRetry() {
+        val id = "0".repeat(64)
+        // 契约 L20：任何失败都不自动重试——遍历全部错误码验证无一例外。
+        for (code in RecognitionErrorCode.values()) {
+            assertEquals(
+                "错误码 ${code.name} 必须立即停止自动查询",
+                AutoRefreshStep.STOP_NO_RETRY,
+                PendingRefreshPolicy.nextAutoStep(1, id, code, cancelled = false),
+            )
+        }
+    }
+
+    @Test
+    fun autoStepStopsOnTerminalResultOrCancellation() {
+        // 终态（pendingRecognitionId 已清空）：渲染结果并停止。
+        assertEquals(
+            AutoRefreshStep.STOP_DONE,
+            PendingRefreshPolicy.nextAutoStep(0, null, null, cancelled = false),
+        )
+        // 取消优先于一切：页面退出 / 新一轮拍摄时立刻停。
+        assertEquals(
+            AutoRefreshStep.STOP_CANCELLED,
+            PendingRefreshPolicy.nextAutoStep(0, "0".repeat(64), null, cancelled = true),
+        )
+    }
+
+    @Test
+    fun immediateStopCodesCoverContract409And429And504() {
+        // 显式留痕契约 L80/L83/L85：409 禁止重复发送、429 预算保护、504 不自动重试。
+        assertTrue(
+            PendingRefreshPolicy.IMMEDIATE_STOP_ERROR_CODES.containsAll(
+                listOf(
+                    RecognitionErrorCode.OPERATION_IN_PROGRESS,
+                    RecognitionErrorCode.UPSTREAM_LIMITED,
+                    RecognitionErrorCode.LOCAL_BUDGET_EXHAUSTED,
+                    RecognitionErrorCode.UPSTREAM_TIMEOUT,
+                ),
+            ),
+        )
+    }
+
+    // ── 上传授权闸门：一次明示授权、后续零操作；撤销立即生效 ──────────────────
+
+    @Test
+    fun consentGateRequiredOnlyInLiveMode() {
+        assertTrue(UploadConsentGatePolicy.gateRequired(liveEnabled = true))
+        // MOCK 不发任何网络请求，无需授权闸门。
+        assertFalse(UploadConsentGatePolicy.gateRequired(liveEnabled = false))
+    }
+
+    @Test
+    fun uploadBlockedUntilConsentGrantedAndRevokeTakesEffectImmediately() {
+        assertFalse(UploadConsentGatePolicy.mayUpload(consentGranted = false))
+        assertTrue(UploadConsentGatePolicy.mayUpload(consentGranted = true))
+        // 撤销后立刻回到未授权态：原图不发送。
+        assertFalse(UploadConsentGatePolicy.stateAfterRevoke())
     }
 
     private fun response(

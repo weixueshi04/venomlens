@@ -223,21 +223,28 @@ class EmergencyFlowFragment : Fragment() {
         }
     }
 
-    /** 同意开关只在真实识别模式出现；MOCK 降级模式不发网络，无需同意项。 */
+    /**
+     * 一次性上传授权：只在真实识别模式出现；勾选即持久化（一次明示授权、后续零操作），
+     * 取消勾选立即撤销。MOCK 降级模式不发网络，无需授权项。
+     */
     private fun renderUploadConsent(s: EmergencyFlowUiState) {
         binding.uploadConsent.isVisible = s.liveEnabled
-        if (binding.uploadConsent.isChecked != s.uploadConsent) {
-            binding.uploadConsent.isChecked = s.uploadConsent
+        if (binding.uploadConsent.isChecked != s.consentGranted) {
+            binding.uploadConsent.isChecked = s.consentGranted
         }
         binding.uploadConsent.isEnabled = !s.requestInFlight
     }
 
-    /** 「查询一次结果」：仅 pending 且请求不在途时可见可点。 */
+    /**
+     * 「查询一次结果」：仅 pending 且请求不在途时可点；自动查询在途期间禁用（防与自动查询撞车，
+     * 契约 L80 禁止重复发送），5 次自动查询用尽后（pendingManualAvailable=true）恢复人工可点。
+     */
     private fun renderPendingRefresh(s: EmergencyFlowUiState) {
         val visible = s.pendingRecognitionId != null
+        val enabled = visible && !s.requestInFlight && s.pendingManualAvailable
         binding.pendingRefreshButton.isVisible = visible
-        binding.pendingRefreshButton.isEnabled = visible && !s.requestInFlight
-        binding.pendingRefreshButton.alpha = if (visible && !s.requestInFlight) 1f else 0.5f
+        binding.pendingRefreshButton.isEnabled = enabled
+        binding.pendingRefreshButton.alpha = if (enabled) 1f else 0.5f
     }
 
     /** 遮罩期与链路进行中（含 pending 查询在途）都不让重复按快门，其余时候按 CameraCaptureViewModel 的结论放行。 */

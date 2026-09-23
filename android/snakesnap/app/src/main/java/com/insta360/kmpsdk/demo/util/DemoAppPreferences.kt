@@ -24,6 +24,12 @@ object DemoAppPreferences {
         const val LOGCAT_DUMP_ENABLED = "logcat_dump_enabled"
         const val SDK_LOG_LEVEL = "sdk_log_level"
         const val RECENT_BLE_DEVICES = "recent_ble_devices"
+
+        /**
+         * 紧急流程「上传照片用于识别」的一次性明示授权。默认 false（未授权 = 原图不发送）。
+         * 授权状态只认本键，不走 View 的 saveInstanceState，避免进程重建后状态与实际授权不一致。
+         */
+        const val EMERGENCY_UPLOAD_CONSENT_GRANTED = "emergency_upload_consent_granted"
     }
 
     private fun get(context: Context): SharedPreferences =
@@ -53,6 +59,20 @@ object DemoAppPreferences {
     fun persistLogcatDumpEnabled(context: Context, enabled: Boolean) {
         get(context).edit()
             .putBoolean(DemoAppPreferences.Keys.LOGCAT_DUMP_ENABLED, enabled)
+            .apply()
+    }
+
+    /**
+     * 读取紧急流程的上传授权标记。默认 false：未明示授权前，照片不发送（安全红线）。
+     * 一次授权长期有效；撤销（[persistEmergencyUploadConsent] 传 false）立即生效。
+     */
+    fun readEmergencyUploadConsentGranted(context: Context): Boolean =
+        get(context).getBoolean(Keys.EMERGENCY_UPLOAD_CONSENT_GRANTED, false)
+
+    /** 写入紧急流程的上传授权标记：同意传 true，撤销传 false（撤销会清掉标记）。 */
+    fun persistEmergencyUploadConsent(context: Context, granted: Boolean) {
+        get(context).edit()
+            .putBoolean(Keys.EMERGENCY_UPLOAD_CONSENT_GRANTED, granted)
             .apply()
     }
 

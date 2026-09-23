@@ -24,6 +24,7 @@ import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -69,8 +70,12 @@ data class EmergencyFlowUiState(
     val progressPercent: Int = -1,
     /** 是否配置了真实识别代理（baseUrl 与 token 都非空）。false 即 MOCK 降级模式。 */
     val liveEnabled: Boolean = false,
-    /** 上传同意开关是否勾选。默认未勾选：原图不发送（安全红线）。 */
-    val uploadConsent: Boolean = false,
+    /**
+     * 一次性上传授权是否已授予。默认 false：原图不发送（安全红线）。
+     * 状态只认 [com.insta360.kmpsdk.demo.util.DemoAppPreferences] 持久化，
+     * 不走 View 的 saveInstanceState，避免进程重建后与实际授权不一致。
+     */
+    val consentGranted: Boolean = false,
     /** 真实识别请求是否在途（upload 或 refresh），用于禁用按钮并显示等待文案。 */
     val requestInFlight: Boolean = false,
     /** 结果来源标注是否显示。 */
@@ -83,8 +88,15 @@ data class EmergencyFlowUiState(
     val summaryText: String = "",
     val candidates: List<EmergencyCandidateUi> = emptyList(),
     val resultSourceName: String = "",
-    /** 非空表示结果处于 pending，等待人工点击「查询一次结果」。 */
+    /** 非空表示结果处于 pending，正在有界自动查询或已退回人工查询。 */
     val pendingRecognitionId: String? = null,
+    /** 已完成的**自动**查询次数，用于「第 N/5 次」文案。 */
+    val pendingAutoAttempts: Int = 0,
+    /**
+     * 自动查询是否已停止并退回人工单次查询（5 次用尽）。
+     * false 时人工按钮可见但禁用（自动查询在途，避免与自动查询撞车 → 契约 L80 禁止重复发送）。
+     */
+    val pendingManualAvailable: Boolean = false,
     /**
      * 求助出口（病例卡 / 医院）是否可点。
      * 按产品红线恒为 true —— 见 [EmergencyFlowPolicy.helpExitsEnabled]。
@@ -102,7 +114,12 @@ data class EmergencyFlowUiState(
  *
  * 识别双路径：构建期注入的 baseUrl 与 token **都非空**时走 [HttpRecognitionAdapter] 真实识别，
  * 否则降级 [MockRecognitionAdapter]（本地 fixture，不发网络请求）。见 [recognitionModeOf]。
- * 契约规定 pending 不自动轮询、不自动重试，只能人工触发一次 refresh，见 [PendingRefreshPolicy]。
+ *
+ * pending 处理（2026-09-24 契约修订，见 contracts/recognition-contract.md 第 3 节修订块）：
+ * 真实供应商几乎总是先返回 pending，故上传后执行**有界自动查询**——间隔
+ * [PendingRefreshPolicy.PENDING_REFRESH_INTERVAL_MS]、最多 [PendingRefreshPolicy.PENDING_REFRESH_MAX_ATTEMPTS] 次，
+ * 遇 409/429/504 或任何失败立即停止（不自动重试），超限后退回人工单次查询。见 [PendingRefreshPolicy.nextAutoStep]。
+ * 上传本身仍不自动重试。
  */
 class EmergencyFlowViewModel(
     application: Application,
@@ -118,7 +135,12 @@ class EmergencyFlowViewModel(
     )
 
     private val _ui = MutableStateFlow(
-        EmergencyFlowUiState(liveEnabled = recognitionMode == RecognitionMode.LIVE)
+        EmergencyFlowUiState(
+            liveEnabled = recognitionMode == RecognitionMode.LIVE,
+            // 授权状态只认持久化存储：一次明示授权、后续零操作（进程重建不丢、不走 saveInstanceState）。
+            consentGranted = com.insta360.kmpsdk.demo.util.DemoAppPreferences
+                .readEmergencyUploadConsentGranted(application),
+        )
     )
     val ui: StateFlow<EmergencyFlowUiState> = _ui.asStateFlow()
 
@@ -127,6 +149,7 @@ class EmergencyFlowViewModel(
 
     private var pipelineJob: Job? = null
     private var refreshJob: Job? = null
+    private var autoRefreshJob: Job? = null
     private var activeCall: RecognitionCall? = null
 
     /** 传给病例卡的本机图片 Uri（FileProvider content Uri），失败时为 null。 */
@@ -135,6 +158,9 @@ class EmergencyFlowViewModel(
 
     /** pending 后人工 refresh 要复用同一个 adapter（含同一份代理配置），故保留引用。 */
     private var pendingAdapter: RecognitionAdapter? = null
+
+    /** 最近一次自动查询的错误码；非 null 时 nextAutoStep 判 STOP_NO_RETRY。新一轮链路重置为 null。 */
+    private var lastAutoRefreshErrorCode: RecognitionErrorCode? = null
 
     /**
      * 构造真实识别适配器。真实模式必须 mockScenario=null，
@@ -179,12 +205,16 @@ class EmergencyFlowViewModel(
     }
 
     /**
-     * 上传同意开关。默认未勾选：原图默认不发送（安全红线）。
-     * 真实模式下未勾选即点识别，[HttpRecognitionAdapter] 会在本地直接失败
+     * 上传授权（一次明示、后续零操作）。默认未授权：原图不发送（安全红线）。
+     * 授权/撤销立即持久化，进程重建后仍以存储为准（见 [com.insta360.kmpsdk.demo.util.DemoAppPreferences]）。
+     * 真实模式下未授权即点识别，[HttpRecognitionAdapter] 会在本地直接失败
      * UPLOAD_CONSENT_REQUIRED，不发出任何网络请求。
      */
     fun onUploadConsentChanged(consent: Boolean) {
-        _ui.update { if (it.uploadConsent == consent) it else it.copy(uploadConsent = consent) }
+        if (!UploadConsentGatePolicy.gateRequired(_ui.value.liveEnabled)) return
+        com.insta360.kmpsdk.demo.util.DemoAppPreferences
+            .persistEmergencyUploadConsent(getApplication(), consent)
+        _ui.update { if (it.consentGranted == consent) it else it.copy(consentGranted = consent) }
     }
 
     fun onHelpClicked(bitten: Boolean) {
@@ -240,10 +270,12 @@ class EmergencyFlowViewModel(
     fun onCaptureFinished(isPhoto: Boolean, filePaths: List<String>) {
         pipelineJob?.cancel()
         refreshJob?.cancel()
+        autoRefreshJob?.cancel()
         preparedImageUri = null
         preparedAt = null
         activeCall = null
         pendingAdapter = null
+        lastAutoRefreshErrorCode = null
 
         if (!EmergencyFlowPolicy.shouldEnterPipeline(isPhoto)) {
             _ui.update {
@@ -251,7 +283,7 @@ class EmergencyFlowViewModel(
                     connected = it.connected,
                     captureEnabled = it.captureEnabled,
                     liveEnabled = recognitionMode == RecognitionMode.LIVE,
-                    uploadConsent = it.uploadConsent,
+                    consentGranted = it.consentGranted,
                     stage = EmergencyStage.FAILED,
                     stageText = str(R.string.emergency_flow_video_skipped_title),
                     detailText = str(R.string.emergency_flow_video_skipped_detail),
@@ -275,6 +307,8 @@ class EmergencyFlowViewModel(
                 candidates = emptyList(),
                 resultSourceName = "",
                 pendingRecognitionId = null,
+                pendingAutoAttempts = 0,
+                pendingManualAvailable = false,
                 imageWarningText = "",
                 requestInFlight = false,
             )
@@ -332,8 +366,11 @@ class EmergencyFlowViewModel(
         )
         val adapter = createAdapter()
         pendingAdapter = adapter
-        val result = runRecognition(adapter, image?.jpeg, uploadConsent = _ui.value.uploadConsent)
+        val result = runRecognition(adapter, image?.jpeg, uploadConsent = _ui.value.consentGranted)
         renderResult(result, imageMissing = image == null)
+        // 上传返回 pending 时，立即启动有界自动查询（间隔 2 秒、最多 5 次）；
+        // 绝不无限轮询，任何失败/超限即停并退回人工单次查询。见 startAutoRefreshIfPending。
+        startAutoRefreshIfPending()
     }
 
     /**
@@ -508,6 +545,95 @@ class EmergencyFlowViewModel(
         }
     }
 
+    /**
+     * 有界自动查询执行层（2026-09-24 契约修订，见 contracts/recognition-contract.md 第 3 节修订块）。
+     *
+     * 每一步都由纯函数 [PendingRefreshPolicy.nextAutoStep] 决策：
+     * - CONTINUE：等 [PendingRefreshPolicy.PENDING_REFRESH_INTERVAL_MS]（2 秒）后自动查询一次；
+     * - STOP_TO_MANUAL：5 次用尽仍 pending → 置 pendingManualAvailable=true，退回人工单次查询；
+     * - STOP_NO_RETRY：任何失败（含 409/429/504）→ 立即停，渲染失败，不自动重试；
+     * - STOP_DONE / STOP_CANCELLED：渲染结果 / 静默退出。
+     *
+     * 结构上不存在无限轮询：循环次数由 nextAutoStep 的上限分支保证。
+     */
+    private fun startAutoRefreshIfPending() {
+        val state = _ui.value
+        if (state.pendingRecognitionId == null || state.stage != EmergencyStage.PENDING) return
+        val adapter = pendingAdapter ?: return
+        autoRefreshJob?.cancel()
+        autoRefreshJob = viewModelScope.launch {
+            var attempts = state.pendingAutoAttempts
+            while (true) {
+                val step = PendingRefreshPolicy.nextAutoStep(
+                    attemptsSoFar = attempts,
+                    pendingRecognitionId = _ui.value.pendingRecognitionId,
+                    lastErrorCode = lastAutoRefreshErrorCode,
+                    cancelled = !isActive,
+                )
+                when (step) {
+                    AutoRefreshStep.CONTINUE -> {
+                        _ui.update {
+                            it.copy(
+                                requestInFlight = true,
+                                pendingAutoAttempts = attempts,
+                                pendingManualAvailable = false,
+                                stageText = str(R.string.emergency_flow_stage_pending),
+                                detailText = str(
+                                    R.string.emergency_flow_pending_auto_detail,
+                                    attempts + 1,
+                                    PendingRefreshPolicy.PENDING_REFRESH_MAX_ATTEMPTS,
+                                ),
+                            )
+                        }
+                        delay(PendingRefreshPolicy.PENDING_REFRESH_INTERVAL_MS)
+                        val id = _ui.value.pendingRecognitionId
+                        if (id == null || !isActive) break
+                        val result = runAdapterRefresh(adapter, id)
+                        attempts++
+                        lastAutoRefreshErrorCode = (result as? RecognitionResult.Failure)?.error?.code
+                        _ui.update { it.copy(requestInFlight = false, pendingAutoAttempts = attempts) }
+                        when (result) {
+                            is RecognitionResult.Success -> {
+                                renderSuccess(result.response)
+                                // 终态渲染后循环会由下一轮 nextAutoStep 判 STOP_DONE / STOP_TO_MANUAL。
+                                if (PendingRefreshPolicy.pendingRecognitionId(
+                                        result.response.status, result.response.recognitionId,
+                                    ) == null
+                                ) break
+                            }
+                            is RecognitionResult.Failure -> {
+                                renderFailure(result, imageMissing = false)
+                                break // STOP_NO_RETRY 语义：失败立即停，绝不自动重试。
+                            }
+                            null -> {
+                                renderNoResult()
+                                break
+                            }
+                        }
+                    }
+                    AutoRefreshStep.STOP_TO_MANUAL -> {
+                        _ui.update {
+                            it.copy(
+                                requestInFlight = false,
+                                pendingManualAvailable = true,
+                                stageText = str(R.string.emergency_flow_stage_pending_manual),
+                                detailText = str(R.string.emergency_flow_pending_manual_detail),
+                            )
+                        }
+                        break
+                    }
+                    AutoRefreshStep.STOP_NO_RETRY,
+                    AutoRefreshStep.STOP_DONE,
+                    AutoRefreshStep.STOP_CANCELLED,
+                    -> {
+                        _ui.update { it.copy(requestInFlight = false) }
+                        break
+                    }
+                }
+            }
+        }
+    }
+
     private fun renderResult(result: RecognitionResult?, imageMissing: Boolean) {
         _ui.update { it.copy(requestInFlight = false) }
         when (result) {
@@ -617,7 +743,7 @@ class EmergencyFlowViewModel(
                 connected = it.connected,
                 captureEnabled = it.captureEnabled,
                 liveEnabled = recognitionMode == RecognitionMode.LIVE,
-                uploadConsent = it.uploadConsent,
+                consentGranted = it.consentGranted,
                 stage = EmergencyStage.FAILED,
                 stageText = title,
                 detailText = detail,
@@ -652,6 +778,7 @@ class EmergencyFlowViewModel(
     override fun onCleared() {
         pipelineJob?.cancel()
         refreshJob?.cancel()
+        autoRefreshJob?.cancel()
         activeCall?.cancel()
         activeCall = null
         super.onCleared()
