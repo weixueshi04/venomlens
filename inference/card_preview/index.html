@@ -1,39 +1,64 @@
 <!doctype html>
-<html lang="zh-CN">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' blob:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<html lang="zh-CN" data-page-node-id="0dAKEjADrEvAbtWJClrjjX">
+<head data-page-node-id="G49gW5duW6ysNx4sbP58sP">
+  <meta charset="utf-8" data-page-node-id="zx0K2U2Sngu3Pr32OkEMUX">
+  <meta name="viewport" content="width=device-width, initial-scale=1" data-page-node-id="zZJX64XLAHeYjJlE8dATp5">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' blob:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'" data-page-node-id="qUkYAK4G0dHXDcQOMrEbfs">
   <title>一拍知蛇 · 物种卡离线演示</title>
-  <link rel="stylesheet" href="cards.css">
+  <link rel="stylesheet" href="cards.css" data-page-node-id="TIX4kkbEaMA1sN14QLFvFN">
   <script src="cards.js" defer></script>
 </head>
-<body>
-  <header class="topbar"><a class="brand" href="#">一拍知蛇<span>两爬青年 / BOLDMAKER 2026</span></a><span class="pill lime">本机离线演示 · MOCK</span></header>
-  <main>
-    <section class="intro"><div><p class="eyebrow">看见候选，也看见不确定。</p><h1>不止知道名字，<br>把照片放在一起看。</h1></div><p class="intro-note">以下为固定模拟响应与物种卡设计预览，<strong>不是对所选照片的真实识别</strong>。照片只在当前浏览器显示，不上传、不保存，不产生模型调用。</p></section>
-    <div class="workspace">
-      <aside class="capture panel">
-        <div class="section-title"><h2>你的照片</h2><span class="mini-label">仅本机预览</span></div>
-        <label class="image-picker" for="image-input"><img id="input-preview" alt="所选本地照片预览" hidden><span id="image-placeholder">＋<br><b>选择一张已有照片</b><small>JPEG · 最多 2 MB<br>不用为演示靠近或拍摄蛇</small></span></label>
-        <input id="image-input" type="file" accept="image/jpeg"><p id="image-info" class="muted">不选照片也可演示固定响应。</p><button id="clear-image" class="text-button" type="button">清除照片与旧结果</button>
-        <div class="separator"></div>
-        <label class="field-label" for="scenario">模拟识别场景</label><select id="scenario"><option value="candidates">单候选</option><option value="multiple">不确定 · 多候选</option><option value="uncertain">无法判断</option><option value="no_snake">未检测到蛇</option><option value="pending">识别处理中</option><option value="timeout">请求超时</option><option value="invalid_output">输出格式错误</option></select>
-        <button id="run" class="primary" type="button" disabled>演示识别</button><button id="refresh" class="secondary" type="button" hidden>手动查询一次</button>
-        <label class="switch"><input id="strict" type="checkbox">仅显示已核验材料</label><p class="muted">开关只预览审核策略；两种模式都不会联网识别。</p>
-        <details class="catalog-picker"><summary>单独查看物种卡设计</summary><label class="field-label" for="catalog">这里不是识别结果</label><select id="catalog"><option value="">选择物种</option></select></details>
-        <button id="help" class="help-button" type="button">已被咬伤？查看通用求助提醒</button>
+<body data-page-node-id="GhzzooF9zc8zK8zSDbiQrl">
+  <svg class="sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" data-page-node-id="nRZNj67hI8Eq8WDv4swX78">
+    <symbol id="i-heart" viewBox="0 0 24 24" data-page-node-id="IC3gdqGRUAPZzYs4SW19ws"><path d="M12 19.2s-7.4-4.5-7.4-9.6A4.1 4.1 0 0 1 12 6.9a4.1 4.1 0 0 1 7.4 2.7c0 5.1-7.4 9.6-7.4 9.6z" data-page-node-id="37KvSnaHNGHqk92UsMHXFp"/></symbol>
+    <symbol id="i-cross" viewBox="0 0 24 24" data-page-node-id="a2qPcL6EUZkBuj2Eokm0Vx"><path d="M12 4.8v14.4M4.8 12h14.4" data-page-node-id="5oNKBnCLJGzjF7MFwlIsZu"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24" data-page-node-id="n44VKoIKzJF0Ya9dhBZ6H2"><path d="M12 3.4 5.2 6.1v5.2c0 4.2 2.9 7.5 6.8 9.3 3.9-1.8 6.8-5.1 6.8-9.3V6.1z" data-page-node-id="teE0IIZGLMAfBVrk0E0GIB"/></symbol>
+    <symbol id="i-hills" viewBox="0 0 24 24" data-page-node-id="IL4k1LHAtR4XJw1Qd2HPiS"><path d="M2.8 18.2 9.1 8.3l3.7 5.6 2.4-3.3 6 7.6z" data-page-node-id="5zaNDmObAE1s41I2TDkkC1"/></symbol>
+    <symbol id="i-leaf" viewBox="0 0 24 24" data-page-node-id="oIFJHAYGTw9198HS1rKxEd"><path d="M20 4c0 8.3-4.9 12.6-11 12.6H5.2C5.2 8.6 11.4 4 20 4zM5.6 19.4c1.8-4.3 5-7.4 9.3-9.1" data-page-node-id="uXqFZaeXDpyDHGACPXd6Q7"/></symbol>
+    <symbol id="i-image" viewBox="0 0 24 24" data-page-node-id="YUq41hTq1yqoGuVTZ46Una"><path d="M4 5.6h16v12.8H4zM4 15.2l4.6-4.2 3.5 3.1 2.9-2.5 5 4.4M15.1 9.3h.02" data-page-node-id="Q2H88rYvRwE8fXDCm93WoK"/></symbol>
+    <symbol id="i-arrow-down" viewBox="0 0 24 24" data-page-node-id="JV5Z7zd1bYrTnxmFalSlPK"><path d="M12 5.2v13.2M6.6 13.2 12 18.6l5.4-5.4" data-page-node-id="VA2UsymmYSzCSZEDRAqGSe"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24" data-page-node-id="jBu7ENhypv5BZDQPBfJ48S"><path d="M12 3.4a8.6 8.6 0 1 0 0 17.2 8.6 8.6 0 0 0 0-17.2zM12 11.2v5.4M12 7.8h.02" data-page-node-id="BL9IydPQfSyGNooVsHLj3B"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24" data-page-node-id="8WRzAG5P13rtEF6epu4r7w"><path d="M4.8 12.6 9.6 17.4 19.2 6.8" data-page-node-id="rG63JpMUzYdky9tdUa5EWA"/></symbol>
+    <symbol id="i-list" viewBox="0 0 24 24" data-page-node-id="o3e2pcohB7JcPu45UDYZYH"><path d="M4.4 6.6h15.2M4.4 12h15.2M4.4 17.4h15.2" data-page-node-id="Ln4pzFCudW1gOWGcyVYqGB"/></symbol>
+    <symbol id="i-external" viewBox="0 0 24 24" data-page-node-id="66NbZ2SJZuDtruMB4wDfkF"><path d="M14 4.6h5.4V10M19.4 4.6 11 13M18 14.6v4.8H4.6V6h4.8" data-page-node-id="pcuv1OY6cj9W1kFBQXBW4C"/></symbol>
+  </svg>
+  <header class="topbar" role="banner" data-page-node-id="26DLI29lqdhPevTaI6Kf56"><a class="brand" href="#" data-page-node-id="SuXFhApolJ5osa17wUX4ki">一拍知蛇<span data-page-node-id="AkAs2MjdGEzg0UcGdX66qB">两爬青年 / BOLDMAKER 2026</span></a><span class="pill pill--mock" data-page-node-id="zZtR2z4YkIKVCnF3r9CNxE">本机离线演示 · MOCK</span></header>
+  <div class="care-bar" role="region" aria-labelledby="care-bar-title" data-page-node-id="T1UrF2noHCvrAmmVPFXmkG">
+    <svg class="icon care-bar__icon" aria-hidden="true" focusable="false" data-page-node-id="ccNZsrYBOODvw3RsXYn5Av"><use href="#i-heart" data-page-node-id="ChoPjTDzuNTABLqKA4AeEJ"/></svg>
+    <p class="care-bar__lead" id="care-bar-title" data-page-node-id="kXxFrOtKSHPsyUmJvEFWxx"><span class="sr-only" data-page-node-id="23T54Xajv7iOzAsTKV3T8c">紧急求助　</span>别急，我们一步步来。下面的提醒不随识别结果改变，随时可看。</p>
+    <button id="help" class="care-bar__cta" type="button" data-page-node-id="7drPrKbkh6iTBXL3FvOuKm">已被咬伤？查看通用求助提醒<svg class="icon icon--sm" aria-hidden="true" focusable="false" data-page-node-id="C2sfnvJd9FpSdzmxh8ja8w"><use href="#i-arrow-down" data-page-node-id="jFuGLF7TcFoqmnt55DU2Lo"/></svg></button>
+  </div>
+  <main data-page-node-id="LjuYDTEhnDEs1lOlwmlTEL">
+    <section class="intro" data-page-node-id="0t86Ilo5MnD0r7zaXVB3l1"><div data-page-node-id="RCQ8GVvaLmcbff75V4cEDD"><p class="eyebrow" data-page-node-id="phwRR7SGrz7Lppbxitj99z">看见候选，也看见不确定。</p><h1 data-page-node-id="RgzCk3pq5D3yGga4EIkUSO">先知道该做什么，<br data-page-node-id="dYTq9QnRvAHhKZWi66oEzD">再看清是什么蛇。</h1></div><p class="intro-note" data-page-node-id="6DCHsFNxl9KG5l1Gh8k07I">以下为固定模拟响应与物种卡设计预览，<strong data-page-node-id="i9n2IhrndraLZfaW5ownF3">不是对所选照片的真实识别</strong>。照片只在当前浏览器显示，不上传、不保存，不产生模型调用。</p></section>
+    <div class="workspace" data-page-node-id="fAHA3wiqGWqRg99KdFQaJ3">
+      <aside class="capture panel" data-page-node-id="H2xHBgbyy1c9BdabHROgbD">
+        <div class="section-title" data-page-node-id="pstiufkDZwZNmhFvGreuLk"><h2 data-page-node-id="RBcpoXoDX189VhY8lqSTN7">你的照片</h2><span class="mini-label" data-page-node-id="MtWj9654cEdByBMMaiLISR">仅本机预览</span></div>
+        <label class="image-picker" for="image-input" data-page-node-id="RNKWdKYcnTH8W9xor2E2pn"><img id="input-preview" alt="所选本地照片预览" hidden data-page-node-id="CH4AOE53G1AmTmDG7F3pL0"><span id="image-placeholder" data-page-node-id="Ic7RMGAJPmLFUqe3ADXBpk">＋<br data-page-node-id="oRb7RFmhEG5qJlx6kBAflZ"><b data-page-node-id="f0cEKN5unBABrH5gWhNxSM">选择一张已有照片</b><small data-page-node-id="MDpEDeCj5vfLFGrFSjhiCB">JPEG · 最多 2 MB<br data-page-node-id="bo9dkt0Ouj3UPsGnNSxJqZ">不用为演示靠近或拍摄蛇</small></span></label>
+        <input id="image-input" type="file" accept="image/jpeg" data-page-node-id="Ia2xJ8CC8ZkJQkDSBh2Ffz"><p id="image-info" class="muted" data-page-node-id="i9qACmmMzsqHAbPmC5Uf4k">不选照片也可演示固定响应。</p><button id="clear-image" class="text-button" type="button" data-page-node-id="O3saYpZ46jw6dCN8o5su2Z">清除照片与旧结果</button>
+        <div class="separator" data-page-node-id="jVGhPC9u0bmjTLOfGtEnB7"></div>
+        <label class="field-label" for="scenario" data-page-node-id="dgJz68g0AOpi9PoVQz51iK">模拟识别场景</label><select id="scenario" data-page-node-id="ALHnrexjp6FHvAErGLAwwE"><option value="candidates" data-page-node-id="Uv2GAYvhFiCpHtGaFlxhAI">单候选</option><option value="multiple" data-page-node-id="VtWt1zAGkIpE1zSTAv8YvR">不确定 · 多候选</option><option value="uncertain" data-page-node-id="y0Mt6rTmVoqHoBXfD5K3cw">无法判断</option><option value="no_snake" data-page-node-id="gnOIsAvRL3rW5cuEoyCoVC">未检测到蛇</option><option value="pending" data-page-node-id="cLJMWvhdfUJU0nyGHO9CAy">识别处理中</option><option value="timeout" data-page-node-id="Xl8gGdjamohADKNtjOTJ5P">请求超时</option><option value="invalid_output" data-page-node-id="tvEb5i8NVk5Z7dy4v9WvhP">输出格式错误</option></select>
+        <p id="scenario-hint" class="hint" aria-live="polite" data-page-node-id="JvvEWDHizw7Azs8yWpaOvg">当前为模拟场景（MOCK），不会调用识别模型。</p>
+        <button id="run" class="primary" type="button" disabled data-page-node-id="GMQZ4u2D8gJH8qN04M4Dms">演示识别</button><button id="refresh" class="secondary" type="button" hidden data-page-node-id="0sCM3MwUdB1MBqUMendNBx">手动查询一次</button>
+        <label class="switch" data-page-node-id="iCA1s0ZEQ8sQJo4qu3GYl0"><input id="strict" type="checkbox" data-page-node-id="TTz7NeXKXRzMMNIQnrTJcK">仅显示已核验材料</label><p class="muted" data-page-node-id="cHO8eebFsO97SjyS0BIInU">开关只预览审核策略；两种模式都不会联网识别。</p>
+        <details class="catalog-picker" data-page-node-id="RDCsA3US9dmVgveP7lWebl"><summary data-page-node-id="mKdwGECqfyTNuzugjYLcfA">单独查看物种卡设计</summary><label class="field-label" for="catalog" data-page-node-id="0RNP9DCQNFOUdfnqaagfNV">这里不是识别结果</label><select id="catalog" data-page-node-id="MORWUzdaXWZvExOSg9GlpH"><option value="" data-page-node-id="A9ImPPAyD5yE1ymaMLZG7d">选择物种</option></select></details>
       </aside>
-      <section class="results" aria-live="polite" aria-busy="false">
-        <div class="result-head"><div><p id="result-source" class="eyebrow">等待演示</p><h2 id="result-title">候选不是结论。</h2></div><span id="request-id" class="request-id"></span></div>
-        <p id="result-note" class="muted">选择模拟场景，或单独预览物种卡；无法判断时，同样可以查看求助提醒。</p>
-        <div id="result-error" class="error" role="alert" hidden></div>
-        <div id="cards" class="cards"><div class="empty"><span>01 / 选择照片或场景</span><h3>原图、参考图与不确定性，<br>在同一屏被看见。</h3><p>物种名称、说明文案和照片分别审核。<br>未经审核的内容只用于带标记的演示。</p></div></div>
-        <section id="safety" class="safety" tabindex="-1"><p class="eyebrow">不随候选改变的安全底线</p><h2>不要等“认准了”，才去求助。</h2><ul id="safety-list"><li>与蛇保持距离，不追赶、触碰或为辨认而靠近。</li><li>候选和参考照片不能判断有毒无毒，也不能排除危险。</li><li>如已被咬伤，尽快联系急救并就医，不等待识别或照片比对。</li></ul><p>不提供诊断、用药或血清建议；本演示不提供医院实时库存。</p></section>
+      <section class="results" aria-live="polite" aria-busy="false" aria-labelledby="result-title" data-page-node-id="pDhjoXyRnHngc4M9m9dCe6">
+        <div class="result-head" data-page-node-id="lwwnmyXr9bhkviN1pNH4IA"><div data-page-node-id="j4zo6PeFDE0fVY4bBRHtGE"><p id="result-source" class="eyebrow" data-page-node-id="YYUdJiTM4hI1F1OvdCwHZa">等待演示</p><h2 id="result-title" data-page-node-id="i3lOHd1ZwF8jkGN6EyZhQ2">候选不是结论。</h2><p id="result-echo" class="result-echo" aria-hidden="true" data-page-node-id="UfRCSaqGCxlQJxjUdDMwwX">随时可查看下方的求助提醒</p></div><span id="request-id" class="request-id" data-page-node-id="2KGK7UqzmiHrNf6c0xUaSK"></span></div>
+        <p id="result-note" class="muted" data-page-node-id="RAheICatLYObQaUsTuS36Z">选择模拟场景，或单独预览物种卡；无法判断时，同样可以查看求助提醒。</p>
+        <div id="result-error" class="error" role="alert" hidden data-page-node-id="fgBORE1GXIqlgfjUDKAc9Q"></div>
+        <div id="cards" class="cards" data-page-node-id="E4X3wA4IBPPgPoRtnhCDBq"><div class="empty" data-page-node-id="hdYzlAtEC3O8s0GWfyIXu6"><svg class="icon icon--lg" aria-hidden="true" focusable="false" data-page-node-id="0csulGiq6uDdYGfrAFIVfy"><use href="#i-hills" data-page-node-id="DW6k1QhkMAvGTXnkQ0MH8C"/></svg><span data-page-node-id="QA6sLE5VTpK2UnuhRG4lMs">01 / 选择照片或场景</span><h3 data-page-node-id="t0rcE8VxGN1bDWAc2HmBWE">原图、参考图与不确定性，<br data-page-node-id="RnIsJXSEplOCyYCmINGSIK">在同一屏被看见。</h3><p data-page-node-id="wKJVbiiiyZ0PYlewi5vVUs">物种名称、说明文案和照片分别审核。<br data-page-node-id="JgCaABcEeat3Z9HBK9ZVB6">未经审核的内容只用于带标记的演示。</p><p data-page-node-id="pkxeUU0JZLgQ3xFlEHOtzx">不选照片也能演示；求助提醒随时可看。</p></div></div>
+        <section id="safety" class="safety" tabindex="-1" aria-labelledby="safety-title" data-page-node-id="zKE4PNs5r0nhSeW9sAqzrp">
+          <div class="safety-inner" data-page-node-id="tR52v95J5sFGiZnA6uaoVO">
+            <p class="eyebrow" data-page-node-id="DCFyGFkOHLxpEC1UET8CyI">不随候选改变的安全底线</p>
+            <h2 id="safety-title" data-page-node-id="pYuBq8mJXHqtXB9D8miIJz">不要等“认准了”，才去求助。</h2>
+            <ul id="safety-list" data-page-node-id="dTNraZ5UvFz3K9hQVdIW9k"><li data-page-node-id="szMWThVVXCJwzsPsKGWOJE">与蛇保持距离，不追赶、触碰或为辨认而靠近。</li><li data-page-node-id="eLyuRRRTVuDdsUx9w5ICbZ">候选和参考照片不能判断有毒无毒，也不能排除危险。</li><li data-page-node-id="NFuvLt9Hr0qPSkAvVJFzM8">如已被咬伤，尽快联系急救并就医，不等待识别或照片比对。</li></ul>
+            <p data-page-node-id="b4giLmdMMz66OLeHknc4pK">不提供诊断、用药或血清建议；本演示不提供医院实时库存。</p>
+          </div>
+        </section>
       </section>
     </div>
-    <footer>名称核验 ≠ 文案审核 ≠ 照片核验　·　参考照片不代表所有年龄、地区或宠物品系的外观。<br>卡片数据与识别响应分离，Android 可按 speciesId 接入；本页不是 Android 真机验收证据。</footer>
   </main>
-  <dialog id="photo-dialog"><div class="dialog-top"><b>参考图放大查看</b><button id="close-dialog" class="secondary" type="button">关闭</button></div><img id="dialog-image" alt="参考图大图"><p id="dialog-credit"></p><p class="muted">仅比对已有照片，不要接近蛇确认细节。</p></dialog>
+  <footer role="contentinfo" data-page-node-id="Z9afCDlocdN3PfZberDfNX">名称核验 ≠ 文案审核 ≠ 照片核验　·　参考照片不代表所有年龄、地区或宠物品系的外观。<br data-page-node-id="PUVxx4jsBHHOtS3Q2pCu2c">卡片数据与识别响应分离，Android 可按 speciesId 接入；本页不是 Android 真机验收证据。</footer>
+  <dialog id="photo-dialog" data-page-node-id="UgWtNLGn12ZdgO1H8yvkGB"><div class="dialog-top" data-page-node-id="zbNfojjU9VLfR0rCl3yRBE"><b data-page-node-id="qAlPDMlfOQ9uSV4BL216X5">参考图放大查看</b><button id="close-dialog" class="secondary dialog-close" type="button" data-page-node-id="TJUXQdEdHRN2mjGjSTwJtO">关闭</button></div><img id="dialog-image" alt="参考图大图" data-page-node-id="jvnzHLw7q8dWQfGgTKmMJ3"><p id="dialog-credit" data-page-node-id="T2pmaXFOZT15dwpXVmhCP5"></p><p class="muted" data-page-node-id="ZxEV5SfAUGrA6kJhw2xVDV">仅比对已有照片，不要接近蛇确认细节。</p></dialog>
 </body>
 </html>

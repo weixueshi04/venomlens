@@ -31,6 +31,72 @@ function busy(value) {
   $('refresh').disabled = value;
   document.querySelector('.results').setAttribute('aria-busy', String(value));
 }
+
+/* ========== 视觉层增补（card_preview 公益化重设计新增；不得改动上方任何既有函数） ========== */
+
+/** 图标 path 表 —— 与 index.html sprite 的 symbol id 一一对应；仅 sprite 缺失时回退用 */
+const ICON_PATHS = {
+  hills:       'M2.8 18.2 9.1 8.3l3.7 5.6 2.4-3.3 6 7.6z',
+  leaf:        'M20 4c0 8.3-4.9 12.6-11 12.6H5.2C5.2 8.6 11.4 4 20 4zM5.6 19.4c1.8-4.3 5-7.4 9.3-9.1',
+  shield:      'M12 3.4 5.2 6.1v5.2c0 4.2 2.9 7.5 6.8 9.3 3.9-1.8 6.8-5.1 6.8-9.3V6.1z',
+  info:        'M12 3.4a8.6 8.6 0 1 0 0 17.2 8.6 8.6 0 0 0 0-17.2zM12 11.2v5.4M12 7.8h.02',
+  'arrow-down':'M12 5.2v13.2M6.6 13.2 12 18.6l5.4-5.4'
+};
+const SVG_NS = 'http://www.w3.org/2000/svg';
+
+/**
+ * 创建内联 SVG 图标（装饰性，aria-hidden）。
+ * 优先复用 HTML sprite 的 <symbol>；sprite 缺失时回退到 ICON_PATHS，保证无 sprite 也不崩。
+ * @param {string} name symbol 名（不含 'i-' 前缀）
+ * @param {string} [modifier] 追加的尺寸 class，如 'icon--lg'
+ * @returns {SVGElement}
+ */
+function icon(name, modifier) {
+  const svg = document.createElementNS(SVG_NS, 'svg');
+  svg.setAttribute('class', 'icon' + (modifier ? ' ' + modifier : ''));
+  svg.setAttribute('aria-hidden', 'true');
+  svg.setAttribute('focusable', 'false');
+  if (document.getElementById('i-' + name)) {
+    const use = document.createElementNS(SVG_NS, 'use');
+    use.setAttribute('href', '#i-' + name);
+    svg.append(use);
+  } else if (ICON_PATHS[name]) {
+    svg.setAttribute('viewBox', '0 0 24 24');
+    const path = document.createElementNS(SVG_NS, 'path');
+    path.setAttribute('d', ICON_PATHS[name]);
+    svg.append(path);
+  }
+  return svg;
+}
+
+/** 用户是否要求减少动效（每次调用即时读取，不缓存 —— 用户可能中途改系统设置） */
+function reduceMotion() { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; }
+
+/** 场景微说明文案表（P1-2）；键与 <select> 的 value 严格一致。全部带“模拟”字样（MOCK 合规） */
+const SCENARIO_HINTS = {
+  candidates:     '模拟：模型给出一个候选。仍不代表已确认。',
+  multiple:       '模拟：模型给出多个候选，不确定性更高。',
+  uncertain:      '模拟：照片不足以判断，无可靠候选。',
+  no_snake:       '模拟：未检测到蛇——不代表现场安全。',
+  pending:        '模拟：识别尚未完成，需要你手动查询一次。',
+  timeout:        '模拟：请求超时，没有结果，不自动重试。',
+  invalid_output: '模拟：模型输出格式错误，没有可用结果。'
+};
+
+/** #scenario-hint 同步（纯展示；元素缺失时静默跳过） */
+function syncScenarioHint() {
+  const hint = $('scenario-hint');
+  if (hint) hint.textContent = SCENARIO_HINTS[$('scenario').value] || '当前为模拟场景（MOCK），不会调用识别模型。';
+}
+
+/** 构建带图标的空状态块（P1-1）。message 文案由调用方传入，本函数不改文案。 */
+function emptyState(message, iconName) {
+  const box = node('div', undefined, 'empty');
+  box.append(icon(iconName || 'hills', 'icon--lg'), node('p', message));
+  return box;
+}
+/* ========== 视觉层增补结束 ========== */
+
 function clearResult(message = '选择一个固定场景，演示候选与物种卡。') {
   sequence += 1;
   currentResult = null;
@@ -39,7 +105,7 @@ function clearResult(message = '选择一个固定场景，演示候选与物种
   $('refresh').hidden = true;
   $('catalog').value = '';
   $('result-error').hidden = true;
-  $('cards').replaceChildren(node('div', message, 'empty'));
+  $('cards').replaceChildren(emptyState(message, 'hills'));
   $('result-source').textContent = '本机离线模拟 · 不产生模型调用';
   $('result-title').textContent = '候选不是结论。';
   $('result-note').textContent = '模拟结果与所选照片无关；参考图只用于设计与比对展示。';
@@ -56,12 +122,12 @@ function cardElement(speciesId) {
   title.append(node('h3', card.commonName, 'card-name'));
   if (card.scientificName) title.append(node('div', card.scientificName, 'scientific'));
   head.append(title);
-  if (card.previewOnly) head.append(node('span', '演示草稿 · 非实际辨认依据', 'pill draft'));
+  if (card.previewOnly) head.append(node('span', '演示草稿 · 非实际辨认依据', 'pill pill--pending draft'));
   body.append(head);
   const badges = node('div', undefined, 'card-badges');
-  badges.append(node('span', card.nameStatus === 'verified' ? '名称已核验' : '名称待核验', 'pill neutral'));
-  badges.append(node('span', card.contentStatus === 'verified' ? '文案已审核' : card.contentStatus === 'unavailable' ? '文案未整理' : '文案待审核', 'pill neutral'));
-  badges.append(node('span', '风险：未知', 'pill neutral'));
+  badges.append(node('span', card.nameStatus === 'verified' ? '名称已核验' : '名称待核验', card.nameStatus === 'verified' ? 'pill pill--verified' : 'pill pill--pending'));
+  badges.append(node('span', card.contentStatus === 'verified' ? '文案已审核' : card.contentStatus === 'unavailable' ? '文案未整理' : '文案待审核', 'pill ' + (card.contentStatus === 'verified' ? 'pill--verified' : card.contentStatus === 'unavailable' ? 'pill--neutral' : 'pill--pending')));
+  badges.append(node('span', '风险：未知', 'pill pill--neutral'));
   body.append(badges, node('p', card.notice, 'card-notice'));
   if (card.hook) {
     body.append(node('h4', card.hook, 'hook'));
@@ -96,8 +162,10 @@ function cardElement(speciesId) {
       });
       const caption = node('figcaption');
       caption.append(node('strong', photo.role));
-      caption.append(node('div', photo.reviewStatus === 'verified' ? '参考图已审核' : '参考图待人工核验 · 仅演示'));
-      caption.append(node('div', photo.rights), node('div', photo.source), node('div', photo.modification));
+      caption.append(node('div', photo.reviewStatus === 'verified' ? '参考图已审核' : '参考图待人工核验 · 仅演示', 'photo-status ' + (photo.reviewStatus === 'verified' ? 'photo-status--verified' : 'photo-status--pending')));
+      const creditBox = node('div', undefined, 'credit');
+      creditBox.append(node('div', photo.rights), node('div', photo.source), node('div', photo.modification));
+      caption.append(creditBox);
       if (photo.sourcePage) {
         const link = safeLink('查看原始来源（需联网）', photo.sourcePage);
         if (link) caption.append(link);
@@ -107,18 +175,23 @@ function cardElement(speciesId) {
     });
     body.append(gallery);
   } else body.append(node('p', card.hiddenImageCount ? '参考图尚未通过审核或来源核对，当前不展示。' : '尚无合适参考图，不以其他物种图片替代。', 'missing'));
+  const more = node('details', undefined, 'card-more');
+  more.append(node('summary', '更多细节：易混淆说明 · 参考来源'));
+  const moreBody = node('div', undefined, 'card-more__body');
+  more.append(moreBody);
   if (card.lookAlikes.length) {
     const details = node('details', undefined, 'lookalikes');
     details.append(node('summary', '易混淆说明（同样待审核）'));
     card.lookAlikes.forEach((item) => details.append(node('p', item.layHowToTell)));
-    body.append(details);
+    moreBody.append(details);
   }
   const links = node('div', undefined, 'links');
   card.externalRefs.forEach((ref) => {
     const link = safeLink(ref.name + '（仅供参考，需联网）', ref.url);
     if (link) links.append(link);
   });
-  if (links.childElementCount) body.append(links);
+  if (links.childElementCount) moreBody.append(links);
+  if (moreBody.childElementCount) body.append(more);
   article.append(body, node('div', '不按候选蛇种推导毒性，不生成诊断、用药或处置方案。', 'risk'));
   return article;
 }
@@ -136,14 +209,14 @@ function showResult(result) {
     $('result-note').textContent = '此处为错误模拟；不自动重试，不把失败当作没有蛇。';
     $('result-error').textContent = result.error.code + ' · ' + result.error.message;
     $('result-error').hidden = false;
-    $('cards').replaceChildren(node('div', '没有可展示的候选。可以保留原图，并直接查看下方通用提醒。', 'empty'));
+    $('cards').replaceChildren(emptyState('没有可展示的候选。可以保留原图，并直接查看下方通用提醒。', 'shield'));
     pending = false;
   } else {
     $('result-title').textContent = labels[result.status] || '未知结果状态';
     $('result-note').textContent = result.status === 'pending' ? '需要你手动点击查询；本演示没有定时轮询。' : '结果和参考图均不代表对当前照片的物种确认，也不展示概率或准确率。';
     pending = result.status === 'pending';
     if (result.candidates.length) renderCards(result.candidates.map((item) => item.speciesId));
-    else $('cards').replaceChildren(node('div', pending ? '等待一次明确的手动查询。期间仍可查看通用求助提醒。' : '无可靠候选，按未知处理。不提供“安全”结论。', 'empty'));
+    else $('cards').replaceChildren(emptyState(pending ? '等待一次明确的手动查询。期间仍可查看通用求助提醒。' : '无可靠候选，按未知处理。不提供“安全”结论。', pending ? 'leaf' : 'shield'));
   }
   $('refresh').hidden = !pending;
 }
@@ -155,7 +228,7 @@ async function runScenario(scenario) {
   pending = false;
   $('refresh').hidden = true;
   $('result-error').hidden = true;
-  $('cards').replaceChildren(node('div', '正在读取本机固定响应，不会调用识别模型。', 'empty'));
+  $('cards').replaceChildren(emptyState('正在读取本机固定响应，不会调用识别模型。', 'leaf'));
   busy(true);
   try {
     const response = await fetch('fixtures/' + scenario + '.json', {cache: 'no-store'});
@@ -174,7 +247,7 @@ async function runScenario(scenario) {
 }
 $('run').addEventListener('click', () => runScenario($('scenario').value));
 $('refresh').addEventListener('click', () => { if (pending) runScenario('candidates'); });
-$('scenario').addEventListener('change', () => clearResult());
+$('scenario').addEventListener('change', () => { clearResult(); syncScenarioHint(); });
 $('strict').addEventListener('change', () => {
   if (currentCardId) renderCards([currentCardId]);
   else if (currentResult && !currentResult.error && currentResult.candidates.length) renderCards(currentResult.candidates.map((item) => item.speciesId));
@@ -237,7 +310,14 @@ $('image-input').addEventListener('change', async () => {
     $('image-info').textContent = error instanceof DOMException ? '图片无法解码，请重新选择。' : error.message;
   }
 });
-$('help').addEventListener('click', () => { $('safety').scrollIntoView({behavior:'smooth'}); $('safety').focus({preventScroll:true}); });
+$('help').addEventListener('click', () => {
+  const safety = $('safety');
+  safety.scrollIntoView({behavior: reduceMotion() ? 'auto' : 'smooth', block: 'start'});
+  safety.focus({preventScroll: true});
+  safety.classList.remove('is-targeted');
+  void safety.offsetWidth;   /* 强制 reflow 重启动画（P1-5 “我点到了”反馈） */
+  safety.classList.add('is-targeted');
+});
 $('close-dialog').addEventListener('click', () => $('photo-dialog').close());
 window.addEventListener('beforeunload', () => { if (objectUrl) URL.revokeObjectURL(objectUrl); });
 (async () => {
@@ -264,3 +344,4 @@ window.addEventListener('beforeunload', () => { if (objectUrl) URL.revokeObjectU
     busy(false);
   }
 })();
+syncScenarioHint();   /* 初始化场景微说明（script 为 defer，DOM 已就绪） */

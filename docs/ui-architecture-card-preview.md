@@ -1025,14 +1025,14 @@ $('scenario').addEventListener('change', () => { clearResult(); syncScenarioHint
 | 基线测试状态 | ✅ `python -B -m unittest inference.tests.test_cards inference.tests.test_display_zh` → **Ran 16 tests, OK** | 本文撰写时实测 |
 | `export_bundle` 打包白名单 | `cards.py:105-106` — `for name in ("index.html","cards.js","cards.css"): shutil.copy2(...)` **恰好三个**，硬编码 | 🚨 **在 `inference/card_preview/` 下新增任何文件都不会被打包** → 交付页缺图标/缺字体而静默降级 |
 | `export_bundle` 是否因源目录多余文件报错 | ❌ 不报错（只按名 copy）。但 `test_export_has_only_sanitized_allowlisted_images` 断言 `len(list(output.rglob("*.jpg"))) == 2` 与 `report["images"] == 2` | 🚨 **在 `card_preview/` 下放 `.jpg` 不会被打包**（白名单外），但**在 `data/card_images/` 下新增 jpg 会让该测试失败**。→ **本次严禁新增任何图片文件** |
-| 导出目录实测结构 | `index.html` `cards.css` `cards.js` `species-cards.json` `SHA256SUMS.txt` `fixtures/×7` `data/card_images/×2` — 共 13 个文件 | 改动后必须仍是这 13 个（三文件内容变 → `SHA256SUMS.txt` 哈希随之变，属正常） |
+| 导出目录实测结构 | `index.html` `cards.css` `cards.js` `species-cards.json` `SHA256SUMS.txt` `fixtures/×7` `data/card_images/×2` — 共 14 个文件（**勘误**：初稿误写 13，实算 3+1+1+7+2=14；2026-09-23 实测修正） | 改动后必须仍是这 14 个（三文件内容变 → `SHA256SUMS.txt` 哈希随之变，属正常） |
 | `export_bundle` 的 SHA256 是否对三文件内容有断言 | ❌ 无。`manifest` 只是遍历 `output.rglob("*")` 生成哈希清单，不校验具体值 | 内容改动安全 |
 
 **架构级硬约束（写入验收）**：
 ```
 ✅ 改动前后，`inference/card_preview/` 目录必须恰好含 3 个文件：index.html / cards.css / cards.js
 ✅ 改动前后，`data/card_images/` 文件数与内容不变
-✅ 改动前后，导出目录必须恰好 13 个文件（含 SHA256SUMS.txt）
+✅ 改动前后，导出目录必须恰好 14 个文件（含 SHA256SUMS.txt）
 ```
 
 > 💡 **给工程师的关键提示**：源目录 `inference/card_preview/` **没有** `species-cards.json` 和 `fixtures/`（实测确认）。因此**不能直接在源目录起服务器调试** —— `cards.js:245` 的 `fetch('species-cards.json')` 会 404，页面进入 `catch` 分支显示"卡片数据未能加载"。**这是预期行为，不是 bug**。正确调试循环见 §4.4。
@@ -1103,7 +1103,7 @@ python -B -m unittest inference.tests.test_cards inference.tests.test_display_zh
 
 # —— 步骤 5：收尾前做一次"全量导出"验证（确认三文件白名单与 13 文件结构）——
 OUT2="$TEMP/vl-final"; rm -rf "$OUT2"
-python -B -m inference.cards --output "$OUT2" && find "$OUT2" -type f | wc -l   # 期望 13
+python -B -m inference.cards --output "$OUT2" && find "$OUT2" -type f | wc -l   # 期望 14
 ```
 
 > ⚠️ 步骤 3 会让 `$OUT/SHA256SUMS.txt` 与实际文件不一致 —— **这只影响本地调试副本，不影响任何测试**（`test_cards.py` 在自己的 `TemporaryDirectory` 里独立导出）。收尾时以步骤 5 的全量导出为准。
@@ -1589,7 +1589,7 @@ classDiagram
 7. **读屏走查**（Narrator / NVDA）：`aria-live` 播报 = 每次状态变化**只播一遍**（验证 R3 — `#result-echo` 的 `aria-hidden` 生效）；地标列表含 `banner` / `紧急求助 region` / `main` / `安全底线 region` / `contentinfo`。
 8. **`@media print`**（P2-3，可选）：按 §2.5 落地。
 9. **集成自测**：跑完 §11 的**全部 22 项**核对表。
-10. **导出验证**：按 §4.4 步骤 5 做全量 `export_bundle`，确认 **13 个文件**、三文件内容正确、浏览器打开导出副本功能完整。
+10. **导出验证**：按 §4.4 步骤 5 做全量 `export_bundle`，确认 **14 个文件**、三文件内容正确、浏览器打开导出副本功能完整。
 11. **文件数守卫**：`ls inference/card_preview/` 恰好 3 个文件；`git status` 无新增未跟踪的资源文件。
 
 **验收标准**
@@ -1601,7 +1601,7 @@ classDiagram
 - [ ] 键盘可完成全流程；`:focus-visible` 焦点环在所有交互元素上可见且对比 ≥3:1
 - [ ] 读屏：状态变化**只播报一次**；地标列表完整
 - [ ] **§11 验收核对表 22 项全部勾选**
-- [ ] `python -B -m inference.cards --output <新空目录>` 成功；导出目录 **恰好 13 个文件**；导出副本在 `http://127.0.0.1` 下功能完整、无 console 报错、Network 无外部请求
+- [ ] `python -B -m inference.cards --output <新空目录>` 成功；导出目录 **恰好 14 个文件**；导出副本在 `http://127.0.0.1` 下功能完整、无 console 报错、Network 无外部请求
 - [ ] `python -B -m unittest inference.tests.test_cards inference.tests.test_display_zh` → **16/16 全绿**
 - [ ] `ls inference/card_preview/` → **恰好 3 个文件**
 - [ ] `git status --porcelain` → 仅 `inference/card_preview/` 三文件 + `docs/` 变更，**无 `android/` 改动、无新增资源文件**
@@ -1624,7 +1624,7 @@ classDiagram
 10. **测试命令用显式点分名**：`python -B -m unittest inference.tests.test_cards inference.tests.test_display_zh`。`unittest discover -s inference/tests` **在本仓库会报 ImportError**（无 `__init__.py`，实测确认）。
 11. **每完成一个任务跑一次 16 项测试**，别攒到最后。
 12. **不要动 `android/`**（另一位工程师并行施工中）。
-13. **每个任务提交前跑一次全量 `export_bundle`**（§4.4 步骤 5），确认 13 个文件。
+13. **每个任务提交前跑一次全量 `export_bundle`**（§4.4 步骤 5），确认 14 个文件。
 14. **图标意象白名单**：心 / 十字 / 盾 / 远山 / 叶 / 照片 / 向下箭头 / 信息圆 / 勾选 / 清单 / 外链。**黑名单**：蛇、骷髅、警告三角、感叹号三角、血滴、emoji、彩色填充。
 
 ## 10. 任务依赖图
@@ -1690,7 +1690,7 @@ graph LR
 | # | 检查项 | 验证方法 | 责任任务 |
 |---|---|---|---|
 | 11 | **`inference/card_preview/` 恰好 3 个文件**，无新增资源 | `ls inference/card_preview/ \| wc -l` → 3；`git status --porcelain` 无新增未跟踪文件 | T2 / T5 |
-| 12 | **导出目录恰好 13 个文件**（`index.html` `cards.css` `cards.js` `species-cards.json` `SHA256SUMS.txt` + `fixtures/×7` + `data/card_images/×2`） | `find "$OUT" -type f \| wc -l` → 13 | T5 |
+| 12 | **导出目录恰好 14 个文件**（`index.html` `cards.css` `cards.js` `species-cards.json` `SHA256SUMS.txt` + `fixtures/×7` + `data/card_images/×2`） | `find "$OUT" -type f \| wc -l` → 14 | T5 |
 | 13 | **16 项 Python 测试全绿**（`test_cards` 12 + `test_display_zh` 4） | `python -B -m unittest inference.tests.test_cards inference.tests.test_display_zh`（**⚠️ 用显式点分名，`discover` 在本仓库报 ImportError**） | 每个任务 |
 | 14 | **`data/card_images/` 文件数与内容不变**（仍 9 个 jpg，导出仍 2 个） | `find data/card_images -type f \| wc -l` → 9；导出 `report["images"] == 2` | T5 |
 | 15 | **`git status` 无 `android/` 改动** | `git status --porcelain \| grep android` → 空 | T5 |
