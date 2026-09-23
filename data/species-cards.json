@@ -1,0 +1,377 @@
+{
+  "cardSchemaVersion": "1",
+  "mode": "mock",
+  "liveCallsEnabled": false,
+  "normal": {
+    "pantherophis_guttatus": {
+      "speciesId": "pantherophis_guttatus",
+      "commonName": "物种名称待核验",
+      "scientificName": null,
+      "nameStatus": "pending_review",
+      "contentStatus": "pending_review",
+      "previewOnly": false,
+      "hook": null,
+      "checklist": [],
+      "lookAlikes": [],
+      "images": [],
+      "hiddenImageCount": 1,
+      "externalRefs": [],
+      "riskStatus": "unknown",
+      "safety": [
+        "与蛇保持距离，不追赶、触碰或为辨认而靠近。",
+        "候选和参考照片不能判断有毒无毒，也不能排除危险。",
+        "如已被咬伤，尽快联系急救并就医，不等待识别或照片比对。"
+      ],
+      "notice": "仅展示已核验材料；没有图片或说明不代表安全。"
+    },
+    "lampropeltis_californiae": {
+      "speciesId": "lampropeltis_californiae",
+      "commonName": "物种名称待核验",
+      "scientificName": null,
+      "nameStatus": "pending_review",
+      "contentStatus": "unavailable",
+      "previewOnly": false,
+      "hook": null,
+      "checklist": [],
+      "lookAlikes": [],
+      "images": [],
+      "hiddenImageCount": 0,
+      "externalRefs": [],
+      "riskStatus": "unknown",
+      "safety": [
+        "与蛇保持距离，不追赶、触碰或为辨认而靠近。",
+        "候选和参考照片不能判断有毒无毒，也不能排除危险。",
+        "如已被咬伤，尽快联系急救并就医，不等待识别或照片比对。"
+      ],
+      "notice": "仅展示已核验材料；没有图片或说明不代表安全。"
+    },
+    "pseudagkistrodon_rudis": {
+      "speciesId": "pseudagkistrodon_rudis",
+      "commonName": "颈棱蛇",
+      "scientificName": "Pseudagkistrodon rudis",
+      "nameStatus": "verified",
+      "contentStatus": "pending_review",
+      "previewOnly": false,
+      "hook": null,
+      "checklist": [],
+      "lookAlikes": [],
+      "images": [],
+      "hiddenImageCount": 2,
+      "externalRefs": [
+        {
+          "name": "自然观察社区物种页",
+          "url": "https://www.inaturalist.org/taxa/1218628"
+        },
+        {
+          "name": "百科词条",
+          "url": "https://baike.baidu.com/item/颈棱蛇"
+        }
+      ],
+      "riskStatus": "unknown",
+      "safety": [
+        "与蛇保持距离，不追赶、触碰或为辨认而靠近。",
+        "候选和参考照片不能判断有毒无毒，也不能排除危险。",
+        "如已被咬伤，尽快联系急救并就医，不等待识别或照片比对。"
+      ],
+      "notice": "仅展示已核验材料；没有图片或说明不代表安全。"
+    },
+    "heterodon_nasicus": {
+      "speciesId": "heterodon_nasicus",
+      "commonName": "物种名称待核验",
+      "scientificName": null,
+      "nameStatus": "pending_review",
+      "contentStatus": "pending_review",
+      "previewOnly": false,
+      "hook": null,
+      "checklist": [],
+      "lookAlikes": [],
+      "images": [],
+      "hiddenImageCount": 2,
+      "externalRefs": [],
+      "riskStatus": "unknown",
+      "safety": [
+        "与蛇保持距离，不追赶、触碰或为辨认而靠近。",
+        "候选和参考照片不能判断有毒无毒，也不能排除危险。",
+        "如已被咬伤，尽快联系急救并就医，不等待识别或照片比对。"
+      ],
+      "notice": "仅展示已核验材料；没有图片或说明不代表安全。"
+    },
+    "lycodon_rufozonatus": {
+      "speciesId": "lycodon_rufozonatus",
+      "commonName": "物种名称待核验",
+      "scientificName": null,
+      "nameStatus": "pending_review",
+      "contentStatus": "pending_review",
+      "previewOnly": false,
+      "hook": null,
+      "checklist": [],
+      "lookAlikes": [],
+      "images": [],
+      "hiddenImageCount": 2,
+      "externalRefs": [],
+      "riskStatus": "unknown",
+      "safety": [
+        "与蛇保持距离，不追赶、触碰或为辨认而靠近。",
+        "候选和参考照片不能判断有毒无毒，也不能排除危险。",
+        "如已被咬伤，尽快联系急救并就医，不等待识别或照片比对。"
+      ],
+      "notice": "仅展示已核验材料；没有图片或说明不代表安全。"
+    },
+    "gloydius_brevicaudus": {
+      "speciesId": "gloydius_brevicaudus",
+      "commonName": "物种名称待核验",
+      "scientificName": null,
+      "nameStatus": "pending_review",
+      "contentStatus": "pending_review",
+      "previewOnly": false,
+      "hook": null,
+      "checklist": [],
+      "lookAlikes": [],
+      "images": [],
+      "hiddenImageCount": 2,
+      "externalRefs": [],
+      "riskStatus": "unknown",
+      "safety": [
+        "与蛇保持距离，不追赶、触碰或为辨认而靠近。",
+        "候选和参考照片不能判断有毒无毒，也不能排除危险。",
+        "如已被咬伤，尽快联系急救并就医，不等待识别或照片比对。"
+      ],
+      "notice": "仅展示已核验材料；没有图片或说明不代表安全。"
+    }
+  },
+  "preview": {
+    "pantherophis_guttatus": {
+      "speciesId": "pantherophis_guttatus",
+      "commonName": "玉米蛇",
+      "scientificName": "Pantherophis guttatus",
+      "nameStatus": "pending_review",
+      "contentStatus": "pending_review",
+      "previewOnly": true,
+      "hook": "橙红身子、红色马鞍状大块斑",
+      "checklist": [
+        "看颜色：整体橙红偏红，比较鲜艳",
+        "看花纹：背上一块块红色方斑，边缘常更深",
+        "看体型：中等身材，尾巴不特别短也不特别细"
+      ],
+      "lookAlikes": [],
+      "images": [
+        {
+          "file": "data/card_images/pantherophis_guttatus/01.jpg",
+          "role": "主图：全身体色与花纹",
+          "source": "团队 2026-09-19 自贡调研实拍（血红派品系）",
+          "rights": "团队自有",
+          "sourcePage": null,
+          "reviewStatus": "pending_review",
+          "sourceStatus": "team_declared",
+          "modification": "发布副本已缩小并去除元数据；未裁切内容"
+        }
+      ],
+      "hiddenImageCount": 0,
+      "externalRefs": [
+        {
+          "name": "自然观察社区物种页",
+          "url": "https://www.inaturalist.org/taxa/73887"
+        },
+        {
+          "name": "百科词条",
+          "url": "https://baike.baidu.com/item/玉米蛇"
+        }
+      ],
+      "riskStatus": "unknown",
+      "safety": [
+        "与蛇保持距离，不追赶、触碰或为辨认而靠近。",
+        "候选和参考照片不能判断有毒无毒，也不能排除危险。",
+        "如已被咬伤，尽快联系急救并就医，不等待识别或照片比对。"
+      ],
+      "notice": "演示草稿：名称、文案与图片分别标注状态，不能用于实际辨认或医疗判断。"
+    },
+    "lampropeltis_californiae": {
+      "speciesId": "lampropeltis_californiae",
+      "commonName": "加州王蛇",
+      "scientificName": "Lampropeltis californiae",
+      "nameStatus": "pending_review",
+      "contentStatus": "unavailable",
+      "previewOnly": true,
+      "hook": null,
+      "checklist": [],
+      "lookAlikes": [],
+      "images": [],
+      "hiddenImageCount": 0,
+      "externalRefs": [
+        {
+          "name": "百科词条",
+          "url": "https://baike.baidu.com/item/加州王蛇"
+        }
+      ],
+      "riskStatus": "unknown",
+      "safety": [
+        "与蛇保持距离，不追赶、触碰或为辨认而靠近。",
+        "候选和参考照片不能判断有毒无毒，也不能排除危险。",
+        "如已被咬伤，尽快联系急救并就医，不等待识别或照片比对。"
+      ],
+      "notice": "演示草稿：名称、文案与图片分别标注状态，不能用于实际辨认或医疗判断。"
+    },
+    "pseudagkistrodon_rudis": {
+      "speciesId": "pseudagkistrodon_rudis",
+      "commonName": "颈棱蛇",
+      "scientificName": "Pseudagkistrodon rudis",
+      "nameStatus": "verified",
+      "contentStatus": "pending_review",
+      "previewOnly": true,
+      "hook": "棕身一排深色「马鞍」大块斑",
+      "checklist": [
+        "看颜色：整体棕褐偏暗，不鲜艳",
+        "看花纹：背上一块块深色方形大斑，像搭了一排马鞍",
+        "看头：比身子显宽一点，但头形不能用来判断有没有毒"
+      ],
+      "lookAlikes": [],
+      "images": [],
+      "hiddenImageCount": 2,
+      "externalRefs": [
+        {
+          "name": "自然观察社区物种页",
+          "url": "https://www.inaturalist.org/taxa/1218628"
+        },
+        {
+          "name": "百科词条",
+          "url": "https://baike.baidu.com/item/颈棱蛇"
+        }
+      ],
+      "riskStatus": "unknown",
+      "safety": [
+        "与蛇保持距离，不追赶、触碰或为辨认而靠近。",
+        "候选和参考照片不能判断有毒无毒，也不能排除危险。",
+        "如已被咬伤，尽快联系急救并就医，不等待识别或照片比对。"
+      ],
+      "notice": "演示草稿：名称、文案与图片分别标注状态，不能用于实际辨认或医疗判断。"
+    },
+    "heterodon_nasicus": {
+      "speciesId": "heterodon_nasicus",
+      "commonName": "猪鼻蛇",
+      "scientificName": "Heterodon nasicus",
+      "nameStatus": "pending_review",
+      "contentStatus": "pending_review",
+      "previewOnly": true,
+      "hook": "鼻尖上翘像猪拱鼻、身粗短带大斑",
+      "checklist": [
+        "看鼻子：鼻尖明显往上翘，像猪的拱鼻",
+        "看花纹：背上一排深色圆斑，野生型土黄带褐斑",
+        "看体型：身子粗短，尾巴不长"
+      ],
+      "lookAlikes": [],
+      "images": [
+        {
+          "file": "data/card_images/heterodon_nasicus/02.jpg",
+          "role": "辅图：宠物品系花色（团队实拍）",
+          "source": "团队 2026-09-19 自贡调研实拍（太阳爆炸品系）",
+          "rights": "团队自有",
+          "sourcePage": null,
+          "reviewStatus": "pending_review",
+          "sourceStatus": "team_declared",
+          "modification": "发布副本已缩小并去除元数据；未裁切内容"
+        }
+      ],
+      "hiddenImageCount": 1,
+      "externalRefs": [
+        {
+          "name": "自然观察社区物种页",
+          "url": "https://www.inaturalist.org/taxa/29927"
+        },
+        {
+          "name": "百科词条",
+          "url": "https://baike.baidu.com/item/猪鼻蛇"
+        }
+      ],
+      "riskStatus": "unknown",
+      "safety": [
+        "与蛇保持距离，不追赶、触碰或为辨认而靠近。",
+        "候选和参考照片不能判断有毒无毒，也不能排除危险。",
+        "如已被咬伤，尽快联系急救并就医，不等待识别或照片比对。"
+      ],
+      "notice": "演示草稿：名称、文案与图片分别标注状态，不能用于实际辨认或医疗判断。"
+    },
+    "lycodon_rufozonatus": {
+      "speciesId": "lycodon_rufozonatus",
+      "commonName": "赤链蛇",
+      "scientificName": "Lycodon rufozonatus",
+      "nameStatus": "pending_review",
+      "contentStatus": "pending_review",
+      "previewOnly": true,
+      "hook": "黑身红横纹、一圈圈像腰带",
+      "checklist": [
+        "看颜色：黑底配红或橙红横纹",
+        "看花纹：横纹规则，从脖子一路到尾巴",
+        "看体型：身子较细，头略扁"
+      ],
+      "lookAlikes": [
+        {
+          "speciesId": "sinomicrurus_macclellandi",
+          "layHowToTell": "相似环纹可能出现在不同蛇种，不能只凭环纹间距判断；无法确认时按未知处理。"
+        }
+      ],
+      "images": [],
+      "hiddenImageCount": 2,
+      "externalRefs": [
+        {
+          "name": "自然观察社区物种页",
+          "url": "https://www.inaturalist.org/taxa/539936"
+        },
+        {
+          "name": "百科词条",
+          "url": "https://baike.baidu.com/item/赤链蛇"
+        }
+      ],
+      "riskStatus": "unknown",
+      "safety": [
+        "与蛇保持距离，不追赶、触碰或为辨认而靠近。",
+        "候选和参考照片不能判断有毒无毒，也不能排除危险。",
+        "如已被咬伤，尽快联系急救并就医，不等待识别或照片比对。"
+      ],
+      "notice": "演示草稿：名称、文案与图片分别标注状态，不能用于实际辨认或医疗判断。"
+    },
+    "gloydius_brevicaudus": {
+      "speciesId": "gloydius_brevicaudus",
+      "commonName": "短尾蝮",
+      "scientificName": "Gloydius brevicaudus",
+      "nameStatus": "pending_review",
+      "contentStatus": "pending_review",
+      "previewOnly": true,
+      "hook": "土灰身、深色圆斑、尾巴明显短",
+      "checklist": [
+        "看颜色：土灰或灰褐，不鲜艳",
+        "看花纹：背两侧各一排深色圆斑，常左右交错",
+        "看尾巴：比同体型其他蛇明显短"
+      ],
+      "lookAlikes": [
+        {
+          "speciesId": "pseudagkistrodon_rudis",
+          "layHowToTell": "颈棱蛇及其他蛇种可能呈现相似斑纹，单凭照片不足以排除混淆。"
+        }
+      ],
+      "images": [],
+      "hiddenImageCount": 2,
+      "externalRefs": [
+        {
+          "name": "自然观察社区物种页",
+          "url": "https://www.inaturalist.org/taxa/101504"
+        },
+        {
+          "name": "百科词条",
+          "url": "https://baike.baidu.com/item/短尾蝮"
+        }
+      ],
+      "riskStatus": "unknown",
+      "safety": [
+        "与蛇保持距离，不追赶、触碰或为辨认而靠近。",
+        "候选和参考照片不能判断有毒无毒，也不能排除危险。",
+        "如已被咬伤，尽快联系急救并就医，不等待识别或照片比对。"
+      ],
+      "notice": "演示草稿：名称、文案与图片分别标注状态，不能用于实际辨认或医疗判断。"
+    }
+  },
+  "safety": [
+    "与蛇保持距离，不追赶、触碰或为辨认而靠近。",
+    "候选和参考照片不能判断有毒无毒，也不能排除危险。",
+    "如已被咬伤，尽快联系急救并就医，不等待识别或照片比对。"
+  ]
+}
