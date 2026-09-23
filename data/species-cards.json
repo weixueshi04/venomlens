@@ -5,9 +5,9 @@
   "normal": {
     "pantherophis_guttatus": {
       "speciesId": "pantherophis_guttatus",
-      "commonName": "物种名称待核验",
-      "scientificName": null,
-      "nameStatus": "pending_review",
+      "commonName": "玉米蛇",
+      "scientificName": "Pantherophis guttatus",
+      "nameStatus": "verified",
       "contentStatus": "pending_review",
       "previewOnly": false,
       "hook": null,
@@ -15,7 +15,16 @@
       "lookAlikes": [],
       "images": [],
       "hiddenImageCount": 1,
-      "externalRefs": [],
+      "externalRefs": [
+        {
+          "name": "自然观察社区物种页",
+          "url": "https://www.inaturalist.org/taxa/73887"
+        },
+        {
+          "name": "百科词条",
+          "url": "https://baike.baidu.com/item/玉米蛇"
+        }
+      ],
       "riskStatus": "unknown",
       "safety": [
         "与蛇保持距离，不追赶、触碰或为辨认而靠近。",
@@ -153,7 +162,7 @@
       "speciesId": "pantherophis_guttatus",
       "commonName": "玉米蛇",
       "scientificName": "Pantherophis guttatus",
-      "nameStatus": "pending_review",
+      "nameStatus": "verified",
       "contentStatus": "pending_review",
       "previewOnly": true,
       "hook": "橙红身子、红色马鞍状大块斑",

@@ -5,7 +5,7 @@
     "scientificName": "Pantherophis guttatus",
     "englishCommonName": "Corn Snake（内部字段，不展示）",
     "aliases": [],
-    "verificationStatus": "pending_review",
+    "verificationStatus": "verified",
     "riskStatus": "unknown",
     "referenceImages": [
       {
@@ -63,7 +63,14 @@
       "reviewedBy": null,
       "reviewedAt": null
     },
-    "source": "项目背景中的素材类别；学名映射待人工核对，仅作开发联调"
+    "source": "项目背景中的素材类别；学名映射待人工核对，仅作开发联调",
+    "verificationRecord": {
+      "verifiedBy": "郭浩天",
+      "verifiedAt": "2026-09-23",
+      "basis": "郭浩天查饲养盒确认测试图片/猪鼻蛇.jpg 个体为玉米蛇（文件名标签系误标）；中文名-学名对应经自然观察社区 taxa 73887 与团队饲养记录核对。",
+      "scope": "名称映射 + 该照片个体归属；文案与图片审核仍独立 pending。",
+      "supersedes": "取代 9/23 夜『个体归属存疑』未决项；供应商首候选玉米蛇 97.02/95.66 与人工确认一致。"
+    }
   },
   {
     "speciesId": "lampropeltis_californiae",
@@ -267,7 +274,7 @@
       "verifiedAt": "2026-09-23",
       "basis": "仅核验中文名-学名命名对应（猪鼻蛇 ↔ Heterodon nasicus，自然观察社区 taxa 29927）。",
       "scope": "命名对应；不含任何照片个体判定。",
-      "conflict": "2026-09-23 测试图片/猪鼻蛇.jpg 的个体物种存疑：供应商首候选为玉米蛇 97.02（raw 存档 32_raw.jsonl），形态亦偏玉米蛇；原记录中『个体为猪鼻蛇』的表述作废，不作核验依据。"
+      "conflict": "已解决（2026-09-23）：照片个体经饲养盒确认为玉米蛇，文件名『猪鼻蛇』系误标；本条目仅保留命名对应核验，不含任何个体判定。"
     },
     "source": "2026-09-23 名称映射经郭浩天核验升为 verified（见 verificationRecord），演示用途。"
   },
