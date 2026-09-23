@@ -11,6 +11,9 @@ class Candidate(BaseModel):
     scientificName: str
     score: None = None
     providerScore: float | None = None
+    # 演示 lane（DEMO_RELEASE_UNVERIFIED=1）放行的未核验名称：客户端必须显著标注，不得当作核验结论
+    demoRelease: bool = False
+    nameStatus: Literal["verified", "pending_review"] = "verified"
 
 
 class RecognitionResult(BaseModel):

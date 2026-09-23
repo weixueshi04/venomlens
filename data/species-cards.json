@@ -77,9 +77,9 @@
     },
     "heterodon_nasicus": {
       "speciesId": "heterodon_nasicus",
-      "commonName": "物种名称待核验",
-      "scientificName": null,
-      "nameStatus": "pending_review",
+      "commonName": "猪鼻蛇",
+      "scientificName": "Heterodon nasicus",
+      "nameStatus": "verified",
       "contentStatus": "pending_review",
       "previewOnly": false,
       "hook": null,
@@ -87,7 +87,16 @@
       "lookAlikes": [],
       "images": [],
       "hiddenImageCount": 2,
-      "externalRefs": [],
+      "externalRefs": [
+        {
+          "name": "自然观察社区物种页",
+          "url": "https://www.inaturalist.org/taxa/29927"
+        },
+        {
+          "name": "百科词条",
+          "url": "https://baike.baidu.com/item/猪鼻蛇"
+        }
+      ],
       "riskStatus": "unknown",
       "safety": [
         "与蛇保持距离，不追赶、触碰或为辨认而靠近。",
@@ -249,7 +258,7 @@
       "speciesId": "heterodon_nasicus",
       "commonName": "猪鼻蛇",
       "scientificName": "Heterodon nasicus",
-      "nameStatus": "pending_review",
+      "nameStatus": "verified",
       "contentStatus": "pending_review",
       "previewOnly": true,
       "hook": "鼻尖上翘像猪拱鼻、身粗短带大斑",

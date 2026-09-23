@@ -229,7 +229,7 @@ class AppTests(unittest.TestCase):
             with self.subTest(category=category), patch.dict(
                 "os.environ", {**environment, "HHODATA_CLASS": category}, clear=True
             ):
-                if category == "R":
+                if category in {"R", "BM"}:
                     settings = Settings.from_env()
                     self.assertEqual(settings.animal_class, category)
                     self.assertEqual(settings.live_call_limit, 0)
@@ -274,6 +274,13 @@ class AppTests(unittest.TestCase):
         self.assertEqual((second.status_code, second.json()["resultSource"]), (502, "cache"))
         self.assertEqual(len(requests), 1)
 
+    def test_healthz_exposes_demo_release_flag_default_off(self):
+        settings = Settings(mode="mock", ledger_path=self.path)
+        client = TestClient(create_app(settings, None))
+        self.addCleanup(client.close)
+        body = client.get("/healthz").json()
+        self.assertFalse(body["demoReleaseUnverified"])
+
     def test_recorded_keelback_result_maps_and_replays_without_more_calls(self):
         completed = [1000, [{"box": [573, 814, 1228, 1470], "list": [
             [97.6, "颈棱蛇|Red Keelback|Pseudagkistrodon rudis", 9316, "R"],
@@ -297,6 +304,7 @@ class AppTests(unittest.TestCase):
         self.assertEqual(body["candidates"], [{
             "speciesId": "pseudagkistrodon_rudis", "commonName": "颈棱蛇",
             "scientificName": "Pseudagkistrodon rudis", "score": None, "providerScore": 97.6,
+            "demoRelease": False, "nameStatus": "verified",
         }])
         self.assertEqual(body["scoreType"], "unavailable")
         for cached in (self.upload(client, request_id="cached-keelback"),

@@ -40,7 +40,7 @@ HTTP 200：已获得本次结果，但不代表识别正确。
 - `status`：`candidates` / `uncertain` / `no_snake` / `pending`。
 - `candidates`：最多 3 条，字段为 `speciesId`、`commonName`、`scientificName`、`score`、`providerScore`。`candidates` 状态至少 1 条；`no_snake` 和 `pending` 必须为空。
 - `score` 首版始终为 `null`，`scoreType` 始终为 `unavailable`。供应商原始数字放 `providerScore`；单位、范围和校准情况未确认，**界面不将其格式化成百分比，也不把 97.6 自动除以 100**。
-- 真实 Adapter 的名称仅从本地已核验映射表产生；存在未匹配候选时为 `uncertain`，但保留其余已匹配候选，客户端不能仅因该状态而忽略候选列表。mock fixtures 可使用 `pending_review` 条目验证页面，但必须显著标为模拟。`data/species.json` 已按郭的核验结果加入颈棱蛇；玉米蛇、加州王蛇仍待核对。名称核验不等于毒性或医疗资料核验。
+- 名称仅从本地已核验映射表产生；存在未匹配候选时为 `uncertain`，但保留其余已匹配候选，客户端不能仅因该状态而忽略候选列表。`data/species.json` 已按郭的核验结果加入颈棱蛇；玉米蛇、加州王蛇仍待核对。名称核验不等于毒性或医疗资料核验。
 - `qualityIssues` 可包含 `blurred` / `too_small` / `low_light`。真实 Adapter 当前没有质量判断证据，返回空数组；模拟场景可以演示这些提示。
 - `resultSource` 必须可见：`mock` 是模拟，`live` 是本次供应商响应，`cache` 是账本回放。缓存的 `latencyMs` 是原尝试耗时，不是本次响应耗时。
 - `recognitionId` 是代理侧标识，真实响应提供；不暴露供应商任务 ID。模拟的非 pending 响应可以省略此字段。
@@ -127,3 +127,10 @@ RECOGNITION_MODE=mock LIVE_CALL_LIMIT=0 PROXY_TOKEN= python -m uvicorn inference
 - 郭最终确认当时剩余 50 次；本地累计上限仍允许 0–50、默认 0，不把账号余额视为本轮获批预算。
 
 **待供应商／郭确认：**目标蛇种覆盖、图像分值范围与校准含义、识别结果查询及上传失败／超时是否扣次数、图像保留政策和可商用／参赛使用条件。类别已确认不等于真实效果已验证，首版保留模拟默认值和小额授权机制。
+
+## 附则 A（2026-09-23 夜）：演示 lane `DEMO_RELEASE_UNVERIFIED`
+
+- 环境变量 `DEMO_RELEASE_UNVERIFIED=1` 时，代理将**未核验名称**以 `demoRelease=true`、`nameStatus="pending_review"` 附加字段放入候选；默认关闭，部署禁止开启。
+- Candidate 新增字段（ additive ）：`demoRelease: bool`、`nameStatus: "verified"|"pending_review"`。展示 `demoRelease=true` 候选的客户端**必须以呈现级披露（页面横幅或口播说明「目标态演示：候选与文案未经人工核验」）框定整段演示**；按郭 2026-09-23 夜指示，卡片本体不再加逐条标注以展示目标态效果；候选仍不得进入病例卡身份或任何核验结论；正常投影与图片 sourceStatus 门禁不受本开关影响。
+- `/healthz` 增加 `demoReleaseUnverified` 字段，开关永不静默。
+- 通知韦仕学：本附则为公共 Interface 变更，Android 渲染需同步加标注；未加标注前不得开启该环境变量。

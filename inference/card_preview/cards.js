@@ -56,13 +56,11 @@ function cardElement(speciesId) {
   title.append(node('h3', card.commonName, 'card-name'));
   if (card.scientificName) title.append(node('div', card.scientificName, 'scientific'));
   head.append(title);
-  if (card.previewOnly) head.append(node('span', '演示草稿 · 非实际辨认依据', 'pill draft'));
   body.append(head);
   const badges = node('div', undefined, 'card-badges');
-  badges.append(node('span', card.nameStatus === 'verified' ? '名称已核验' : '名称待核验', 'pill neutral'));
-  badges.append(node('span', card.contentStatus === 'verified' ? '文案已审核' : card.contentStatus === 'unavailable' ? '文案未整理' : '文案待审核', 'pill neutral'));
   badges.append(node('span', '风险：未知', 'pill neutral'));
-  body.append(badges, node('p', card.notice, 'card-notice'));
+  body.append(badges);
+  if ($('strict').checked) body.append(node('p', card.notice, 'card-notice'));
   if (card.hook) {
     body.append(node('h4', card.hook, 'hook'));
     const list = node('ul', undefined, 'checklist');
@@ -123,7 +121,9 @@ function cardElement(speciesId) {
   return article;
 }
 function renderCards(ids) {
-  $('cards').replaceChildren(...ids.map(cardElement));
+  const nodes = ids.map(cardElement);
+  if (!$('strict').checked) nodes.unshift(node('div', '目标态演示：识别候选与物种文案未经人工核验，正式版本将显示核验状态。', 'banner demo'));
+  $('cards').replaceChildren(...nodes);
 }
 function showResult(result) {
   $('result-error').hidden = true;
