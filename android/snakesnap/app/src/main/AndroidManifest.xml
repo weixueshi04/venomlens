@@ -82,6 +82,21 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".species.SpeciesComparisonActivity"
+            android:exported="false"
+            android:label="离线照片比对" />
+
+        <activity
+            android:name=".care.CaseRecordActivity"
+            android:exported="false"
+            android:label="本地伤情信息卡" />
+
+        <activity
+            android:name=".hospital.HospitalDirectoryActivity"
+            android:exported="false"
+            android:label="医院联系与求助" />
+
         <service
             android:name=".service.CameraSessionForegroundService"
             android:exported="false"

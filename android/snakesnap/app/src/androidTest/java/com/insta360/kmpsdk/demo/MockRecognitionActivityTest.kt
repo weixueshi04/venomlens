@@ -1,5 +1,7 @@
 package com.insta360.kmpsdk.demo
 
+import android.app.Activity
+import android.app.Instrumentation
 import android.os.SystemClock
 import android.view.View
 import android.widget.Button
@@ -10,14 +12,17 @@ import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.UiController
 import androidx.test.espresso.ViewAction
 import androidx.test.espresso.action.ViewActions.click
-import androidx.test.espresso.action.ViewActions.scrollTo
+import com.insta360.kmpsdk.demo.scrollToContent as scrollTo
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.ViewMatchers.isAssignableFrom
 import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.espresso.matcher.ViewMatchers.withText
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
+import com.insta360.kmpsdk.demo.care.CaseRecordActivity
 import com.insta360.kmpsdk.demo.recognition.MockRecognitionActivity
 import org.hamcrest.Matcher
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -83,6 +88,47 @@ class MockRecognitionActivityTest {
             scenario.recreate()
             onView(withId(R.id.mock_result)).perform(scrollTo())
                 .check(matches(withText("选择上方场景查看模拟结果。")))
+        }
+    }
+
+    @Test
+    fun pendingAndFailedRecognitionDoNotBlockInjuryEntry() {
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        val monitor = instrumentation.addMonitor(CaseRecordActivity::class.java.name,
+            Instrumentation.ActivityResult(Activity.RESULT_CANCELED, null), true)
+        try {
+            ActivityScenario.launch(MockRecognitionActivity::class.java).use {
+                listOf("识别处理中（202）" to "识别任务：", "上游超时（504）" to "UPSTREAM_TIMEOUT",
+                    "未检测到蛇" to "未检测到蛇，不代表现场安全").forEach { (label, expected) ->
+                    onView(withText(label)).perform(scrollTo(), click())
+                    onView(withId(R.id.mock_result)).perform(scrollTo(), awaitText(expected))
+                    onView(withId(R.id.record_injury)).perform(scrollTo(), click())
+                }
+                onView(withId(R.id.not_bitten)).perform(scrollTo(), click())
+                assertEquals(4, monitor.hits)
+            }
+        } finally {
+            instrumentation.removeMonitor(monitor)
+        }
+    }
+
+    @Test
+    fun comparisonEntryUsesCandidateAndClearsWithNextResult() {
+        ActivityScenario.launch(MockRecognitionActivity::class.java).use { scenario ->
+            onView(withText("有候选（1 个）")).perform(scrollTo(), click())
+            onView(withId(R.id.mock_result)).perform(scrollTo(), awaitText("玉米蛇"))
+            scenario.onActivity {
+                assertEquals(1, it.findViewById<LinearLayout>(R.id.species_comparison_host).childCount)
+            }
+            onView(withText("玉米蛇 · 离线比对资料（非诊断）")).perform(scrollTo(), click())
+            onView(withId(R.id.species_common_name)).perform(awaitText("玉米蛇"))
+            onView(withId(R.id.species_result_source)).check(matches(withText("结果来源：MOCK · 模拟结果")))
+            onView(withId(R.id.species_back)).perform(click())
+            onView(withText("未检测到蛇")).perform(scrollTo(), click())
+            onView(withId(R.id.mock_result)).perform(scrollTo(), awaitText("未检测到蛇，不代表现场安全"))
+            scenario.onActivity {
+                assertEquals(0, it.findViewById<LinearLayout>(R.id.species_comparison_host).childCount)
+            }
         }
     }
 

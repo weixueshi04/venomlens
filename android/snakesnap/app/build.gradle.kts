@@ -1,3 +1,5 @@
+import groovy.json.JsonOutput
+import groovy.json.JsonSlurper
 import org.gradle.kotlin.dsl.implementation
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
@@ -5,6 +7,55 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     kotlin("kapt")
+}
+
+val repositoryRoot = rootProject.file("../..")
+val speciesCatalogFile = repositoryRoot.resolve("data/species.json")
+val speciesRows = JsonSlurper().parse(speciesCatalogFile) as List<*>
+val referenceMetadataFiles = mutableListOf<File>()
+val referenceImageFiles = speciesRows.flatMap { row ->
+    val species = row as Map<*, *>
+    val id = species["speciesId"] as String
+    require(id.matches(Regex("[a-z0-9_]+")))
+    val references = (species["referenceImages"] as? List<*>).orEmpty()
+    val metadataFile = repositoryRoot.resolve("data/reference_images/$id/meta.json")
+    val metadata = if (references.isNotEmpty()) {
+        referenceMetadataFiles += metadataFile
+        (JsonSlurper().parse(metadataFile) as Map<*, *>)["referenceImages"] as List<*>
+    } else emptyList<Any>()
+    references.mapNotNull { value ->
+        @Suppress("UNCHECKED_CAST")
+        val image = value as MutableMap<String, Any?>
+        val path = image["file"] as String
+        require(path.matches(Regex("""data/reference_images/$id/[A-Za-z0-9_-]+\.(jpg|jpeg|png)""")))
+        require(!image["rights"].toString().isBlank() && image["rights"] != null)
+        require(!image["source"].toString().isBlank() && image["source"] != null)
+        val matching = metadata.filterIsInstance<Map<*, *>>().singleOrNull {
+            it["file"] == path.substringAfterLast('/')
+        }
+        val consistent = matching != null && listOf("rights", "source", "sourcePage", "photoId").all {
+            image[it] == matching[it]
+        }
+        image["attributionConsistent"] = consistent
+        if (consistent) {
+            require(repositoryRoot.resolve(path).isFile) { "Missing reference image: $path" }
+            path
+        } else null
+    }
+}
+val speciesAssetsDirectory = layout.buildDirectory.dir("generated/speciesAssets")
+val prepareSpeciesAssets by tasks.registering(Sync::class) {
+    from(repositoryRoot) {
+        include("data/species.json")
+        include(referenceImageFiles)
+    }
+    into(speciesAssetsDirectory)
+    inputs.file(speciesCatalogFile)
+    inputs.files(referenceMetadataFiles)
+    doLast {
+        speciesAssetsDirectory.get().file("data/species.json").asFile
+            .writeText(JsonOutput.toJson(speciesRows), Charsets.UTF_8)
+    }
 }
 
 android {
@@ -46,9 +97,11 @@ android {
     buildFeatures {
         viewBinding = true
     }
+    sourceSets.getByName("main").assets.srcDir(speciesAssetsDirectory)
     testOptions {
         unitTests.all {
             it.systemProperty("recognitionFixtures", file("src/main/assets/mock").absolutePath)
+            it.systemProperty("speciesCatalogFile", speciesCatalogFile.absolutePath)
         }
     }
     // lint 与当前 Kotlin UAST 工具链偶发不兼容导致 NonNullableMutableLiveDataDetector 崩溃，禁用该检测器以恢复 lintDebug
@@ -58,6 +111,8 @@ android {
         abortOnError = false
     }
 }
+
+tasks.named("preBuild").configure { dependsOn(prepareSpeciesAssets) }
 
 dependencies {
     implementation(libs.androidx.core.ktx)

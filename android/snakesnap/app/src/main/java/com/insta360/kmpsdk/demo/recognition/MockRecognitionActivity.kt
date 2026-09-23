@@ -2,6 +2,7 @@ package com.insta360.kmpsdk.demo.recognition
 
 import android.content.Intent
 import android.graphics.BitmapFactory
+import android.net.Uri
 import android.os.Bundle
 import android.widget.Button
 import android.widget.LinearLayout
@@ -12,28 +13,44 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.children
 import androidx.core.view.isVisible
+import androidx.core.widget.addTextChangedListener
 import androidx.lifecycle.lifecycleScope
 import com.insta360.kmpsdk.demo.MainActivity
+import com.insta360.kmpsdk.demo.care.CaseRecordActivity
 import com.insta360.kmpsdk.demo.databinding.ActivityMockRecognitionBinding
+import com.insta360.kmpsdk.demo.hospital.HospitalDirectoryActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
 import java.io.IOException
+import java.time.OffsetDateTime
 import java.util.UUID
 
 class MockRecognitionActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMockRecognitionBinding
+    // ADB reverse may leave an idle proxy connection stale; use a fresh connection without retrying.
+    private val httpClient = OkHttpClient.Builder()
+        .connectionPool(okhttp3.ConnectionPool(0, 1, java.util.concurrent.TimeUnit.SECONDS))
+        .build()
     private var activeCall: RecognitionCall? = null
     private var activeRequestId: String? = null
     private var pendingRecognitionId: String? = null
+    private var pendingRefreshAdapter: RecognitionAdapter? = null
+    private var lastResponse: RecognitionResponse? = null
     private var image: RecognitionImage? = null
+    private var originalImageUri: Uri? = null
+    private var importedAt: String? = null
+    private var preparingImage = false
     private val selectImage = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         if (uri != null) {
-            cancelRequest()
+            clearRecognition("已更换照片，旧结果已清除。模拟结果与照片无关。")
             image = null
+            originalImageUri = uri
+            importedAt = OffsetDateTime.now().toString()
+            binding.uploadConsent.isChecked = false
             binding.imagePreview.setImageDrawable(null)
             binding.imagePreview.isVisible = false
-            binding.mockResult.text = "已更换照片，旧结果已清除。模拟结果与照片无关。"
             setPreparing(true)
             lifecycleScope.launch {
                 try {
@@ -41,13 +58,13 @@ class MockRecognitionActivity : AppCompatActivity() {
                     image = prepared
                     binding.imagePreview.setImageBitmap(BitmapFactory.decodeByteArray(prepared.jpeg, 0, prepared.jpeg.size))
                     binding.imagePreview.isVisible = true
-                    binding.imageStatus.text = "已准备 JPEG：${prepared.width} × ${prepared.height}，${prepared.jpeg.size / 1024} KiB\n已校正方向、重新编码，不保留原始 EXIF。尚未上传。"
+                    binding.imageStatus.text = "已准备 JPEG：${prepared.width} × ${prepared.height}，${prepared.jpeg.size / 1024} KiB\n已校正方向、重新编码，不保留原始 EXIF。选图不会自动上传；发送须同意并点击 HTTP 场景。"
                 } catch (_: IOException) {
-                    binding.imageStatus.text = "无法读取图片，请重新选择。"
+                    binding.imageStatus.text = "无法读取图片，请重新选择；仍可记录伤情。"
                 } catch (_: SecurityException) {
-                    binding.imageStatus.text = "无法访问该图片，请重新选择。"
+                    binding.imageStatus.text = "无法访问该图片，请重新选择；仍可记录伤情。"
                 } catch (_: IllegalArgumentException) {
-                    binding.imageStatus.text = "图片无效或超出 2 MB 限制，请重新选择。"
+                    binding.imageStatus.text = "图片无效或超出 2 MB 限制，请重新选择；仍可记录伤情。"
                 } finally {
                     if (!isDestroyed) setPreparing(false)
                 }
@@ -66,14 +83,28 @@ class MockRecognitionActivity : AppCompatActivity() {
             insets
         }
         binding.openCamera.setOnClickListener { startActivity(Intent(this, MainActivity::class.java)) }
+        binding.openHospitals.setOnClickListener { startActivity(Intent(this, HospitalDirectoryActivity::class.java)) }
+        binding.recordInjury.setOnClickListener { openCare(true) }
+        binding.notBitten.setOnClickListener { openCare(false) }
+        binding.latestCase.setOnClickListener { startActivity(CaseRecordActivity.latestIntent(this)) }
         binding.selectImage.setOnClickListener {
             if (activeRequestId != null) binding.mockResult.text = "已取消模拟请求。"
             cancelRequest()
             selectImage.launch("image/*")
         }
         binding.cancelRequest.setOnClickListener {
-            cancelRequest()
-            binding.mockResult.text = "已取消模拟请求。"
+            clearRecognition("已取消模拟请求。")
+        }
+        binding.useHttpMock.setOnCheckedChangeListener { _, checked ->
+            binding.httpMockOptions.isVisible = checked
+            binding.uploadConsent.isChecked = false
+            clearRecognition(if (checked) "HTTP MOCK：选图并同意发送后，点击场景。真实识别未启用。" else "本地 MOCK：不发送网络请求。请选择场景。")
+        }
+        binding.proxyBaseUrl.addTextChangedListener {
+            if (binding.useHttpMock.isChecked) {
+                binding.uploadConsent.isChecked = false
+                clearRecognition("代理地址已更改，旧结果已清除；请重新确认发送。")
+            }
         }
         binding.manualRefresh.setOnClickListener { refreshPending() }
         MockScenario.entries.forEach { scenario ->
@@ -84,26 +115,62 @@ class MockRecognitionActivity : AppCompatActivity() {
         }
     }
 
-    private fun runScenario(scenario: MockScenario) {
+    private fun openCare(bitten: Boolean) {
+        val summary = if (activeRequestId != null) {
+            "【识别尚未完成】\n${binding.mockResult.text}\n进入伤情记录已取消等待，不代表安全。"
+        } else binding.mockResult.text.toString()
+        val labels = ArrayList(lastResponse?.candidates.orEmpty().map { "${it.commonName} / ${it.scientificName}" })
         cancelRequest()
+        startActivity(CaseRecordActivity.intent(this, originalImageUri, importedAt, summary, labels, bitten))
+    }
+
+    private fun runScenario(scenario: MockScenario) {
+        clearRecognition("尚未获得本次识别结果。")
+        val useHttp = binding.useHttpMock.isChecked
+        if (useHttp && image == null) {
+            binding.mockResult.text = "HTTP MOCK 需要先选择可用图片；仍可直接记录伤情和求助。"
+            return
+        }
+        if (useHttp && !binding.uploadConsent.isChecked) {
+            binding.mockResult.text = "UPLOAD_CONSENT_REQUIRED：未同意发送，未创建图片请求。仍可记录伤情。"
+            return
+        }
+        val adapter: RecognitionAdapter
+        val refreshAdapter: RecognitionAdapter
+        try {
+            adapter = if (useHttp) httpAdapter(scenario) else MockRecognitionAdapter(assets, scenario)
+            refreshAdapter = if (useHttp) httpAdapter(MockScenario.CANDIDATES) else MockRecognitionAdapter(assets, MockScenario.CANDIDATES)
+        } catch (_: IllegalArgumentException) {
+            binding.mockResult.text = "代理地址无效：仅支持本机回环地址，不可包含凭据或查询参数；真实识别未启用。"
+            return
+        }
         val requestId = UUID.randomUUID().toString()
         activeRequestId = requestId
-        setRequestRunning(true)
-        binding.mockResult.text = "模拟请求中：${scenario.label}…"
-        activeCall = MockRecognitionAdapter(assets, scenario).recognize(requestId, image?.jpeg ?: byteArrayOf()) {
+        pendingRefreshAdapter = refreshAdapter
+        setRequestRunning()
+        binding.mockResult.text = "${if (useHttp) "HTTP MOCK" else "模拟"}请求中：${scenario.label}…"
+        val call = adapter.recognize(requestId, image?.jpeg ?: byteArrayOf(), useHttp && binding.uploadConsent.isChecked) {
             result -> deliverResult(requestId, result)
         }
+        if (activeRequestId == requestId) activeCall = call
     }
+
+    private fun httpAdapter(scenario: MockScenario) = HttpRecognitionAdapter(
+        binding.proxyBaseUrl.text.toString().trim(),
+        client = httpClient,
+        mockScenario = scenario.assetFile.removeSuffix(".json"),
+    )
 
     private fun refreshPending() {
         val recognitionId = pendingRecognitionId ?: return
+        val adapter = pendingRefreshAdapter ?: return
         val requestId = UUID.randomUUID().toString()
         activeRequestId = requestId
         binding.manualRefresh.isVisible = false
-        setRequestRunning(true)
+        setRequestRunning()
         binding.mockResult.text = "正在执行一次手动查询…"
-        activeCall = MockRecognitionAdapter(assets, MockScenario.CANDIDATES)
-            .refresh(requestId, recognitionId) { result -> deliverResult(requestId, result) }
+        val call = adapter.refresh(requestId, recognitionId) { result -> deliverResult(requestId, result) }
+        if (activeRequestId == requestId) activeCall = call
     }
 
     private fun deliverResult(requestId: String, result: RecognitionResult) {
@@ -111,44 +178,72 @@ class MockRecognitionActivity : AppCompatActivity() {
             if (isDestroyed || activeRequestId != requestId) return@runOnUiThread
             activeRequestId = null
             activeCall = null
-            setRequestRunning(false)
+            setRequestRunning()
             binding.mockResult.text = when (result) {
                 is RecognitionResult.Success -> {
+                    lastResponse = result.response
+                    binding.speciesComparisonHost.removeAllViews()
+                    result.response.candidates.forEach { candidate ->
+                        binding.speciesComparisonHost.addView(Button(this).apply {
+                            text = "${candidate.commonName} · 离线比对资料（非诊断）"
+                            setOnClickListener {
+                                startActivity(com.insta360.kmpsdk.demo.species.SpeciesComparisonActivity.intent(
+                                    this@MockRecognitionActivity, candidate.speciesId, result.response.resultSource.name,
+                                ))
+                            }
+                        }, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT))
+                    }
                     pendingRecognitionId = result.response.recognitionId
                         .takeIf { result.response.status == RecognitionStatus.PENDING }
                     binding.manualRefresh.isVisible = pendingRecognitionId != null
+                    if (pendingRecognitionId == null) pendingRefreshAdapter = null
                     renderSuccess(result.response)
                 }
                 is RecognitionResult.Failure -> {
+                    lastResponse = null
                     pendingRecognitionId = null
+                    pendingRefreshAdapter = null
                     binding.manualRefresh.isVisible = false
-                    "【MOCK · 识别失败】\n${result.error.message}\n错误码：${result.error.code}\n请求失败不等于没有蛇，请勿自动重试。"
+                    val source = result.error.resultSource?.name ?: "来源未确认"
+                    "【$source · 识别失败】\n${result.error.message}\n错误码：${result.error.code}\n请求失败不等于没有蛇；不自动重试，仍可记录伤情和求助。"
                 }
             }
         }
     }
 
+    private fun clearRecognition(message: String) {
+        cancelRequest()
+        lastResponse = null
+        binding.speciesComparisonHost.removeAllViews()
+        binding.mockResult.text = message
+    }
+
     private fun cancelRequest() {
         activeRequestId = null
         pendingRecognitionId = null
+        pendingRefreshAdapter = null
         activeCall?.cancel()
         activeCall = null
         if (::binding.isInitialized) {
             binding.manualRefresh.isVisible = false
-            setRequestRunning(false)
+            setRequestRunning()
         }
     }
 
-    private fun setRequestRunning(running: Boolean) {
-        binding.mockScenarioHost.children.forEach { it.isEnabled = !running }
+    private fun setRequestRunning() {
+        val running = activeRequestId != null
+        binding.mockScenarioHost.children.forEach { it.isEnabled = !running && !preparingImage }
+        binding.useHttpMock.isEnabled = !running && !preparingImage
+        binding.proxyBaseUrl.isEnabled = !running && !preparingImage
+        binding.uploadConsent.isEnabled = !running && !preparingImage
         binding.cancelRequest.isVisible = running
-        binding.requestProgress.isVisible = running
+        binding.requestProgress.isVisible = running || preparingImage
     }
 
     private fun setPreparing(preparing: Boolean) {
+        preparingImage = preparing
         binding.selectImage.isEnabled = !preparing
-        binding.mockScenarioHost.children.forEach { it.isEnabled = !preparing }
-        binding.requestProgress.isVisible = preparing
+        setRequestRunning()
         if (preparing) binding.imageStatus.text = "正在准备 JPEG…"
     }
 
@@ -185,8 +280,15 @@ class MockRecognitionActivity : AppCompatActivity() {
         appendLine("识别结果不能用于排除危险或替代医疗判断。")
     }
 
+    override fun onStop() {
+        if (activeRequestId != null) clearRecognition("离开页面，已取消请求；识别未完成不代表安全。")
+        super.onStop()
+    }
+
     override fun onDestroy() {
         cancelRequest()
+        httpClient.connectionPool.evictAll()
+        httpClient.dispatcher.executorService.shutdown()
         super.onDestroy()
     }
 }

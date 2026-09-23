@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="20dp"
+    android:background="#FFFFFF"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/hospital_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:accessibilityHeading="true"
+        android:autoLink="none"
+        android:textColor="#20372F"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/hospital_details"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:autoLink="none"
+        android:linksClickable="false"
+        android:textColor="#20372F"
+        android:textSize="16sp" />
+
+    <Button
+        android:id="@+id/hospital_dial"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:backgroundTint="#E4EADF"
+        android:minHeight="48dp"
+        android:text="@string/hospital_dial"
+        android:textColor="#20372F" />
+
+    <Button
+        android:id="@+id/hospital_copy_address"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:backgroundTint="#E4EADF"
+        android:minHeight="48dp"
+        android:text="@string/hospital_copy_address"
+        android:textColor="#20372F" />
+
+    <Button
+        android:id="@+id/hospital_copy_phone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:backgroundTint="#E4EADF"
+        android:minHeight="48dp"
+        android:text="@string/hospital_copy_phone"
+        android:textColor="#20372F" />
+</LinearLayout>

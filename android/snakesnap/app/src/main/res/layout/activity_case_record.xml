@@ -1,0 +1,356 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F5F6F2"
+    android:importantForAutofill="noExcludeDescendants"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingHorizontal="12dp">
+
+        <Button
+            android:id="@+id/case_back"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="返回" />
+
+        <Button
+            android:id="@+id/case_hospitals"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="2"
+            android:text="查找医院" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/case_medical_reminder"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:background="#F3E5DC"
+        android:padding="12dp"
+        android:text="本卡仅供就医沟通，不生成诊断。被咬或疑似被咬请立即就医／拨打120，勿等待识别。风险未知，须由医师判断。"
+        android:textColor="#20372F"
+        android:textSize="15sp"
+        android:textStyle="bold" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="本地伤情信息卡"
+                android:textColor="#20372F"
+                android:textSize="24sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/case_branch_message"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:textColor="#20372F"
+                android:textSize="16sp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginVertical="12dp"
+                android:text="仅存本机私有不备份目录，不上传、不定位，不支持分享或导出。拒绝上传、识别未完成或失败也能记录。所有字段可空，空白显示“未提供”。原文件可能含位置等元数据；卸载或清除应用数据会丢失记录。"
+                android:textColor="#20372F"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/case_status"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:accessibilityLiveRegion="polite"
+                android:paddingVertical="8dp"
+                android:textColor="#8B271E"
+                android:textSize="16sp" />
+
+            <ProgressBar
+                android:id="@+id/case_progress"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:indeterminate="true"
+                android:visibility="gone" />
+
+            <LinearLayout
+                android:id="@+id/case_form"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:id="@+id/case_bite_fields"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:labelFor="@id/case_bite_time"
+                        android:text="咬伤时间（可空，最多80字）"
+                        android:textColor="#20372F" />
+
+                    <EditText
+                        android:id="@+id/case_bite_time"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="例如今天14:30或约半小时前"
+                        android:inputType="text"
+                        android:maxLength="80"
+                        android:minHeight="48dp"
+                        android:saveEnabled="false"
+                        android:textColor="#20372F" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:labelFor="@id/case_body_part"
+                        android:text="部位（可空，最多120字）"
+                        android:textColor="#20372F" />
+
+                    <EditText
+                        android:id="@+id/case_body_part"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="例如左脚踝"
+                        android:inputType="text"
+                        android:maxLength="120"
+                        android:minHeight="48dp"
+                        android:saveEnabled="false"
+                        android:textColor="#20372F" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:labelFor="@id/case_symptoms"
+                        android:text="症状（可空，最多1000字）"
+                        android:textColor="#20372F" />
+
+                    <EditText
+                        android:id="@+id/case_symptoms"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="top"
+                        android:hint="仅记录自己观察到的情况"
+                        android:inputType="textMultiLine"
+                        android:maxLength="1000"
+                        android:minLines="3"
+                        android:saveEnabled="false"
+                        android:textColor="#20372F" />
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:labelFor="@id/case_age"
+                    android:text="年龄（选填，最多3位）"
+                    android:textColor="#20372F" />
+
+                <EditText
+                    android:id="@+id/case_age"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="年龄（岁）"
+                    android:inputType="number"
+                    android:maxLength="3"
+                    android:minHeight="48dp"
+                    android:saveEnabled="false"
+                    android:textColor="#20372F" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:labelFor="@id/case_blood_type"
+                    android:text="血型（选填，最多10字，如 A+ 或 O-）"
+                    android:textColor="#20372F" />
+
+                <EditText
+                    android:id="@+id/case_blood_type"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="例如 A+、O-"
+                    android:inputType="text"
+                    android:maxLength="10"
+                    android:minHeight="48dp"
+                    android:saveEnabled="false"
+                    android:textColor="#20372F" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="紧急联系人（选填，仅存本机）"
+                    android:textColor="#20372F"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:labelFor="@id/case_emergency_name"
+                    android:text="姓名（最多60字）"
+                    android:textColor="#20372F" />
+
+                <EditText
+                    android:id="@+id/case_emergency_name"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="紧急联系人姓名"
+                    android:inputType="textPersonName"
+                    android:maxLength="60"
+                    android:minHeight="48dp"
+                    android:saveEnabled="false"
+                    android:textColor="#20372F" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:labelFor="@id/case_emergency_phone"
+                    android:text="电话（最多30字）"
+                    android:textColor="#20372F" />
+
+                <EditText
+                    android:id="@+id/case_emergency_phone"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="紧急联系人电话"
+                    android:inputType="phone"
+                    android:maxLength="30"
+                    android:minHeight="48dp"
+                    android:saveEnabled="false"
+                    android:textColor="#20372F" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:labelFor="@id/case_emergency_relationship"
+                    android:text="关系（最多30字）"
+                    android:textColor="#20372F" />
+
+                <EditText
+                    android:id="@+id/case_emergency_relationship"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="例如配偶、父母、朋友"
+                    android:inputType="text"
+                    android:maxLength="30"
+                    android:minHeight="48dp"
+                    android:saveEnabled="false"
+                    android:textColor="#20372F" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:labelFor="@id/case_location"
+                    android:text="手填位置（选填，最多200字，不获取定位）"
+                    android:textColor="#20372F" />
+
+                <EditText
+                    android:id="@+id/case_location"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="自行填写地点或附近地标"
+                    android:inputType="textMultiLine"
+                    android:maxLength="200"
+                    android:minHeight="48dp"
+                    android:saveEnabled="false"
+                    android:textColor="#20372F" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:labelFor="@id/case_candidate_spinner"
+                    android:text="用户比对选择（不确诊，默认未比对）"
+                    android:textColor="#20372F" />
+
+                <Spinner
+                    android:id="@+id/case_candidate_spinner"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="48dp"
+                    android:saveEnabled="false"
+                    android:spinnerMode="dropdown" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="本信息卡不附物种参考图，不选择毒型。候选仅供用户自行比对，不代表确认蛇种。风险未知，须由医师判断。"
+                    android:textColor="#20372F"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:id="@+id/case_recognition_snapshot"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginVertical="12dp"
+                    android:background="#FFFFFF"
+                    android:padding="12dp"
+                    android:textColor="#20372F"
+                    android:textSize="16sp" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/case_saved_card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginVertical="12dp"
+                android:background="#FFFFFF"
+                android:padding="16dp"
+                android:textColor="#20372F"
+                android:textSize="16sp"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/case_image_status"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:accessibilityLiveRegion="polite"
+                android:paddingVertical="12dp"
+                android:textColor="#20372F"
+                android:textSize="14sp" />
+
+            <ImageView
+                android:id="@+id/case_image_preview"
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                android:contentDescription="降采样并校正方向的预览，不是原图"
+                android:scaleType="fitCenter"
+                android:visibility="gone" />
+
+            <Button
+                android:id="@+id/case_save"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="仅在本机保存信息卡" />
+
+            <Button
+                android:id="@+id/case_save_without_original"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="不保存原图，继续记录"
+                android:visibility="gone" />
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

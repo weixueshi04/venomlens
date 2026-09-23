@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/hospital_scroll"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F5F6F2"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <Button
+            android:id="@+id/hospital_back"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:backgroundTint="#E4EADF"
+            android:minHeight="48dp"
+            android:text="@string/hospital_back"
+            android:textColor="#20372F" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:accessibilityHeading="true"
+            android:text="@string/hospital_title"
+            android:textColor="#20372F"
+            android:textSize="26sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/hospital_notice"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/hospital_notice"
+            android:textColor="#20372F"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/hospital_offline_notice"
+            android:textColor="#20372F"
+            android:textSize="16sp" />
+
+        <Button
+            android:id="@+id/hospital_emergency_dial"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:backgroundTint="#E4EADF"
+            android:minHeight="48dp"
+            android:text="@string/hospital_emergency_dial"
+            android:textColor="#20372F" />
+
+        <Button
+            android:id="@+id/hospital_emergency_copy"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:backgroundTint="#E4EADF"
+            android:minHeight="48dp"
+            android:text="@string/hospital_emergency_copy"
+            android:textColor="#20372F" />
+
+        <TextView
+            android:id="@+id/hospital_region_notice"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/hospital_region_notice"
+            android:textColor="#20372F"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/hospital_action_message"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:accessibilityLiveRegion="polite"
+            android:background="#FFFFFF"
+            android:padding="12dp"
+            android:textColor="#20372F"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/hospital_loading"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="@string/hospital_loading"
+            android:textColor="#20372F"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/hospital_directory_error"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:accessibilityLiveRegion="polite"
+            android:background="#FFFFFF"
+            android:padding="16dp"
+            android:textColor="#20372F"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/hospital_empty"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:accessibilityLiveRegion="polite"
+            android:background="#FFFFFF"
+            android:padding="16dp"
+            android:text="@string/hospital_empty"
+            android:textColor="#20372F"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:visibility="gone" />
+
+        <LinearLayout
+            android:id="@+id/hospital_list"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+    </LinearLayout>
+</ScrollView>

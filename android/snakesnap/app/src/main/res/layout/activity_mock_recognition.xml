@@ -29,6 +29,37 @@
             android:textColor="#FFFFFF"
             android:textStyle="bold" />
 
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="疑似蛇咬伤请及时联系急救和就医；不必等待识别。"
+            android:textColor="#B3261E" />
+
+        <Button
+            android:id="@+id/record_injury"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="被咬伤 / 记录伤情" />
+
+        <Button
+            android:id="@+id/not_bitten"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="未被咬伤 / 查看信息" />
+
+        <Button
+            android:id="@+id/open_hospitals"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="医院联系与求助" />
+
+        <Button
+            android:id="@+id/latest_case"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="查看最近本地信息卡" />
+
         <Button
             android:id="@+id/open_camera"
             android:layout_width="match_parent"
@@ -58,6 +89,46 @@
             android:text="无需图片也能测试以下 7 种响应；真实识别默认关闭。"
             android:textColor="#45564E"
             android:textSize="14sp" />
+
+        <CheckBox
+            android:id="@+id/use_http_mock"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:saveEnabled="false"
+            android:text="使用本机 HTTP mock 代理（非真实识别）" />
+
+        <LinearLayout
+            android:id="@+id/http_mock_options"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="代理地址（仅回环地址，可通过 USB adb reverse 转发）"
+                android:labelFor="@id/proxy_base_url" />
+
+            <EditText
+                android:id="@+id/proxy_base_url"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="48dp"
+                android:inputType="textUri"
+                android:singleLine="true"
+                android:maxLength="256"
+                android:importantForAutofill="no"
+                android:saveEnabled="false"
+                android:text="http://127.0.0.1:8765" />
+
+            <CheckBox
+                android:id="@+id/upload_consent"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:saveEnabled="false"
+                android:text="同意将处理后的图片发送给本机 mock 代理；不调用真实供应商" />
+        </LinearLayout>
 
         <LinearLayout
             android:id="@+id/mock_scenario_host"
@@ -98,5 +169,11 @@
             android:textColor="#20372F"
             android:textIsSelectable="true"
             android:textSize="16sp" />
+
+        <LinearLayout
+            android:id="@+id/species_comparison_host"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
     </LinearLayout>
 </ScrollView>

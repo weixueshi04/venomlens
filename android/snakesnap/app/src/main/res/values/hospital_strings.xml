@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="hospital_title">离线医院联系目录</string>
+    <string name="hospital_back">返回</string>
+    <string name="hospital_notice">蛇伤救治相关医院信息；接诊及血清情况请电话确认</string>
+    <string name="hospital_offline_notice">仅展示随应用附带的离线资料，不提供实时库存、位置或距离。历史提及≠适配当前蛇种，请勿据此判断血清适用性。</string>
+    <string name="hospital_emergency_dial">中国大陆急救 120：打开拨号界面</string>
+    <string name="hospital_emergency_copy">复制120</string>
+    <string name="hospital_region_notice">非中国大陆请使用当地急救电话。这里只打开拨号界面，不会自动呼叫；请自行确认号码并拨出。</string>
+    <string name="hospital_loading">正在读取离线目录…</string>
+    <string name="hospital_empty">尚无经过来源核验的医院资料，请勿依赖空目录延误求助</string>
+    <string name="hospital_read_error">无法读取离线医院资料，目录暂不可用（并非已确认没有医院）。请使用急救电话求助，不要等待目录恢复。</string>
+    <string name="hospital_parse_error">离线医院资料格式错误，目录暂不可用（并非已确认没有医院）。请使用急救电话求助，不要等待目录恢复。</string>
+    <string name="hospital_validation_error">有 %1$d 条资料未通过字段、来源、日期或号码校验，已隐藏；这不代表当地没有可接诊医院。请勿等待目录补齐而延误求助。</string>
+    <string name="hospital_dial">打开医院电话拨号界面</string>
+    <string name="hospital_copy_address">复制地址</string>
+    <string name="hospital_copy_phone">复制电话</string>
+    <string name="hospital_dial_description">打开%1$s的电话拨号界面</string>
+    <string name="hospital_copy_address_description">复制%1$s的地址</string>
+    <string name="hospital_copy_phone_description">复制%1$s的电话</string>
+    <string name="hospital_emergency_clip_label">中国大陆急救电话</string>
+    <string name="hospital_address_clip_label">医院地址</string>
+    <string name="hospital_phone_clip_label">医院电话</string>
+    <string name="hospital_emergency_copied">已复制120。非中国大陆请使用当地急救电话。</string>
+    <string name="hospital_address_copied">已复制医院地址。</string>
+    <string name="hospital_phone_copied">已复制医院电话。</string>
+    <string name="hospital_copy_error">无法复制到剪贴板，请手动记录屏幕上的地址或号码。</string>
+    <string name="hospital_dial_opened">已请求打开拨号界面，尚未呼叫；请自行确认号码并拨出。</string>
+    <string name="hospital_no_dialer">此设备没有可用的拨号器。请复制号码，使用其他电话求助。</string>
+    <string name="hospital_dial_blocked">系统不允许打开拨号界面。请复制号码，使用其他电话求助。</string>
+    <string name="hospital_invalid_phone">电话号码格式不安全，已阻止打开拨号界面。请使用当地急救电话求助。</string>
+</resources>

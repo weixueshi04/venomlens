@@ -18,6 +18,8 @@ import org.junit.After
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
@@ -192,7 +194,7 @@ class HttpRecognitionAdapterTest {
         val results: BlockingQueue<RecognitionResult> = LinkedBlockingQueue()
         val idle = observeIdle()
         server.enqueue(MockResponse().setSocketPolicy(SocketPolicy.NO_RESPONSE))
-        val call = adapter().recognize(requestId, jpeg, false) { results.add(it) }
+        val call = adapter().recognize(requestId, jpeg, true) { results.add(it) }
         takeRequest()
         call.cancel()
         assertTrue(idle.await(5, TimeUnit.SECONDS))
@@ -206,8 +208,74 @@ class HttpRecognitionAdapterTest {
         assertFailure(RecognitionErrorCode.NETWORK, recognize())
     }
 
-    private fun adapter(httpClient: OkHttpClient = client, authToken: String? = null) =
-        HttpRecognitionAdapter(server.url("/").toString(), authToken, httpClient)
+    @Test
+    fun missingConsentRejectsBeforeCreatingAnyHttpCall() {
+        val started = AtomicInteger()
+        val localClient = client.newBuilder().eventListener(object : EventListener() {
+            override fun callStart(call: Call) { started.incrementAndGet() }
+        }).build()
+        val results: BlockingQueue<RecognitionResult> = LinkedBlockingQueue()
+        adapter(localClient).recognize(requestId, jpeg) { results.add(it) }
+        assertFailure(RecognitionErrorCode.UPLOAD_CONSENT_REQUIRED, awaitResult(results))
+        adapter(localClient, mockScenario = "candidates").recognize(requestId, jpeg, false) { results.add(it) }
+        assertFailure(RecognitionErrorCode.UPLOAD_CONSENT_REQUIRED, awaitResult(results))
+        assertEquals(0, started.get())
+        assertEquals(0, server.requestCount)
+        assertTrue(results.isEmpty())
+    }
+
+    @Test
+    fun mockHeadersCoverAllSevenFixturesWithoutAuthorization() {
+        mapOf("candidates" to 200, "multiple" to 200, "uncertain" to 200, "no_snake" to 200,
+            "pending" to 202, "timeout" to 504, "invalid_output" to 502).forEach { (name, status) ->
+            server.enqueue(MockResponse().setResponseCode(status).setBody(fixtureBody("$name.json")))
+            val result = recognize(uploadConsent = true, mockScenario = name)
+            assertEquals(status < 400, result is RecognitionResult.Success)
+            val request = takeRequest()
+            assertEquals(name, request.getHeader("X-Mock-Scenario"))
+            assertNull(request.getHeader("Authorization"))
+        }
+        assertEquals(7, server.requestCount)
+    }
+
+    @Test
+    fun mockRefreshUsesExplicitScenarioWithoutExtraRequest() {
+        server.enqueue(MockResponse().setBody(successBody()))
+        assertTrue(refresh("a".repeat(64), mockScenario = "candidates") is RecognitionResult.Success)
+        assertEquals("candidates", takeRequest().getHeader("X-Mock-Scenario"))
+        assertEquals(1, server.requestCount)
+    }
+
+    @Test
+    fun normalAdapterDoesNotSendMockHeader() {
+        server.enqueue(MockResponse().setBody(successBody()))
+        recognize()
+        assertNull(takeRequest().getHeader("X-Mock-Scenario"))
+    }
+
+    @Test
+    fun mockAdapterRejectsNonMockSuccessAndErrorSources() {
+        listOf("live", "cache").forEach { source ->
+            server.enqueue(MockResponse().setBody(JSONObject(successBody()).put("resultSource", source).toString()))
+            assertFailure(RecognitionErrorCode.INVALID_MODEL_OUTPUT, recognize(mockScenario = "candidates"))
+            server.enqueue(MockResponse().setResponseCode(504)
+                .setBody(JSONObject(errorBody(RecognitionErrorCode.UPSTREAM_TIMEOUT)).put("resultSource", source).toString()))
+            assertFailure(RecognitionErrorCode.INVALID_MODEL_OUTPUT, recognize(mockScenario = "timeout"))
+        }
+    }
+
+    @Test
+    fun mockConfigurationRejectsUnknownScenariosRemoteHostsAndTokens() {
+        assertThrows(IllegalArgumentException::class.java) { adapter(mockScenario = "unsupported") }
+        assertThrows(IllegalArgumentException::class.java) { adapter(authToken = token, mockScenario = "candidates") }
+        assertThrows(IllegalArgumentException::class.java) {
+            HttpRecognitionAdapter("https://example.invalid", client = client, mockScenario = "candidates")
+        }
+        assertEquals(0, server.requestCount)
+    }
+
+    private fun adapter(httpClient: OkHttpClient = client, authToken: String? = null, mockScenario: String? = null) =
+        HttpRecognitionAdapter(server.url("/").toString(), authToken, httpClient, mockScenario)
 
     private fun successBody() = fixtureBody("candidates.json")
 
@@ -224,12 +292,13 @@ class HttpRecognitionAdapterTest {
     private fun recognize(
         httpClient: OkHttpClient = client,
         callbackTimeoutMs: Long = 5_000,
-        uploadConsent: Boolean = false,
+        uploadConsent: Boolean = true,
         authToken: String? = null,
+        mockScenario: String? = null,
     ): RecognitionResult {
         val results: BlockingQueue<RecognitionResult> = LinkedBlockingQueue()
         val idle = observeIdle()
-        adapter(httpClient, authToken).recognize(requestId, jpeg, uploadConsent) { results.add(it) }
+        adapter(httpClient, authToken, mockScenario).recognize(requestId, jpeg, uploadConsent) { results.add(it) }
         val result = awaitResult(results, callbackTimeoutMs)
         assertTrue(idle.await(5, TimeUnit.SECONDS))
         assertTrue(results.isEmpty())
@@ -240,9 +309,10 @@ class HttpRecognitionAdapterTest {
         recognitionId: String,
         httpClient: OkHttpClient = client,
         authToken: String? = null,
+        mockScenario: String? = null,
     ): RecognitionResult {
         val results: BlockingQueue<RecognitionResult> = LinkedBlockingQueue()
-        adapter(httpClient, authToken).refresh(requestId, recognitionId) { results.add(it) }
+        adapter(httpClient, authToken, mockScenario).refresh(requestId, recognitionId) { results.add(it) }
         return awaitResult(results)
     }
 
@@ -252,7 +322,7 @@ class HttpRecognitionAdapterTest {
             override fun callStart(call: Call) { callsStarted.incrementAndGet() }
         }).build()
         val results: BlockingQueue<RecognitionResult> = LinkedBlockingQueue()
-        adapter(localClient).recognize(requestId, image, false) { results.add(it) }
+        adapter(localClient).recognize(requestId, image, true) { results.add(it) }
         assertFailure(code, awaitResult(results))
         assertEquals(0, callsStarted.get())
         assertEquals(0, server.requestCount)

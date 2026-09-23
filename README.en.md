@@ -6,6 +6,35 @@ A prototype for Insta360 Bold Maker 2026: obtain camera photos, present snake-sp
 
 > Mock results are unrelated to the selected photo. “No snake detected” does not establish safety. Candidates and raw provider scores are neither confirmed identification nor accuracy estimates; they cannot rule out danger or replace medical judgment.
 
+## Next iteration (not yet released)
+
+The following working-tree changes are undergoing validation and **are not included in the `v0.1-dev` APK below**:
+
+- The mock page can use a loopback-only HTTP mock proxy, defaulting to `http://127.0.0.1:8765`. Select an image and explicitly consent before triggering a scenario. Both the UI and HTTP adapter block uploads without consent. The service must remain mock with a zero live budget; no live mode is exposed.
+- Pending, failed, and unstarted recognition can enter bitten/unbitten flows, save a local injury card, and reopen it. Original images are limited to 32 MiB; failures are visible and require an explicit choice to continue without the original. Cards and originals use `noBackupFilesDir`, with no upload, automatic location, or diagnosis.
+- The hospital entry supports validated offline listings, copying, and opening the system dialer. **The production list is empty pending traceable, reviewed data**; no inventory, distance, or automatic calling claims.
+- Physical setup: Xiaomi 13 Pro (2210132C), Android 16 / API 36, Insta360 X5 firmware v1.13.21. SDK connection, normal rear-lens capture, download, JPEG export, system image selection, and HTTP mock/manual pending refresh over USB reverse were exercised with camera Wi-Fi and cellular both enabled. Direct Wi-Fi connection now binds the camera network, fixing working camera control but cellular-routed download timeouts. **Public-network proxy access, live recognition, panoramic capture and hardware shutter buttons remain unverified.** A prior `-2110103` disconnect recovered; long-term stability is not established.
+- Candidates open offline comparison material: Chinese observations, collapsible look-alikes, cautions, attributed photos and manually opened HTTPS references. Name verification is not medical/content approval; review warnings remain visible and English names/technical notes are not presented as descriptions.
+
+Working-tree verification on 2026-09-23: Android build, JVM **55/55**, offline Python regression **48/48**, and Android 16 emulator instrumentation **35/35 (none skipped)** passed. Device tests cover seven HTTP scenarios, manual pending refresh after seven seconds, loopback cleartext policy, partial case-save recovery, and safe hospital dial intents. The HTTP mock page retains no idle connections to avoid stale sockets through USB forwarding; it does not retry automatically.
+
+Manual checks also selected a synthetic image through the system picker, saved and reopened a test card with its original image, opened the unbitten branch and empty hospital directory, and copied a number without placing a call. These are **emulator/mock checks, not physical-camera or live-recognition acceptance**. USB debugging and installation are now authorized on the phone, but further interaction paused when it locked. Existing recordings are emulator-only, remain local, and are not added to the old Release.
+
+The teammate's 34 valid-path code/data files from `bb92684` were verified against Git blob SHAs and imported into this working tree. Offline Python regression passed **50/50** using local Conda Python 3.11 / Starlette 1.6.0, not an identical copy of the teammate's dependency environment. Seven malformed handoff paths still need a remote fix and were not checked out. **This is content integration, not a Git-history merge; no new commit or push was made.**
+
+Android generates assets from `data/species.json`, cross-checking filenames, attribution and source pages against each species' `meta.json`. Only seven consistent referenced photos are bundled, without candidate archives. Two keelback photos have conflicting filenames/observation pages and are withheld, with an explicit review notice instead of photo attribution. Original teammate data remains unchanged; consistency does not establish independent license or species verification.
+
+With the mock proxy below running, use `adb devices -l` to confirm the test device is authorized; a file-transfer connection alone does not enable USB debugging. Select an explicit serial when both an emulator and a phone are attached. Run from `android/snakesnap`:
+
+```bash
+export ANDROID_SERIAL="replace-with-test-device-serial-from-adb-devices"
+adb -s "$ANDROID_SERIAL" reverse tcp:8765 tcp:8765
+"$GRADLE" :app:connectedDebugAndroidTest \
+  -Pandroid.testInstrumentationRunnerArguments.mockProxyUrl=http://127.0.0.1:8765
+```
+
+See below for the verified `GRADLE` path and environment. Without `mockProxyUrl`, the external HTTP UI integration test is skipped, not passed. The download, feature boundaries, and 28/48/10 test counts below describe the published `v0.1-dev`, not this iteration's acceptance results.
+
 ## Download and install
 
 Download the `v0.1-dev` APK and SHA256 file from [GitHub Releases](https://github.com/weixueshi04/venomlens/releases). This repository is private; collaborator access is required.
@@ -62,6 +91,8 @@ This delivery contains the pinned build and documentation only; it does not modi
 ## Development and build
 
 ### Android
+
+On Windows, use an ASCII-only project path, such as `E:/venomlens`. A repository path containing Chinese characters can be retained, but build from an ASCII-only working snapshot instead; do not hide the restriction with `android.overridePathCheck`.
 
 - AGP **8.7.3**, Kotlin **2.3.20**, compile/target SDK **35**, min SDK **29**, Insta360 Camera/Media SDK **2.1.5**.
 - Locally verified toolchain: Android Studio **JBR 21** (Java/Kotlin target 17), **Gradle 8.12**.

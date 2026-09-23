@@ -6,6 +6,35 @@
 
 > 模拟结果与照片无关；“未检测到蛇”不表示现场安全。候选与供应商原始分值不是物种确认或准确率，不能排除危险或替代医疗判断。
 
+## 后续开发（尚未发布）
+
+当前工作树正在验收以下增量，**不包含在下方的 `v0.1-dev` 安装包中**：
+
+- 模拟页可选择本机 HTTP mock 代理，默认 `http://127.0.0.1:8765`，只接受回环地址；选图、明确同意发送后点击场景才上传处理后的 JPEG。页面和 HTTP Adapter 都阻止未同意上传，服务仍须为 mock / 预算 0，不开放真实调用。
+- pending、失败、未识别均可进入被咬／未咬分支，保存本地伤情信息卡并重新打开；原图最多 32 MiB，失败时明确提示并由用户选择是否不附图继续。原图和卡片仅放在 `noBackupFilesDir`，不上传、不自动定位、不提供诊断。
+- 医院联系入口包含离线目录校验、复制和系统拨号界面。**生产医院列表为空，仍等待有来源的核验资料**；不提供实时库存、距离或自动呼叫。
+- 真机：Xiaomi 13 Pro（2210132C），Android 16 / API 36，Insta360 X5，固件 v1.13.21。已实测 SDK 连接、普通后镜头拍照、下载、JPEG 导出、系统选图和 USB reverse 的 HTTP mock / pending 手动查询；相机 Wi-Fi 与蜂窝网络同时开启。直接 Wi-Fi 连接现绑定相机网络，修复控制可用但下载误走蜂窝而超时的问题。**未验证公网代理、真实识别、全景取图或物理按键**；曾出现 `-2110103` 断开后重连成功，长期稳定性仍待验。
+- 候选可打开离线比对资料：中文观察要点、易混折叠、禁止行为、参考图署名和手动 HTTPS 参考链接。名称核验不等于医疗／比对文案审核，所有文案保留待核验提示；英文名和技术笔记不作为描述展示。
+
+2026-09-23 工作树验证：Android 构建、JVM **55/55**、Python 离线回归 **48/48**、Android 16 模拟器仪器测试 **35/35（无跳过）**通过。设备测试包含 HTTP 的 7 场景、等待 7 秒后的 pending 手动查询、回环明文策略、病例部分提交恢复与医院安全拨号 Intent。HTTP mock 开发页不保留空闲连接，避免 USB 转发后的过期连接复用；不自动重试。
+
+另已人工操作系统选图器选择合成图片、保存并重开带原图的测试信息卡、查看未咬分支及医院空目录、复制号码；未实际拨打电话。这些是**模拟器与模拟数据验证，不是真机相机或真实识别验收**。USB 真机调试和安装已授权，但进一步交互因手机锁屏暂停；已有录屏仅为模拟器记录，保留在本机，未加入旧 Release。
+
+队友 `bb92684` 的 34 个正常路径代码／数据文件已按 Git blob SHA 核验并导入本工作树，Python 离线回归 **50/50** 通过（本机 Conda Python 3.11、Starlette 1.6.0；不是队友完全相同的依赖环境）。7 份交接文件的非法 Git 路径尚待远程修复，未检出；**这是内容整合，尚未合并 Git 分支历史，也未提交推送**。
+
+Android 构建从 `data/species.json` 生成资产，并与各物种 `meta.json` 核对文件、署名和来源页，仅打包一致的 7 张引用图，不含候选留档。颈棱蛇 2 张图的文件名与观察页记录冲突，暂缓打包和署名展示，页面明确提示待复核；队友原始数据保持不变，核对通过也不代表独立验证了授权或物种。
+
+连接测试设备并启动下文的 mock 代理后，先用 `adb devices -l` 确认设备已授权；仅有文件传输连接不代表已开启 USB 调试。同时连接真机与模拟器时必须指定序列号。在 `android/snakesnap` 运行：
+
+```bash
+export ANDROID_SERIAL="替换为 adb devices 显示的测试设备序列号"
+adb -s "$ANDROID_SERIAL" reverse tcp:8765 tcp:8765
+"$GRADLE" :app:connectedDebugAndroidTest \
+  -Pandroid.testInstrumentationRunnerArguments.mockProxyUrl=http://127.0.0.1:8765
+```
+
+`GRADLE` 的已验证路径与环境见下文；不传 `mockProxyUrl` 时外部 HTTP 页面集成测试会跳过，而非记为通过。以下下载、功能边界与 28/48/10 测试数字描述的是已发布 `v0.1-dev`，不是这轮增量的验收结果。
+
 ## 下载与安装
 
 从 [GitHub Releases](https://github.com/weixueshi04/venomlens/releases) 下载 `v0.1-dev` 的 APK 和 SHA256 校验文件。仓库为私有，需要协作者权限。
@@ -62,6 +91,8 @@ adb install -r venomlens-v0.1-dev-2e51bca-debug.apk
 ## 开发与构建
 
 ### Android
+
+Windows 上工程完整路径必须避免中文等非 ASCII 字符（例如使用 `E:/venomlens`）。含 `怕草绳` 的本地仓库可保留，但须把工作快照复制到纯英文路径再构建；不要用 `android.overridePathCheck` 掩盖此限制。
 
 - AGP **8.7.3**，Kotlin **2.3.20**，compile/target SDK **35**，min SDK **29**，Insta360 Camera/Media SDK **2.1.5**。
 - 本机验证工具链：Android Studio **JBR 21**（Java/Kotlin 编译目标 17），**Gradle 8.12**。

@@ -19,6 +19,7 @@ class HttpRecognitionAdapter(
     baseUrl: String,
     private val authToken: String? = null,
     client: OkHttpClient = OkHttpClient(),
+    private val mockScenario: String? = null,
 ) : RecognitionAdapter {
     private val endpoint = (baseUrl.trimEnd('/') + "/v1/recognitions").toHttpUrl()
     private val okClient = client.newBuilder()
@@ -37,6 +38,10 @@ class HttpRecognitionAdapter(
         require(endpoint.query == null && endpoint.fragment == null)
         require(endpoint.isHttps || loopback)
         require(authToken.isNullOrBlank() || endpoint.isHttps || loopback)
+        require(mockScenario == null || mockScenario in setOf(
+            "candidates", "multiple", "uncertain", "no_snake", "pending", "timeout", "invalid_output"
+        ))
+        require(mockScenario == null || (loopback && authToken.isNullOrBlank()))
     }
 
     override fun recognize(
@@ -47,6 +52,7 @@ class HttpRecognitionAdapter(
     ): RecognitionCall {
         val requestError = validateRequestId(requestId)
         if (requestError != null) return failLocally(requestError, requestId, callback)
+        if (!uploadConsent) return failLocally(RecognitionErrorCode.UPLOAD_CONSENT_REQUIRED, requestId, callback)
         val imageError = when {
             imageJpeg.size > MAX_RECOGNITION_IMAGE_BYTES -> RecognitionErrorCode.IMAGE_TOO_LARGE
             imageJpeg.size < 3 || imageJpeg[0] != 0xff.toByte() ||
@@ -104,10 +110,16 @@ class HttpRecognitionAdapter(
                             } else {
                                 parsed.status != RecognitionStatus.PENDING
                             }
-                            if (!validStatus) throw RecognitionParseException()
+                            if (!validStatus || (mockScenario != null && parsed.resultSource != RecognitionSource.MOCK)) {
+                                throw RecognitionParseException()
+                            }
                             RecognitionResult.Success(parsed)
                         } else {
-                            RecognitionResult.Failure(RecognitionJson.parseError(it.code, body, requestId))
+                            val error = RecognitionJson.parseError(it.code, body, requestId)
+                            if (mockScenario != null && error.resultSource != null && error.resultSource != RecognitionSource.MOCK) {
+                                throw RecognitionParseException()
+                            }
+                            RecognitionResult.Failure(error)
                         }
                     }
                 } catch (error: IOException) {
@@ -128,6 +140,7 @@ class HttpRecognitionAdapter(
 
     private fun Request.Builder.authorized(): Request.Builder = apply {
         authToken?.takeIf { it.isNotBlank() }?.let { header("Authorization", "Bearer $it") }
+        mockScenario?.let { header("X-Mock-Scenario", it) }
     }
 
     private fun validateRequestId(requestId: String): RecognitionErrorCode? =

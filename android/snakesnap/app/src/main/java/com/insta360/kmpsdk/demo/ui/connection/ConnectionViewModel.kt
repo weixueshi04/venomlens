@@ -1,11 +1,9 @@
 package com.insta360.kmpsdk.demo.ui.connection
 
-import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
 import android.hardware.usb.UsbManager
 import android.net.ConnectivityManager
-import android.net.LinkProperties
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
@@ -287,10 +285,20 @@ class ConnectionViewModel(
         enterConnectingState(buttonIndex = 0, statusResId = R.string.connecting_via_wifi)
         launchConnectionAttempt {
             Timber.d("connecting via WiFi")
+            val network = getWlan0Network()
+            if (network == null) {
+                connectFailed("请先在系统设置中连接相机 Wi-Fi。")
+                return@launchConnectionAttempt
+            }
+            // SDK media HTTP does not inherit the control connection's network handle.
+            if (!CameraWifiProcessNetworkBinder.bindProcessToNetwork(connectivityManager, network)) {
+                connectFailed("无法使用相机 Wi-Fi 网络，请检查连接后重试。")
+                return@launchConnectionAttempt
+            }
             val camera = CameraDevice.get(ConnectType.WIFI)
             setCurrentCameraDevice(camera)
             camera
-                .connect(getWlan0NetworkId())
+                .connect(network.networkHandle)
                 .onSuccess {
                     Timber.d("WiFi connected")
                     applyConnected(
@@ -306,22 +314,12 @@ class ConnectionViewModel(
     }
 
 
-    @SuppressLint("ThrowableNotAtBeginning")
-    fun getWlan0NetworkId(): Long {
-        return try {
-            connectivityManager.allNetworks.firstOrNull { network ->
-                // 1. 仅普通STA WiFi，过滤P2P相机直连
-                val caps = connectivityManager.getNetworkCapabilities(network) ?: return@firstOrNull false
-                if (!caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) return@firstOrNull false
-                // 2. 匹配网卡名wlan0
-                val linkProp: LinkProperties = connectivityManager.getLinkProperties(network) ?: return@firstOrNull false
-                linkProp.interfaceName == "wlan0"
-            }?.networkHandle ?: -1L
-        } catch (t: Throwable) {
-            w("get wlan0 networkId failed:${t.message}", t)
-            -1L
+    private fun getWlan0Network(): Network? =
+        connectivityManager.allNetworks.firstOrNull { network ->
+            val caps = connectivityManager.getNetworkCapabilities(network) ?: return@firstOrNull false
+            caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) &&
+                connectivityManager.getLinkProperties(network)?.interfaceName == "wlan0"
         }
-    }
 
     /**
      * 蓝牙扫描
