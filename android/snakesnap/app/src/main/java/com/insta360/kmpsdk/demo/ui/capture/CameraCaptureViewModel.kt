@@ -26,6 +26,9 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
+/** 相机「自拍倒计时」参数键；紧急场景需强制置 0 实现按下即拍。 */
+private const val SELF_TIMER_PARAM_KEY = "photography_self_timer"
+
 /** 拍摄命令在途方向：开始/停止命令已发送、相机尚未真正切换到对应状态的过渡期。 */
 enum class CaptureCommandPhase { STARTING, STOPPING }
 
@@ -89,9 +92,33 @@ class CameraCaptureViewModel(
         setOf(
             "capture_function_mode",
             "focus_sensor",
+            // 紧急场景「按下即拍」：自拍倒计时对用户隐藏，由 App 强制置 0（见 ensureSelfTimerDisabled）。
+            SELF_TIMER_PARAM_KEY,
         )
 
     private val recordResolutionParamKey = "record_resolution"
+
+    /**
+     * 强制关闭相机自拍倒计时（photography_self_timer → "0"），
+     * 保证紧急按钮按下后相机立即出图，而不是等 3/5/10/15 秒倒计时。
+     * 机型不支持该参数或写入失败时仅记录日志，不阻断拍摄流程。
+     */
+    private suspend fun ensureSelfTimerDisabled(cap: CameraCapture) {
+        runCatching {
+            val param = cap.getSupportParam().find { it.getName() == SELF_TIMER_PARAM_KEY }
+                ?: return@runCatching
+            @Suppress("UNCHECKED_CAST")
+            val anyParam = param as CameraParam<Any>
+            val current = anyParam.getValue().getOrNull()
+            if (current?.toString() == "0") return@runCatching
+            val zero = anyParam.getSupported().getOrNull()
+                ?.firstOrNull { it.toString() == "0" }
+                ?: return@runCatching
+            anyParam.setValue(zero)
+                .onSuccess { Timber.d("self timer disabled: %s -> 0", current) }
+                .onFailure { Timber.w(it, "disable self timer failed (current=%s)", current) }
+        }.onFailure { Timber.w(it, "ensureSelfTimerDisabled") }
+    }
 
     fun onAppear() {
         viewModelScope.launch { refreshAll() }
@@ -221,6 +248,8 @@ class CameraCaptureViewModel(
         }
         pushLensModesAndParams(cap)
         pushLocalParam(cap)
+        // 切换镜头后同样强制关闭自拍倒计时，保证按下即拍。
+        ensureSelfTimerDisabled(cap)
         setBusy(false)
         return setOk
     }
@@ -256,6 +285,8 @@ class CameraCaptureViewModel(
                 getApplication<Application>().getString(R.string.camera_capture_applying_config)
             )
             pushLocalParam(cap)
+            // 切换模式后相机可能重置自拍倒计时，这里再次强制关闭以保证按下即拍。
+            ensureSelfTimerDisabled(cap)
             val working = runCatching { cap.isWorking() }.getOrDefault(false)
             _ui.update {
                 val (label, enabled) =
@@ -368,6 +399,8 @@ class CameraCaptureViewModel(
                     if (stopNow) {
                         cap.stopCapture()
                     } else {
+                        // 紧急场景：按下即拍，先关掉相机自拍倒计时再下快门命令。
+                        ensureSelfTimerDisabled(cap)
                         cap.startCapture()
                     }
                 }.onFailure { Timber.w(it, "primary capture action") }
@@ -463,6 +496,8 @@ class CameraCaptureViewModel(
             )
             pushLensModesAndParams(cap)
             pushLocalParam(cap)
+            // 进入页面即关闭自拍倒计时，保证后续按下紧急按钮立即出图。
+            ensureSelfTimerDisabled(cap)
         } catch (e: Exception) {
             Timber.e(e, "refreshAll failed")
         } finally {
