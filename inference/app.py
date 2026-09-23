@@ -5,7 +5,8 @@ import re
 from time import perf_counter
 
 from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
+from starlette.staticfiles import StaticFiles
 from python_multipart.exceptions import MultipartParseError
 from starlette.datastructures import UploadFile
 from starlette.formparsers import MultiPartException, MultiPartParser
@@ -184,6 +185,16 @@ def create_app(settings: Settings | None = None, provider=None):
         if isinstance(reserved, SavedResult):
             return replay(reserved, request_id)
         return await perform(recognition_id, request_id, lambda: provider.refresh(reserved))
+
+    mobile_dir = ROOT / "inference" / "mobile_demo"
+
+    @app.get("/m/species-cards.json")
+    async def mobile_bundle():
+        return FileResponse(ROOT / "data" / "species-cards.json", media_type="application/json")
+
+    if mobile_dir.is_dir():
+        app.mount("/m/fixtures", StaticFiles(directory=ROOT / "contracts" / "fixtures"), name="mobile-fixtures")
+        app.mount("/m", StaticFiles(directory=mobile_dir, html=True), name="mobile")
 
     return app
 

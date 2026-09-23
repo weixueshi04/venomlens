@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#101E1A">
+<title>一拍知蛇 · 移动端演示</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand">一拍知蛇 <span class="sub">移动端演示</span></div>
+  <div class="mode" id="mode-pill">未连接</div>
+</header>
+
+<div class="banner" id="demo-banner" hidden>目标态演示：识别候选与物种文案未经人工核验，正式版本将显示核验状态。</div>
+
+<main>
+  <section class="card">
+    <h2>1 · 影像</h2>
+    <p class="hint">选择或拍摄一张蛇的照片。照片只在您确认后发送；离线模拟不发送任何数据。</p>
+    <input type="file" id="photo" accept="image/*" capture="environment">
+    <img id="thumb" alt="" hidden>
+    <label class="consent"><input type="checkbox" id="consent"> 我同意将这张图片发送给识别服务（演示环境）</label>
+    <div class="row">
+      <button id="btn-upload" class="primary" disabled>上传并识别</button>
+      <button id="btn-offline" class="ghost">离线模拟场景…</button>
+    </div>
+    <div id="offline-scenarios" class="chips" hidden></div>
+  </section>
+
+  <section class="card" id="sec-result" hidden>
+    <h2>2 · 识别结果</h2>
+    <div class="meta" id="result-meta"></div>
+    <div id="pending-box" hidden>
+      <p>处理中。需要时点一次手动查询（不自动轮询）。</p>
+      <button id="btn-refresh" class="primary">手动查询一次</button>
+    </div>
+    <div id="result-body"></div>
+  </section>
+
+  <section class="card" id="sec-record" hidden>
+    <h2>3 · 情况记录（本地保存）</h2>
+    <p class="hint">不论识别结果如何都可记录；仅存本机，不上传。</p>
+    <label>是否被咬伤 <select id="rec-bitten"><option value="no">否</option><option value="yes">是</option></select></label>
+    <label>部位 <select id="rec-part"><option>无</option><option>手/臂</option><option>脚/腿</option><option>躯干</option><option>头颈</option><option>其他</option></select></label>
+    <label>补充描述 <textarea id="rec-note" rows="2" placeholder="时间、环境、当时在做什么…"></textarea></label>
+    <div class="row">
+      <button id="btn-save" class="primary">保存记录</button>
+      <button id="btn-copy" class="ghost">复制给医生</button>
+    </div>
+    <ul id="rec-list" class="recs"></ul>
+  </section>
+
+  <section class="card" id="sec-hospital" hidden>
+    <h2>4 · 求助入口</h2>
+    <p class="warn">被咬伤：立即就医，别等比对结果；把手机递给医生。</p>
+    <ul id="hosp-list"></ul>
+    <p class="hint">演示数据为占位示例；生产名录等待有来源的核验资料。</p>
+  </section>
+
+  <section class="card safety">
+    <h2>安全提醒（始终有效）</h2>
+    <ul id="safety-list"></ul>
+  </section>
+
+  <section class="card">
+    <h2>连接设置</h2>
+    <label>代理地址 <input id="cfg-base" placeholder="留空=离线模拟" value=""></label>
+    <label>访问凭证 <input id="cfg-token" type="password" placeholder="PROXY_TOKEN（真实/演示 lane 需要）"></label>
+    <label class="consent"><input type="checkbox" id="cfg-strict"> 严格模式（仅展示已审核材料；默认关闭=预览投影+目标态横幅）</label>
+    <button id="btn-connect" class="ghost">连接 / 刷新状态</button>
+    <p class="hint" id="cfg-note">同源部署：本页面由代理 /m/ 提供时，地址可留空路径自动同源。</p>
+  </section>
+</main>
+
+<footer>两爬青年 · BoldMaker 2026 · 演示草稿，不用于实际辨认或医疗判断</footer>
+<script src="app.js"></script>
+</body>
+</html>

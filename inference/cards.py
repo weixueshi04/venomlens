@@ -110,6 +110,14 @@ def export_bundle(output, root=ROOT):
     (output / "species-cards.json").write_text(json.dumps(bundle, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     for name in ("index.html", "cards.js", "cards.css"):
         shutil.copy2(root / "inference/card_preview" / name, output / name)
+    mobile_out = output / "mobile"
+    mobile_out.mkdir(parents=True, exist_ok=True)
+    for name in ("index.html", "app.js", "style.css"):
+        shutil.copy2(root / "inference/mobile_demo" / name, mobile_out / name)
+    shutil.copy2(output / "species-cards.json", mobile_out / "species-cards.json")
+    (mobile_out / "fixtures").mkdir(exist_ok=True)
+    for scenario in SCENARIOS:
+        shutil.copy2(root / "contracts/fixtures" / f"{scenario}.json", mobile_out / "fixtures" / f"{scenario}.json")
     (output / "fixtures").mkdir()
     for scenario in SCENARIOS:
         fixture = root / "contracts/fixtures" / f"{scenario}.json"
