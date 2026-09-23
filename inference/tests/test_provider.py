@@ -140,6 +140,7 @@ class ProviderTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(result.candidates, [{
                     "speciesId": "pseudagkistrodon_rudis", "commonName": "颈棱蛇",
                     "scientificName": "Pseudagkistrodon rudis", "score": None, "providerScore": 97.6,
+                    "demoRelease": False, "nameStatus": "verified",
                 }])
         entry = next(row for row in catalog if row["speciesId"] == "pseudagkistrodon_rudis")
         self.assertEqual(entry["verificationStatus"], "verified")
@@ -166,6 +167,7 @@ class ProviderTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(result.candidates, [{
                     "speciesId": "test_keelback", "commonName": "测试颈棱蛇",
                     "scientificName": "Testus keelbackus", "score": None, "providerScore": 97.6,
+                    "demoRelease": False, "nameStatus": "verified",
                 }])
         for name in ("Annotation Only", "Annotation Only）"):
             with self.subTest(annotation=name):
@@ -184,6 +186,7 @@ class ProviderTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result.candidates, [{
             "speciesId": "test_object_alias", "commonName": "测试别名蛇",
             "scientificName": "Testus aliasus", "score": None, "providerScore": 97.6,
+            "demoRelease": False, "nameStatus": "verified",
         }])
 
     async def test_legacy_english_string_alias_matches_without_other_names(self):
@@ -192,12 +195,14 @@ class ProviderTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result.candidates, [{
             "speciesId": "test_corn", "commonName": "玉米蛇",
             "scientificName": "Pantherophis guttatus", "score": None, "providerScore": 97.6,
+            "demoRelease": False, "nameStatus": "verified",
         }])
 
     async def test_existing_project_species_remain_unverified(self):
         catalog = json.loads((ROOT / "data/species.json").read_text(encoding="utf-8"))
         provider = HhodataProvider("test-key", "R", catalog)
-        for species_id in ("pantherophis_guttatus", "lampropeltis_californiae"):
+        # 玉米蛇已于 2026-09-23 经郭浩天核验（个体+命名），见 verificationRecord；此处仅校验仍未核验条目
+        for species_id in ("lampropeltis_californiae",):
             with self.subTest(species_id=species_id):
                 entry = next(row for row in catalog if row["speciesId"] == species_id)
                 self.assertEqual(entry["verificationStatus"], "pending_review")
@@ -207,3 +212,29 @@ class ProviderTests(unittest.IsolatedAsyncioTestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class DemoReleaseLaneTests(unittest.IsolatedAsyncioTestCase):
+    def setUp(self):
+        self.catalog = json.loads((ROOT / "data" / "species.json").read_text(encoding="utf-8"))
+
+    async def test_off_by_default_drops_unverified(self):
+        provider = HhodataProvider("k", "R", self.catalog)
+        result = provider.parse([1000, [{"list": [[97.0, "赤链蛇|Red-banded Dinodon|Lycodon rufozonatus", 539936, "R"]]}]])
+        self.assertEqual((result.status, result.candidates), ("uncertain", []))
+
+    async def test_on_tags_unverified_candidates(self):
+        provider = HhodataProvider("k", "R", self.catalog, demo_release=True)
+        result = provider.parse([1000, [{"list": [[97.0, "赤链蛇|Red-banded Dinodon|Lycodon rufozonatus", 539936, "R"]]}]])
+        self.assertEqual(result.status, "candidates")
+        self.assertEqual(result.candidates, [{
+            "speciesId": "lycodon_rufozonatus", "commonName": "赤链蛇",
+            "scientificName": "Lycodon rufozonatus", "score": None, "providerScore": 97.0,
+            "demoRelease": True, "nameStatus": "pending_review",
+        }])
+
+    async def test_on_does_not_upgrade_verified(self):
+        provider = HhodataProvider("k", "R", self.catalog, demo_release=True)
+        result = provider.parse([1000, [{"list": [[97.6, "颈棱蛇|Red Keelback|Pseudagkistrodon rudis", 9316, "R"]]}]])
+        self.assertEqual(result.candidates[0]["demoRelease"], False)
+        self.assertEqual(result.candidates[0]["nameStatus"], "verified")

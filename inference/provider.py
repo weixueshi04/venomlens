@@ -1,4 +1,5 @@
 import asyncio
+import os
 import math
 from dataclasses import dataclass, field
 
@@ -18,21 +19,29 @@ class ProviderResult:
 
 
 class HhodataProvider:
-    def __init__(self, api_key: str, animal_class: str, catalog: list[dict], transport=None):
+    def __init__(self, api_key: str, animal_class: str, catalog: list[dict], transport=None,
+                 demo_release: bool = False):
         self.api_key = api_key
         self.animal_class = animal_class
         self.transport = transport
+        self.demo_release = demo_release
         self.names = {}
+        self.demo_names = {}
         for species in catalog:
             if species.get("verificationStatus") != "verified":
+                self._index(self.demo_names, species)
                 continue
-            # 别名可为对象（带地域/来源）或旧式字符串；英文名仅用于匹配供应商返回，不进入展示层
-            aliases = [a["alias"] if isinstance(a, dict) else a for a in species.get("aliases", [])]
-            english = (species.get("englishCommonName") or "").split("（")[0]
-            names = [species["commonName"], species["scientificName"], *aliases,
-                     *[t.strip() for t in english.split("/") if t.strip()]]
-            for name in names:
-                self.names[name.strip().casefold()] = species
+            self._index(self.names, species)
+
+    @staticmethod
+    def _index(target: dict, species: dict):
+        # 别名可为对象（带地域/来源）或旧式字符串；英文名仅用于匹配供应商返回，不进入展示层
+        aliases = [a["alias"] if isinstance(a, dict) else a for a in species.get("aliases", [])]
+        english = (species.get("englishCommonName") or "").split("（")[0]
+        names = [species["commonName"], species["scientificName"], *aliases,
+                 *[t.strip() for t in english.split("/") if t.strip()]]
+        for name in names:
+            target[name.strip().casefold()] = species
 
     async def upload(self, image: bytes) -> ProviderResult:
         return await self._request(
@@ -69,6 +78,16 @@ class HhodataProvider:
             payload = response.json()
         except ValueError:
             raise ServiceError("INVALID_MODEL_OUTPUT", "模型响应不是有效 JSON") from None
+        raw_log = os.environ.get("RAW_LOG_PATH")
+        if raw_log:
+            import json as _json
+            from datetime import datetime as _dt
+            with open(raw_log, "a", encoding="utf-8") as fh:
+                fh.write(_json.dumps({
+                    "at": _dt.now().isoformat(timespec="seconds"),
+                    "kind": "result_query" if "resultid" in (files or {}) else "upload",
+                    "payload": payload,
+                }, ensure_ascii=False) + "\n")
         return self.parse(payload, expected_task)
 
     def parse(self, response, expected_task=None) -> ProviderResult:
@@ -107,10 +126,14 @@ class HhodataProvider:
                         raise ValueError
                 except (ValueError, OverflowError):
                     raise ServiceError("INVALID_MODEL_OUTPUT", "模型分值不是有限数值") from None
-                matched = {
-                    self.names[name.strip().casefold()]["speciesId"]: self.names[name.strip().casefold()]
-                    for name in row[1].split("|") if name.strip().casefold() in self.names
-                }
+                keys = [name.strip().casefold() for name in row[1].split("|") if name.strip()]
+                matched = {self.names[k]["speciesId"]: self.names[k] for k in keys if k in self.names}
+                demo_flag = False
+                if len(matched) != 1 and self.demo_release:
+                    # 演示 lane：未核验名称仅以 demoRelease 标注进入候选，客户端必须显著标注
+                    matched = {self.demo_names[k]["speciesId"]: self.demo_names[k]
+                               for k in keys if k in self.demo_names}
+                    demo_flag = True
                 if len(matched) != 1:
                     unknown = True
                     continue
@@ -125,5 +148,7 @@ class HhodataProvider:
                         "scientificName": species["scientificName"],
                         "score": None,
                         "providerScore": row[0],
+                        "demoRelease": demo_flag,
+                        "nameStatus": "pending_review" if demo_flag else "verified",
                     })
         return ProviderResult("candidates" if candidates and not unknown else "uncertain", candidates)

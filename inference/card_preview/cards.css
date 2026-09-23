@@ -376,6 +376,23 @@ button:disabled{ cursor:not-allowed; }
   border-radius:0 var(--r-sm) var(--r-sm) 0; padding:var(--s-3) var(--s-4);
   font-size:var(--fs-body); color:var(--pending-ink); margin:var(--s-5) 0;   /* 12px → 16px */
 }
+
+/* --- 演示 lane 披露条（郭侧 2026-09-23 新增；正常模式列表顶部单条披露） --- */
+.banner.demo{
+  background:var(--pending-soft); color:var(--pending-ink);   /* 原 #C48C3C 对浅底仅 2.66:1，改 ink 变体 6.92:1 */
+  border:var(--bw) solid rgba(138,90,18,.35); border-radius:var(--r-md);
+  padding:var(--s-3) var(--s-4); font-size:var(--fs-meta); line-height:1.6;
+  margin:0 0 var(--s-4);
+}
+
+/* --- 审核进度列表（郭侧新增；无 hook 时替代 checklist 的进度披露） --- */
+.status-list{
+  margin:var(--s-2) 0 0; padding-left:var(--s-5); list-style:disc;
+  color:var(--muted); font-size:var(--fs-meta); line-height:1.7;
+}
+
+/* --- 别名行（郭侧新增；地域参考，非识别依据） --- */
+.card-aliases{ margin:var(--s-2) 0 0; color:var(--muted); font-size:var(--fs-meta); line-height:1.7; overflow-wrap:anywhere; }
 .hook{ font-size:clamp(19px,3.6vw,22px); font-weight:700; line-height:1.45; color:var(--action); margin:var(--s-6) 0 var(--s-3); }
 .checklist{ display:grid; gap:var(--s-3); }
 .checklist li{

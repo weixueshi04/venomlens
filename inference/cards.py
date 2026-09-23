@@ -61,6 +61,12 @@ def build_card(entry, *, preview=False):
         "scientificName": entry["scientificName"] if name_verified or preview else None,
         "nameStatus": "verified" if name_verified else "pending_review",
         "contentStatus": "verified" if content_verified else "pending_review" if profile else "unavailable",
+        # 候选已知信息：别名仅作地域参考展示（带来源），随名称可见性放行
+        "aliases": [
+            {"alias": a.get("alias"), "region": a.get("region"), "level": a.get("level")}
+            for a in entry.get("aliases", [])
+            if isinstance(a, dict) and a.get("alias")
+        ] if (preview or name_verified) else [],
         "previewOnly": preview,
         "hook": profile.get("hook") if show_profile else None,
         "checklist": profile.get("layChecklist", []) if show_profile else [],

@@ -81,7 +81,8 @@ def create_app(settings: Settings | None = None, provider=None):
         ledger = BudgetLedger(settings.ledger_path, settings.live_call_limit)
         if provider is None:
             catalog = json.loads((ROOT / "data" / "species.json").read_text(encoding="utf-8"))
-            provider = HhodataProvider(settings.api_key, settings.animal_class, catalog)
+            provider = HhodataProvider(settings.api_key, settings.animal_class, catalog,
+                                       demo_release=settings.demo_release_unverified)
 
     def authorize(request):
         if settings.proxy_token:
@@ -134,7 +135,8 @@ def create_app(settings: Settings | None = None, provider=None):
     async def health():
         return {"status": "ok", "mode": settings.mode,
                 "localCallLimit": settings.live_call_limit,
-                "localCallsUsed": ledger.used() if ledger else 0}
+                "localCallsUsed": ledger.used() if ledger else 0,
+                "demoReleaseUnverified": settings.demo_release_unverified}
 
     @app.post("/v1/recognitions", response_model=RecognitionResult,
               responses={202: {"model": RecognitionResult}},
