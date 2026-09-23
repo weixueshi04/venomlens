@@ -144,7 +144,12 @@ class ProviderTests(unittest.IsolatedAsyncioTestCase):
         entry = next(row for row in catalog if row["speciesId"] == "pseudagkistrodon_rudis")
         self.assertEqual(entry["verificationStatus"], "verified")
         self.assertEqual(entry["riskStatus"], "unknown")
-        self.assertIsNone(entry["referenceImage"])
+        # 参考图可以存在，但每张必须带授权与来源，且毒性状态不得因核验名称而变成已审核
+        self.assertTrue(entry["referenceImages"])
+        for img in entry["referenceImages"]:
+            self.assertTrue(img.get("rights"))
+            self.assertTrue(img.get("source"))
+        self.assertEqual(entry["comparisonProfile"]["venomInfoStatus"], "unknown")
 
     async def test_existing_project_species_remain_unverified(self):
         catalog = json.loads((ROOT / "data/species.json").read_text(encoding="utf-8"))

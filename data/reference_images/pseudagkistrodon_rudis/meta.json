@@ -1,0 +1,51 @@
+{
+ "speciesId": "pseudagkistrodon_rudis",
+ "scientificName": "Pseudagkistrodon rudis",
+ "commonName": "颈棱蛇",
+ "taxonId": 1218628,
+ "inatPreferredCommonName": "False Habu",
+ "retrievedAt": "2026-09-23",
+ "curatedBy": "郭浩天侧AI目视筛选，待郭复核",
+ "referenceImages": [
+  {
+   "file": "cand_727535973.jpg",
+   "role": "主图：头部与体色斑纹",
+   "curated": true,
+   "photoId": 727535973,
+   "observationId": 396726615,
+   "photographer": "haocong_cat",
+   "license": "cc-by",
+   "sourcePage": "https://www.inaturalist.org/observations/396726615"
+  },
+  {
+   "file": "cand_717673397.jpg",
+   "role": "辅图：背面斑纹",
+   "curated": true,
+   "photoId": 717673397,
+   "observationId": 391653198,
+   "photographer": "fdn",
+   "license": "cc0",
+   "sourcePage": "https://www.inaturalist.org/observations/391653198"
+  }
+ ],
+ "rejected": [
+  {
+   "file": "_candidates/cand_685250679.jpg",
+   "reason": "路杀个体带血迹，公益演示禁用"
+  },
+  {
+   "file": "_candidates/cand_737022613.jpg",
+   "reason": "头部被遮挡，无法用于比对"
+  },
+  {
+   "file": "_candidates/cand_717673118.jpg",
+   "reason": "未目视，留档备选"
+  },
+  {
+   "file": "_candidates/cand_583278325.jpg",
+   "reason": "未目视，留档备选"
+  }
+ ],
+ "attributionNotice": "照片按各自 CC 许可证使用，App 内须展示作者与许可证；iNaturalist 观察页链接见 sourcePage",
+ "scienceTextStatus": "待人工撰写审核；iNaturalist wikipedia_summary 仅英文种子，不直接上线"
+}

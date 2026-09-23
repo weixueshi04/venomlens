@@ -1,0 +1,47 @@
+{
+ "speciesId": "pantherophis_guttatus",
+ "scientificName": "Pantherophis guttatus",
+ "taxonId": 73887,
+ "preferredCommonName": "Red Cornsnake",
+ "scienceTextSeedEn": "The <b>corn snake</b> (<i>Pantherophis guttatus</i>) is a North American species of rat snake that subdues its small prey by constriction. It is found throughout the southeastern and central United States. Their docile nature, reluctance to bite, moderate adult size, attractive pattern, and comparatively simple care make them popular pet snakes. Though superficially resembling the venomous copperhead and often killed as a result of this mistaken identity, corn snakes are harmless and beneficial to humans. Corn snakes...",
+ "scienceTextSource": "iNaturalist wikipedia_summary (CC BY-SA, 源自 Wikipedia)",
+ "retrievedAt": "2026-09-23",
+ "photos": [
+  {
+   "file": "inat_730698881_cc-by.jpg",
+   "photoId": 730698881,
+   "observationId": 398331137,
+   "photographer": "xanderferret",
+   "license": "cc-by",
+   "sourcePage": "https://www.inaturalist.org/observations/398331137",
+   "sourceUrl": "https://inaturalist-open-data.s3.amazonaws.com/photos/730698881/medium.jpg",
+   "sizeBytes": 149938,
+   "curated": false,
+   "note": "管线样例：路杀/夜拍远景，不用于展示；玉米蛇展示图建议用团队 9/19 实拍并标注来源"
+  },
+  {
+   "file": "inat_727198541_cc-by.jpg",
+   "photoId": 727198541,
+   "observationId": 396535501,
+   "photographer": "audrey703",
+   "license": "cc-by",
+   "sourcePage": "https://www.inaturalist.org/observations/396535501",
+   "sourceUrl": "https://inaturalist-open-data.s3.amazonaws.com/photos/727198541/medium.jpg",
+   "sizeBytes": 60972,
+   "curated": false,
+   "note": "管线样例：路杀/夜拍远景，不用于展示；玉米蛇展示图建议用团队 9/19 实拍并标注来源"
+  }
+ ],
+ "note": "演示用参考图样例；中文科普文案需人工撰写审核后另存，不直接机翻上线",
+ "curationStatus": "未策展；展示图改用团队实拍（分类整理/03_玉米蛇），权利自有",
+ "referenceImages": [
+  {
+   "file": "team_02.jpg",
+   "role": "主图：全身体色与花纹",
+   "source": "团队 2026-09-19 自贡调研实拍（血红派品系）",
+   "rights": "团队自有",
+   "curated": true,
+   "note": "隔玻璃拍摄有轻微反光；品系色不代表野生型"
+  }
+ ]
+}

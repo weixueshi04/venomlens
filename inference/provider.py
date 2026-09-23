@@ -26,7 +26,12 @@ class HhodataProvider:
         for species in catalog:
             if species.get("verificationStatus") != "verified":
                 continue
-            for name in [species["commonName"], species["scientificName"], *species.get("aliases", [])]:
+            # 别名可为对象（带地域/来源）或旧式字符串；英文名仅用于匹配供应商返回，不进入展示层
+            aliases = [a["alias"] if isinstance(a, dict) else a for a in species.get("aliases", [])]
+            english = (species.get("englishCommonName") or "").split("（")[0]
+            names = [species["commonName"], species["scientificName"], *aliases,
+                     *[t.strip() for t in english.split("/") if t.strip()]]
+            for name in names:
                 self.names[name.strip().casefold()] = species
 
     async def upload(self, image: bytes) -> ProviderResult:

@@ -1,0 +1,61 @@
+{
+ "heterodon_nasicus": [
+  {
+   "file": "ref_01.jpg",
+   "role": "主图：野生型体色与花纹",
+   "photoId": 699265343,
+   "observationId": 382123289,
+   "photographer": "jonnytoste",
+   "license": "cc0",
+   "sourcePage": "https://www.inaturalist.org/observations/382123289"
+  },
+  {
+   "file": "ref_02.jpg",
+   "role": "辅图：宠物品系花色（团队实拍）",
+   "source": "团队 2026-09-19 自贡调研实拍（太阳爆炸品系）",
+   "rights": "团队自有",
+   "photographer": "两爬青年",
+   "sourcePage": null
+  }
+ ],
+ "lycodon_rufozonatus": [
+  {
+   "file": "ref_01.jpg",
+   "role": "主图：黑底红横纹全侧身",
+   "photoId": 731860480,
+   "observationId": 398926326,
+   "photographer": "yunglunlin",
+   "license": "cc-by",
+   "sourcePage": "https://www.inaturalist.org/observations/398926326"
+  },
+  {
+   "file": "ref_02.jpg",
+   "role": "辅图：夜间树干上环纹",
+   "photoId": 712479485,
+   "observationId": 388979721,
+   "photographer": "jayparoline",
+   "license": "cc-by",
+   "sourcePage": "https://www.inaturalist.org/observations/388979721"
+  }
+ ],
+ "gloydius_brevicaudus": [
+  {
+   "file": "ref_01.jpg",
+   "role": "主图：盘姿抬头、斑纹与头侧清晰",
+   "photoId": 630930815,
+   "observationId": 346148643,
+   "photographer": "sunjiao",
+   "license": "cc-by",
+   "sourcePage": "https://www.inaturalist.org/observations/346148643"
+  },
+  {
+   "file": "ref_02.jpg",
+   "role": "辅图：全身比例与短尾",
+   "photoId": 607428935,
+   "observationId": 334481608,
+   "photographer": "theo_busschau",
+   "license": "cc-by",
+   "sourcePage": "https://www.inaturalist.org/observations/334481608"
+  }
+ ]
+}

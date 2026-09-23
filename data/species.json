@@ -3,30 +3,356 @@
     "speciesId": "pantherophis_guttatus",
     "commonName": "玉米蛇",
     "scientificName": "Pantherophis guttatus",
-    "aliases": ["Corn Snake"],
+    "englishCommonName": "Corn Snake（内部字段，不展示）",
+    "aliases": [],
     "verificationStatus": "pending_review",
     "riskStatus": "unknown",
-    "referenceImage": null,
+    "referenceImages": [
+      {
+        "file": "data/reference_images/pantherophis_guttatus/team_02.jpg",
+        "role": "主图：全身体色与花纹",
+        "source": "团队 2026-09-19 自贡调研实拍（血红派品系）",
+        "rights": "团队自有",
+        "curated": true,
+        "note": "隔玻璃拍摄有轻微反光；品系色不代表野生型"
+      }
+    ],
+    "externalRefs": [
+      {
+        "name": "自然观察社区物种页",
+        "url": "https://www.inaturalist.org/taxa/73887"
+      },
+      {
+        "name": "百科词条",
+        "url": "https://baike.baidu.com/item/玉米蛇"
+      }
+    ],
+    "comparisonProfile": {
+      "hook": "橙红身子、红色马鞍状大块斑",
+      "layChecklist": [
+        "看颜色：整体橙红偏红，比较鲜艳",
+        "看花纹：背上一块块红色方斑，边缘常更深",
+        "看体型：中等身材，尾巴不特别短也不特别细"
+      ],
+      "layLookAlikes": [],
+      "doNot": [
+        "不要靠近确认特征",
+        "不要用头形或尾色判断有没有毒",
+        "宠物品系花色极多，本卡以团队实拍品系为参考；比对不上按未知处理"
+      ],
+      "techNotes": {
+        "外形特征": "草稿：背部马鞍状斑，品系间体色差异大（待核）",
+        "区别辨识": "草稿：与野生型体色差异大，野生型偏灰褐带红斑（待核）"
+      },
+      "venomInfoStatus": "unknown",
+      "sources": [
+        {
+          "type": "team_observation",
+          "ref": "分类整理/03_玉米蛇 与 9/19 调研录音",
+          "checkedAt": "2026-09-23"
+        }
+      ]
+    },
     "source": "项目背景中的素材类别；学名映射待人工核对，仅作开发联调"
   },
   {
     "speciesId": "lampropeltis_californiae",
     "commonName": "加州王蛇",
     "scientificName": "Lampropeltis californiae",
-    "aliases": ["California Kingsnake"],
+    "englishCommonName": "California Kingsnake（内部字段，不展示）",
+    "aliases": [],
     "verificationStatus": "pending_review",
     "riskStatus": "unknown",
-    "referenceImage": null,
-    "source": "项目背景中的素材类别；学名映射待人工核对，仅作开发联调"
+    "referenceImages": [],
+    "externalRefs": [
+      {
+        "name": "百科词条",
+        "url": "https://baike.baidu.com/item/加州王蛇"
+      }
+    ],
+    "comparisonProfile": null,
+    "source": "项目背景中的素材类别；学名映射待人工核对，仅作开发联调；参考图与小白文案待策展"
   },
   {
     "speciesId": "pseudagkistrodon_rudis",
     "commonName": "颈棱蛇",
     "scientificName": "Pseudagkistrodon rudis",
-    "aliases": ["Red Keelback", "伪腹蛇"],
+    "englishCommonName": "Red Keelback / False Habu（内部字段，不展示）",
+    "aliases": [
+      {
+        "alias": "伪腹蛇",
+        "region": null,
+        "level": "species",
+        "source": "郭浩天 2026-09-22 提供原文，保留待复核"
+      }
+    ],
     "verificationStatus": "verified",
     "riskStatus": "unknown",
-    "referenceImage": null,
+    "referenceImages": [
+      {
+        "file": "data/reference_images/pseudagkistrodon_rudis/ref_01_head_coiled.jpg",
+        "role": "主图：头部与体色斑纹",
+        "source": "iNaturalist 观察页（见 sourcePage）",
+        "rights": "署名许可（cc-by），作者 haocong_cat",
+        "sourcePage": "https://www.inaturalist.org/observations/396535501",
+        "curated": true
+      },
+      {
+        "file": "data/reference_images/pseudagkistrodon_rudis/ref_02_dorsal.jpg",
+        "role": "辅图：背面斑纹",
+        "source": "iNaturalist 观察页（见 sourcePage）",
+        "rights": "公有领域（cc0），作者 fdn",
+        "sourcePage": "https://www.inaturalist.org/observations/392262413",
+        "curated": true
+      }
+    ],
+    "externalRefs": [
+      {
+        "name": "自然观察社区物种页",
+        "url": "https://www.inaturalist.org/taxa/1218628"
+      },
+      {
+        "name": "百科词条",
+        "url": "https://baike.baidu.com/item/颈棱蛇"
+      }
+    ],
+    "comparisonProfile": {
+      "hook": "棕身一排深色「马鞍」大块斑",
+      "layChecklist": [
+        "看颜色：整体棕褐偏暗，不鲜艳",
+        "看花纹：背上一块块深色方形大斑，像搭了一排马鞍",
+        "看头：比身子显宽一点，但头形不能用来判断有没有毒"
+      ],
+      "layLookAlikes": [],
+      "doNot": [
+        "不要靠近或挑逗以便看清",
+        "不要用头形或尾色判断有没有毒",
+        "比对不上按未知处理；被咬伤立即就医，别等比对结果"
+      ],
+      "techNotes": {
+        "外形特征": "草稿：背鳞起棱明显，棕褐体色带深色方形斑（待核）",
+        "区别辨识": "草稿：常被误认作蝮蛇，故有别名「伪腹蛇」；确切鉴别需鳞计数，不建议小白现场尝试（待核）"
+      },
+      "venomInfoStatus": "unknown",
+      "sources": [
+        {
+          "type": "inat_summary",
+          "ref": "https://www.inaturalist.org/taxa/1218628 英文种子，不展示",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "type": "team_pending",
+          "ref": "待团队复核文案与特征",
+          "checkedAt": null
+        }
+      ]
+    },
     "source": "2026-09-22 郭浩天核验测试图片为颈棱蛇，并提供别名“伪腹蛇”（保留用户原文）；学名与英文名对应同次 HHodata 返回的 Pseudagkistrodon rudis / Red Keelback。仅核验名称映射，毒性资料与参考图授权另行核验。"
+  },
+  {
+    "speciesId": "heterodon_nasicus",
+    "commonName": "猪鼻蛇",
+    "scientificName": "Heterodon nasicus",
+    "englishCommonName": "Western Hognose Snake（内部字段，不展示）",
+    "aliases": [],
+    "verificationStatus": "pending_review",
+    "riskStatus": "unknown",
+    "demoDraft": true,
+    "referenceImages": [
+      {
+        "file": "data/reference_images/heterodon_nasicus/ref_01.jpg",
+        "role": "主图：野生型体色与花纹",
+        "source": "iNaturalist 观察页（见 sourcePage）",
+        "rights": "按 cc0 许可使用，作者 k-simpkins",
+        "sourcePage": "https://www.inaturalist.org/observations/375414776",
+        "photoId": 686290828
+      },
+      {
+        "file": "data/reference_images/heterodon_nasicus/ref_02.jpg",
+        "role": "辅图：宠物品系花色（团队实拍）",
+        "source": "团队 2026-09-19 自贡调研实拍（太阳爆炸品系）",
+        "rights": "团队自有"
+      }
+    ],
+    "externalRefs": [
+      {
+        "name": "自然观察社区物种页",
+        "url": "https://www.inaturalist.org/taxa/29927"
+      },
+      {
+        "name": "百科词条",
+        "url": "https://baike.baidu.com/item/猪鼻蛇"
+      }
+    ],
+    "comparisonProfile": {
+      "hook": "鼻尖上翘像猪拱鼻、身粗短带大斑",
+      "layChecklist": [
+        "看鼻子：鼻尖明显往上翘，像猪的拱鼻",
+        "看花纹：背上一排深色圆斑，野生型土黄带褐斑",
+        "看体型：身子粗短，尾巴不长"
+      ],
+      "layLookAlikes": [],
+      "doNot": [
+        "不要靠近确认特征",
+        "不要用头形或尾色判断有没有毒",
+        "比对不上按未知处理；被咬伤立即就医，别等比对结果",
+        "宠物品系花色极多（辅图橙白即其一）；比对不上按未知处理"
+      ],
+      "techNotes": {
+        "外形特征": "草稿：吻端上翘（属名由来），体型粗短（待核）",
+        "区别辨识": "草稿：上翘吻端可与鼠蛇类区分；品系花色干扰体色比对（待核）"
+      },
+      "venomInfoStatus": "unknown",
+      "sources": [
+        {
+          "type": "demo_draft",
+          "ref": "2026-09-23 用户确认仅演示跑通、未经人工审核",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "type": "team_observation",
+          "ref": "分类整理/05_猪鼻蛇",
+          "checkedAt": "2026-09-23"
+        }
+      ]
+    }
+  },
+  {
+    "speciesId": "lycodon_rufozonatus",
+    "commonName": "赤链蛇",
+    "scientificName": "Lycodon rufozonatus",
+    "englishCommonName": "Red-banded Dinodon（内部字段，不展示）",
+    "aliases": [],
+    "verificationStatus": "pending_review",
+    "riskStatus": "unknown",
+    "demoDraft": true,
+    "referenceImages": [
+      {
+        "file": "data/reference_images/lycodon_rufozonatus/ref_01.jpg",
+        "role": "主图：黑底红横纹全侧身",
+        "source": "iNaturalist 观察页（见 sourcePage）",
+        "rights": "按 cc-by 许可使用，作者 jayparoline",
+        "sourcePage": "https://www.inaturalist.org/observations/388979721",
+        "photoId": 712479485
+      },
+      {
+        "file": "data/reference_images/lycodon_rufozonatus/ref_02.jpg",
+        "role": "辅图：夜间树干上环纹",
+        "source": "iNaturalist 观察页（见 sourcePage）",
+        "rights": "按 cc-by 许可使用，作者 yunglunlin",
+        "sourcePage": "https://www.inaturalist.org/observations/398926326",
+        "photoId": 731860480
+      }
+    ],
+    "externalRefs": [
+      {
+        "name": "自然观察社区物种页",
+        "url": "https://www.inaturalist.org/taxa/539936"
+      },
+      {
+        "name": "百科词条",
+        "url": "https://baike.baidu.com/item/赤链蛇"
+      }
+    ],
+    "comparisonProfile": {
+      "hook": "黑身红横纹、一圈圈像腰带",
+      "layChecklist": [
+        "看颜色：黑底配红或橙红横纹",
+        "看花纹：横纹规则，从脖子一路到尾巴",
+        "看体型：身子较细，头略扁"
+      ],
+      "layLookAlikes": [
+        {
+          "speciesId": "sinomicrurus_macclellandi",
+          "layHowToTell": "珊瑚蛇类环纹更规则细密，照片难分，交给医生"
+        }
+      ],
+      "doNot": [
+        "不要靠近确认特征",
+        "不要用头形或尾色判断有没有毒",
+        "比对不上按未知处理；被咬伤立即就医，别等比对结果"
+      ],
+      "techNotes": {
+        "外形特征": "草稿：黑体红横纹，夜行性（待核）",
+        "区别辨识": "草稿：与珊瑚蛇类需看环纹间距与头色（待核）"
+      },
+      "venomInfoStatus": "unknown",
+      "sources": [
+        {
+          "type": "demo_draft",
+          "ref": "2026-09-23 用户确认仅演示跑通、未经人工审核",
+          "checkedAt": "2026-09-23"
+        }
+      ]
+    }
+  },
+  {
+    "speciesId": "gloydius_brevicaudus",
+    "commonName": "短尾蝮",
+    "scientificName": "Gloydius brevicaudus",
+    "englishCommonName": "Short-tailed Mamushi（内部字段，不展示）",
+    "aliases": [],
+    "verificationStatus": "pending_review",
+    "riskStatus": "unknown",
+    "demoDraft": true,
+    "referenceImages": [
+      {
+        "file": "data/reference_images/gloydius_brevicaudus/ref_01.jpg",
+        "role": "主图：盘姿抬头、斑纹与头侧清晰",
+        "source": "iNaturalist 观察页（见 sourcePage）",
+        "rights": "按 cc-by 许可使用，作者 sunjiao",
+        "sourcePage": "https://www.inaturalist.org/observations/346148643",
+        "photoId": 630930815
+      },
+      {
+        "file": "data/reference_images/gloydius_brevicaudus/ref_02.jpg",
+        "role": "辅图：全身比例与短尾",
+        "source": "iNaturalist 观察页（见 sourcePage）",
+        "rights": "按 cc-by 许可使用，作者 theo_busschau",
+        "sourcePage": "https://www.inaturalist.org/observations/334481608",
+        "photoId": 607428935
+      }
+    ],
+    "externalRefs": [
+      {
+        "name": "自然观察社区物种页",
+        "url": "https://www.inaturalist.org/taxa/101504"
+      },
+      {
+        "name": "百科词条",
+        "url": "https://baike.baidu.com/item/短尾蝮"
+      }
+    ],
+    "comparisonProfile": {
+      "hook": "土灰身、深色圆斑、尾巴明显短",
+      "layChecklist": [
+        "看颜色：土灰或灰褐，不鲜艳",
+        "看花纹：背两侧各一排深色圆斑，常左右交错",
+        "看尾巴：比同体型其他蛇明显短"
+      ],
+      "layLookAlikes": [
+        {
+          "speciesId": "pseudagkistrodon_rudis",
+          "layHowToTell": "颈棱蛇斑更方、身子更瘦；照片拿不准就按未知处理"
+        }
+      ],
+      "doNot": [
+        "不要靠近确认特征",
+        "不要用头形或尾色判断有没有毒",
+        "按可能有毒处理：被咬伤立即就医并把本卡给医生"
+      ],
+      "techNotes": {
+        "外形特征": "草稿：民间与文献多记为有毒，毒性资料待核验",
+        "区别辨识": "草稿：与颈棱蛇及其他蝮类需进一步区分（待核）"
+      },
+      "venomInfoStatus": "unknown",
+      "sources": [
+        {
+          "type": "demo_draft",
+          "ref": "2026-09-23 用户确认仅演示跑通、未经人工审核",
+          "checkedAt": "2026-09-23"
+        }
+      ]
+    }
   }
 ]

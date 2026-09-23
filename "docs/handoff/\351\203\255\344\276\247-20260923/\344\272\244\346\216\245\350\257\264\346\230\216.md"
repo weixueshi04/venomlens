@@ -1,0 +1,75 @@
+# 郭侧交接 · 识别链路实测与物种卡体系（2026-09-23）
+
+> 基准提交：`2e51bca`（Integrate SnakeSnap recognition prototype）｜范围：**不含 PPT 线**（PPT 22:4 重排在郭本机 `build/pitch-20260922/`，另行交付）
+> 推送基线：remote `87895f26`（weixueshi04 新增 README 双语文档，与本次变更零冲突），本提交以其为父；郭本机克隆因会场网络不通 github.com，经 Git Data API（api.github.com）推送，本地 lineage 与 remote 将在下次可达网络 pull 时干净合并（双方变更不相交）。
+> 收件人：韦仕学（Android／渲染接入）、舒豪杰（文案审核）、郭浩天（复核）
+
+## 0. 一句话
+
+识别代理之上新增了**物种卡数据层**（`data/species.json` v2 + `data/reference_images/`），并用真实调用验证了「供应商响应 → 归一化 → 卡片渲染数据」全路径；Android 结果页只需读三个字段。
+
+## 1. 今日实测结论（HHodata `/api/v2/dongniao`，class=R）
+
+| 结论 | 证据 |
+|---|---|
+| **百科端点仅鸟类数据**：R/M 均 `id error`（含官方文档自带 M 示例 6534；识别现返的 9197 也查不到） | `20~22_*.json`、本目录实测记录第一节 |
+| 百科响应**无图片字段**；内容自述「AI 生成中文科普资料」；**不占图像配额** | `ency_2245_B.json`（郭本机 temp/live_test_20260923/） |
+| **识别可复现**：`人工伪蝮蛇.jpg` 二次上传与 9/22 录制逐字段一致（颈棱蛇 97.6 / id 9316 / 同 box）→ 离线 fixture 确为真实录制 | `20_upload_weifushe.json`、`21_result_weifushe.json` |
+| 玉米蛇实拍 → 首位候选玉米蛇（9197/R，score 30.9）；**分值单位未知，禁止当置信度展示** | 同上目录 |
+| **配额轨迹 50→49→48→47**（9/22 一次、9/23 玉米蛇一次、伪蝮蛇一次）；quota 查询免费 | `22_quota.json` |
+| Wikipedia 境内不可达；**iNaturalist API 境内可达**（CC 照片+署名、taxa 带英文摘要）；amphibiachina.org 可达 | 实测记录第二节 |
+| 9/22 录制的「9316/R」在百科维度不成立（9316 在 B 类下是鸟）；该 fixture 仅作识别映射回归 | 实测记录第一节 |
+
+## 2. species.json v2 schema（唯一数据源）
+
+每条目字段：`speciesId / commonName / scientificName / englishCommonName(内部,不展示) / aliases[{alias,region,level,source}] / verificationStatus / riskStatus / demoDraft? / referenceImages[{file,role,source,rights,sourcePage?,photoId?}] / externalRefs[{name,url}] / comparisonProfile{hook,layChecklist[],layLookAlikes[],doNot[],techNotes{外形特征,区别辨识},venomInfoStatus,sources[]} / source`。
+
+展示规则（已固化为回归测试 `inference/tests/test_display_zh.py`）：
+- **描述类字段纯中文**（hook/layChecklist/doNot/别名/图片 role 禁拉丁字母）；例外仅学名、作者用户名、许可证代码，且都不进描述层。
+- **小白优先**：一句一观察点、只写照片看得见的、生活类比、禁不可靠民间判别法（三角头/红尾判毒）；未核验显示「待核验/按未知处理」，不编确定结论。
+- `demoDraft=true` 的条目（猪鼻蛇/赤链蛇/短尾蝮）为**演示草稿，未经人工审核，不投实际使用**（郭 2026-09-23 确认）。
+- 比对区与安全区分离：卡片固定免责「仅用于比对照片，不能判断有没有毒；被咬伤立即就医」。
+
+## 3. 参考图管线与策展规则
+
+- 来源：iNaturalist research-grade + `photo_license=cc-by,cc-by-sa,cc0`（署名随 meta）；团队实拍（权利自有，标「团队实拍参考」）。**不用 AI 生成图、不爬无授权图**。
+- 每物种目录 `data/reference_images/<speciesId>/`：`ref_0i.jpg` + `meta.json`（署名/许可证/观察页/淘汰理由）+ `_candidates/` 留档。
+- **策展教训（必读）**：多图目视时附件回传顺序≠调用顺序，曾致编号-内容错配（主图位落入无蛇图、真图被覆盖）。规则：一次只看一张，或看后立即按内容重命名落盘；署名以 `photoId/sourcePage` 为唯一依据。
+- 覆盖度实测（`12_inat_coverage_survey.json`）：16 个医学重要种 CC 池全命中；稀疏种（丽纹蛇 4、红脖颈槽蛇 5）降级为「无打包图+百科深链」。
+
+## 4. 代码变更
+
+| 文件 | 变更 |
+|---|---|
+| `inference/provider.py` | 名称匹配兼容 aliases 对象数组；新增 `englishCommonName`（去括号、按 `/` 拆分）作匹配键——供应商返回英文名，匹配是内部事、展示是另一层 |
+| `inference/tests/test_provider.py` | 颈棱蛇不变量加强：参考图可存在但**每张必须有 rights+source**；`venomInfoStatus` 不得因名称核验而变 reviewed |
+| `inference/tests/test_display_zh.py` | 新增：展示层纯中文校验 + 英文名不泄漏校验 |
+| `data/species.json` | v2 全量迁移（6 条目：玉米蛇/加州王蛇/颈棱蛇/猪鼻蛇/赤链蛇/短尾蝮） |
+| `data/reference_images/` | 新增：5 物种策展图 + meta + 候选留档 |
+
+回归：`python -B -m unittest discover -s inference/tests` → **50 tests OK**（48 原有 + 2 新增）。
+
+## 5. Android 接入面（韦）
+
+结果页按 `candidates[].speciesId` 查 `species.json`，渲染三块：
+1. `comparisonProfile`：hook 做大字、layChecklist 做比对要点、doNot 做红区、layLookAlikes 做「易混」折叠；
+2. `referenceImages`：打包进 assets 按 `file` 读取，**展示 `rights` 署名行**；
+3. `externalRefs`：「仅供参考」深链按钮，跳系统浏览器。
+未核验（`verificationStatus!=verified`）物种不会进入代理候选；demo 用 mock fixtures 驱动卡片 UI 即可，**不要临场升 verified**。
+
+## 6. 账目与授权边界
+
+- 9/23 的 HHodata 直连调用（百科探针 8 次、识别 2 轮、quota 3 次）**未经代理账本**（郭当次指示「直接真实测试」），账目以本目录实测记录为准；后续真实调用仍走代理预算与去重。
+- 密钥只进进程环境变量；本包与仓库不含任何密钥文件。
+
+## 7. 未完成 / 待办
+
+1. 真机闭环、相机 Wi-Fi 与公网共存（韦）；
+2. 别名表初稿（过山峰@福建=眼镜王蛇 / @广西=眼镜蛇属，属级 level 标记）+ 团队复核；
+3. 其余物种「核验一种、策展一种」批量跑；
+4. 小白卡片可读性验收并入 3 人次访谈；
+5. 供应商 R 类百科若开放，`techNotes` 字段命名已镜像其「外形特征/区别辨识」，可 1:1 换入。
+
+## 8. 安全提示
+
+本次推送所用 GitHub token 曾在聊天中明文出现，**推送完成后请立即轮换**。

@@ -1,0 +1,23 @@
+{
+ "speciesId": "heterodon_nasicus",
+ "retrievedAt": "2026-09-23",
+ "curatedBy": "郭浩天侧AI目视筛选（演示草稿，未经人工审核）",
+ "referenceImages": [
+  {
+   "file": "ref_01.jpg",
+   "role": "主图：野生型体色与花纹",
+   "source": "iNaturalist 观察页（见 sourcePage）",
+   "rights": "按 cc0 许可使用，作者 k-simpkins",
+   "sourcePage": "https://www.inaturalist.org/observations/375414776",
+   "photoId": 686290828
+  },
+  {
+   "file": "ref_02.jpg",
+   "role": "辅图：宠物品系花色（团队实拍）",
+   "source": "团队 2026-09-19 自贡调研实拍（太阳爆炸品系）",
+   "rights": "团队自有"
+  }
+ ],
+ "rejectNote": "淘汰图见 _candidates/；策展教训：附件回传顺序不可靠，须按内容复核",
+ "attributionNotice": "照片按各自许可证使用；App 内展示作者与许可证"
+}

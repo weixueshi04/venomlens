@@ -1,0 +1,59 @@
+# 一拍知蛇 · 真实接口测试记录（2026-09-23）
+
+> **授权**：郭浩天当次指示「直接真实测试，先不用管免费额度」。本记录所列 HHodata 外呼**未经过推理代理的预算账本**（直连 curl），以本文与 quota 查询为账目依据；iNaturalist / Wikipedia 为公开免费接口，不涉额度。
+> **配额轨迹**：测试前 image used=1/50（9/22 遗留）→ 本次识别上传后 used=2/50，**remaining=48**。百科查询多次，image 计数不变 → **百科不占图像配额**。
+
+## 一、调用清单
+
+| # | 接口 | 参数 | 结果 |
+|---|---|---|---|
+| 1 | HHodata 百科 | animalid=9316, class=R | `[1010,"R,9316: id error"]` |
+| 2 | HHodata quota | quota=1 | used=1/50, remaining=49 |
+| 3 | HHodata 百科 | animalid=2245, class=B | ✅ 完整鸟类百科（锈喉马地鹃） |
+| 4 | HHodata 百科 | animalid=9316, class=B | ✅ 洪氏花蜜鸟（证明 id 全局共享、class 须匹配） |
+| 5 | HHodata 百科 | animalid=1, class=R | id error |
+| 6 | HHodata 百科 | animalid=2245, class=B | ✅ 存档 `ency_2245_B.json` |
+| 7 | HHodata 识别上传 | 玉米蛇实拍（压缩至 849KB）, upload=1, class=R | ✅ taskid `HH-R_20260923_09325003720_1` |
+| 8 | HHodata 结果查询 | resultid=同上 | ✅ 5 候选，首位**玉米蛇 9197/R，score 30.9**（识别正确） |
+| 9 | HHodata 百科 | animalid=9197, class=R | **id error（识别现返的 id 也查不到）** |
+| 10 | HHodata quota | quota=1 | used=2/50, remaining=48 |
+| 11 | HHodata 百科 | animalid=6534, class=M（官方文档自带示例） | **id error** |
+| 12 | Wikipedia REST | en/zh summary | **连接超时（境内网络不可达）** |
+| 13 | iNaturalist API | taxa / taxa/73887 / observations(photo_license) | ✅ 可达；taxa 带 `wikipedia_summary`；CC 照片带作者 |
+| 14 | amphibiachina.org | GET / | ✅ HTTP 200（中文资料备用源） |
+
+原始响应存档：本目录 `1_upload.json`、`2_result.json`、`3_ency_9197_R.json`、`4_quota.json`、`5~11_*`、输入图 `input_cornsnake.jpg`。
+
+## 二、结论
+
+1. **HHodata 百科端点（`/dongniao`）只有鸟类（B）数据**：R、M 均 id error，连官方文档的 M 示例都不通。 reptile 百科经此 API 不可用，M3 设计**放弃 animalid 路线**。
+2. 9/22 录制的「颈棱蛇 9316/R」响应**在百科维度不成立**（9316 在 B 类下是鸟）。该 fixture 作为识别映射回归仍有效，但不得再声称其百科可查。
+3. **识别链路真实跑通且识别正确**：玉米蛇实拍 → 首位候选玉米蛇（score 30.9，分值单位仍未确认，维持「不给百分比解释」口径）。
+4. 百科响应**无图片字段**；含「引用说明」（鸟类内容自述为 **AI 生成中文科普资料**）与英文维基地址 → 即便将来开放 R 类，医疗文案也不能直接采用。
+5. **Wikipedia 境内不可达** → 运行时与离线采集都不能依赖它。iNaturalist 可达且自带 `wikipedia_summary`（CC BY-SA 种子文案）与 CC 照片（带作者与许可证），是参考图与科普种子的唯一现成通道；amphibiachina.org 可达，作中文资料备用。
+6. **参考图必须人工策展**：按「最新 research-grade CC」直取得到路杀与夜拍远景图；颈棱蛇 6 张候选目视后仅 2 张可用（选录与淘汰理由见 `data/reference_images/pseudagkistrodon_rudis/meta.json`）。iNat 的 `order_by=faves` 对该物种无效（全 0）。
+
+## 三、对设计的影响
+
+- 参考图/科普 = **离线打包**：iNat CC 图（署名+许可证展示）＋团队实拍（标「团队实拍参考」）＋人工审核的中文文案；运行时零外网依赖，路演不翻车。
+- 契约第 6 节与《郭侧 AI 执行指南》第 3 节中「百科计费待核实」应更新为：**百科仅鸟类、不占图像配额；reptile 百科不可用**。
+- 配额现状：**remaining=48**；后续真实识别仍按代理账本走，本文直连调用不再重复。
+
+## 四、策展复核教训（9/23 下午补充）
+
+- **多图目视时附件回传顺序与调用顺序不一致**（异步完成序），首轮按顺序推断「候选编号 ↔ 图像内容」出错：猪鼻蛇主图位一度落入无蛇的土堆图、野生型真图被团队图覆盖丢失、赤链蛇主辅图互换。
+- 纠正方法：**对落盘物理文件逐张复核内容**，按内容重排文件、按真实原名重建署名（署名跟随内容而非编号）；丢失图经 `_candidates.json` 的 photoId 重下载恢复。
+- 固化规则：今后策展**一次只看一张**或看后立刻按内容重命名落盘；meta 的 photoId/sourcePage 为署名的唯一依据。
+- 涉及文件：`data/reference_images/{heterodon_nasicus,lycodon_rufozonatus,gloydius_brevicaudus}/` 的 ref_01/ref_02 与 meta.json、species.json 对应条目；回归 50/50 通过。
+
+## 五、第二轮真实识别（人工伪蝮蛇图，9/23 上午）
+
+| # | 接口 | 参数 | 结果 |
+|---|---|---|---|
+| 15 | HHodata 识别上传 | `测试图片/人工伪蝮蛇.jpg`（964KB，免压缩）, upload=1, class=R | ✅ taskid `HH-R_20260923_10472677120_1` |
+| 16 | HHodata 结果查询 | resultid=同上 | ✅ 单候选：颈棱蛇 97.6 / id 9316 / R，box [584,815,1228,1462] |
+| 17 | HHodata quota | quota=1 | used=3/50，**remaining=47** |
+
+- **可复现性**：与 9/22 录制响应逐字段一致（97.6 / 9316 / 同 box）→ 离线回归 fixture 确为真实录制，非合成；识别服务对该图确定性返回。
+- **全路径演示**：原始响应经 `HhodataProvider.parse` 归一为 `status=candidates`、单候选颈棱蛇（verified）→ 应用侧卡片字段齐备（hook / 比对要点 / 参考图 2 张带署名 / 百科深链）。存档 `20_upload_weifushe.json`、`21_result_weifushe.json`、`22_quota.json`。
+- 本次直连调用未经代理账本（用户当次指示），账目以本节与 quota 为准；配额轨迹 49 → 48（玉米蛇）→ 47（本图）。
