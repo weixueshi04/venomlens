@@ -1,3 +1,5 @@
+> **Canonical version notice (2026-09-23):** The Chinese `README.md` is the canonical compliance README. This English file is retained for reference and may lag; where they differ, follow `README.md`, `contracts/recognition-contract.md`, and the test/field records.
+
 # VenomLens · 一拍知蛇
 
 [简体中文](README.md) | **English**
