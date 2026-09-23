@@ -15,6 +15,17 @@ class SpeciesCatalog private constructor(
 
     companion object {
         const val ASSET_PATH = "data/species.json"
+
+        /**
+         * 离线参考图所在的 assets 目录前缀。
+         *
+         * 物种图片为两层结构：`data/reference_images/<id>/` 是带 EXIF 的原始图（权利记录在同目录 meta.json），
+         * `data/card_images/<id>/` 是去 EXIF、缩到最长边 ≤1280 的脱敏发布图。APK 只打包后者
+         * （见 app/build.gradle.kts 的 prepareSpeciesAssets 与 inference/cards.py 的 export_bundle），
+         * 因此这里只接受发布层路径：原始图不在 assets 里，放行它只会得到一个必然加载失败的路径，
+         * 而收紧白名单本身就是防目录穿越与防误载私有原图的一部分。
+         */
+        const val CARD_IMAGE_ROOT = "data/card_images"
         const val MAX_JSON_CHARACTERS = 1_048_576
         const val SAFETY_WARNING = "仅用于比对照片，不能判断有没有毒；被咬伤立即就医。"
         const val REVIEW_WARNING = "比对文案待审核；不作为医疗或毒性判断依据。"
@@ -44,9 +55,15 @@ class SpeciesCatalog private constructor(
             }
         }
 
+        /**
+         * 校验离线参考图路径：必须是本物种脱敏发布目录 `data/card_images/<speciesId>/` 下的相对路径。
+         *
+         * 保持 fail-closed：任一段不符合 [pathSegment]（拒绝空段、`.`、`..`、控制字符、`%` 编码绕过等）
+         * 或前缀不属于该物种，一律返回 null，由调用方显示占位文案而不是加载。
+         */
         fun safeReferencePath(speciesId: String, path: String?): String? {
             if (!validId(speciesId) || path == null || path.length > 512) return null
-            val prefix = "data/reference_images/$speciesId/"
+            val prefix = "$CARD_IMAGE_ROOT/$speciesId/"
             if (!path.startsWith(prefix)) return null
             val segments = path.removePrefix(prefix).split('/')
             if (segments.any { !pathSegment.matches(it) || it == "." || it == ".." }) return null

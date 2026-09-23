@@ -165,7 +165,8 @@ class SpeciesComparisonActivityTest {
         scenario.onActivity { activity ->
             val json = originalEntry(activity, "pseudagkistrodon_rudis")
             val image = json.getJSONArray("referenceImages").getJSONObject(0)
-                .put("file", "data/reference_images/pseudagkistrodon_rudis/test_missing_never_bundled.jpg")
+                // 合法白名单路径（发布层 card_images），但确实没有被打包进 assets：验证「缺图仍保留署名 + 显式占位」
+                .put("file", "${SpeciesCatalog.CARD_IMAGE_ROOT}/pseudagkistrodon_rudis/test_missing_never_bundled.jpg")
                 .put("attributionConsistent", true)
             json.put("referenceImages", JSONArray().put(image))
             activity.renderCatalog(SpeciesCatalog.parse(JSONArray().put(json).toString()))

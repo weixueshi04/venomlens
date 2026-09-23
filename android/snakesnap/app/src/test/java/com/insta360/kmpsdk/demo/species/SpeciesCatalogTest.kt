@@ -111,12 +111,17 @@ class SpeciesCatalogTest {
 
     @Test
     fun imagePathsAreConfinedToTheExactSpeciesDirectory() {
-        val base = "data/reference_images/test_species/"
+        // 发布层（脱敏 card_images）才是唯一可打进 assets 的图层，路径白名单随之收紧
+        val base = "${SpeciesCatalog.CARD_IMAGE_ROOT}/test_species/"
         listOf("photo.jpg", "sub/ref_01.png").forEach {
             assertEquals(base + it, SpeciesCatalog.safeReferencePath("test_species", base + it))
         }
         listOf(null, "", "/${base}photo.jpg", "E:/${base}photo.jpg", "https://example.invalid/image.jpg",
-            "file:///${base}photo.jpg", "data/reference_images/other_species/photo.jpg", "${base}../photo.jpg",
+            "file:///${base}photo.jpg", "data/card_images/other_species/photo.jpg",
+            // 原始图层（reference_images）带 EXIF、不随包发布，必须与不安全路径一样被拒绝
+            "data/reference_images/test_species/photo.jpg",
+            "data/reference_images/test_species/ref_01_head_coiled.jpg",
+            "${base}../photo.jpg",
             "${base}sub/../../photo.jpg", "${base}./photo.jpg", "${base}sub//photo.jpg", "${base}photo.jpg/",
             "${base}\\photo.jpg", "${base}%2e%2e/photo.jpg", "${base}%252e%252e/photo.jpg", "${base}photo.jpg?x=1",
             "${base}photo.jpg#x", "${base}photo.jpg\n", "${base}photo.jpg\u0000", "${base}photo.jpg:stream").forEach {
@@ -235,7 +240,7 @@ class SpeciesCatalogTest {
         .put("scientificName", "Test species").put("verificationStatus", "pending_review")
         .put("source", "仅测试来源")
 
-    private fun image() = JSONObject().put("file", "data/reference_images/test_species/photo.jpg")
+    private fun image() = JSONObject().put("file", "${SpeciesCatalog.CARD_IMAGE_ROOT}/test_species/photo.jpg")
         .put("role", "测试主图").put("source", "测试拍摄团队").put("rights", "团队自有")
         .put("sourcePage", "https://example.invalid/observation")
 
