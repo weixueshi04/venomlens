@@ -1,7 +1,9 @@
 package com.insta360.kmpsdk.demo.ui.emergency
 
+import com.insta360.kmpsdk.demo.R
 import com.insta360.kmpsdk.demo.recognition.Candidate
 import com.insta360.kmpsdk.demo.recognition.QualityIssue
+import com.insta360.kmpsdk.demo.recognition.RecognitionErrorCode
 import com.insta360.kmpsdk.demo.recognition.RecognitionResponse
 import com.insta360.kmpsdk.demo.recognition.RecognitionSource
 import com.insta360.kmpsdk.demo.recognition.RecognitionStatus
@@ -210,6 +212,98 @@ class EmergencyFlowLogicTest {
         )
         assertTrue(text.contains("CACHE · 历史结果回放"))
         assertTrue(text.contains("缓存耗时不是本次请求耗时。"))
+    }
+
+    // ── 真实 / MOCK 适配器选择（构建期配置组合）──────────────────────────────
+
+    @Test
+    fun liveModeRequiresBothBaseUrlAndTokenNonBlank() {
+        // 两项都配置才走真实识别——半配置只会得到 401/403，明确降级 MOCK 更安全。
+        assertEquals(RecognitionMode.LIVE, recognitionModeOf("http://127.0.0.1:8200", "tok123"))
+        assertEquals(RecognitionMode.LIVE, recognitionModeOf("https://ai.example.com", "tok123"))
+    }
+
+    @Test
+    fun emptyOrHalfConfigFallsBackToMock() {
+        // 默认空串（构建期未注入）→ MOCK。
+        assertEquals(RecognitionMode.MOCK, recognitionModeOf("", ""))
+        assertEquals(RecognitionMode.MOCK, recognitionModeOf(null, null))
+        // 只配一半 → MOCK。
+        assertEquals(RecognitionMode.MOCK, recognitionModeOf("http://127.0.0.1:8200", ""))
+        assertEquals(RecognitionMode.MOCK, recognitionModeOf("", "tok123"))
+        assertEquals(RecognitionMode.MOCK, recognitionModeOf("http://127.0.0.1:8200", null))
+        assertEquals(RecognitionMode.MOCK, recognitionModeOf(null, "tok123"))
+        // 纯空白等同未配置。
+        assertEquals(RecognitionMode.MOCK, recognitionModeOf("   ", " \t "))
+    }
+
+    // ── pending 人工查询状态机（无自动轮询 / 无自动重试）──────────────────────
+
+    @Test
+    fun pendingIdOnlyAcceptedForPendingStatusWithValidRecognitionId() {
+        val validId = "a1b2c3".let { it.repeat(10) + "abcd" } // 64 位 [a-f0-9]
+        assertEquals(64, validId.length)
+        assertEquals(validId, PendingRefreshPolicy.pendingRecognitionId(RecognitionStatus.PENDING, validId))
+        // 非 pending 状态不进入等待人工查询。
+        assertNull(PendingRefreshPolicy.pendingRecognitionId(RecognitionStatus.CANDIDATES, validId))
+        assertNull(PendingRefreshPolicy.pendingRecognitionId(RecognitionStatus.NO_SNAKE, validId))
+        assertNull(PendingRefreshPolicy.pendingRecognitionId(RecognitionStatus.UNCERTAIN, validId))
+        // id 缺失或非法（长度 / 字符集）也不接受。
+        assertNull(PendingRefreshPolicy.pendingRecognitionId(RecognitionStatus.PENDING, null))
+        assertNull(PendingRefreshPolicy.pendingRecognitionId(RecognitionStatus.PENDING, "short"))
+        assertNull(PendingRefreshPolicy.pendingRecognitionId(RecognitionStatus.PENDING, "g".repeat(64)))
+        assertNull(PendingRefreshPolicy.pendingRecognitionId(RecognitionStatus.PENDING, "A".repeat(64)))
+    }
+
+    @Test
+    fun manualRefreshOnlyFromRealClickWhenIdleWithPendingId() {
+        val id = "0".repeat(64)
+        // 人工点击 + 空闲 + 有 pending id → 可查询。
+        assertTrue(PendingRefreshPolicy.canManuallyRefresh(id, requestInFlight = false, manualClick = true))
+        // 请求在途 → 拒绝（防重复提交）。
+        assertFalse(PendingRefreshPolicy.canManuallyRefresh(id, requestInFlight = true, manualClick = true))
+        // 非人工触发 → 拒绝：结构上不存在自动轮询路径。
+        assertFalse(PendingRefreshPolicy.canManuallyRefresh(id, requestInFlight = false, manualClick = false))
+        // 没有 pending id → 拒绝。
+        assertFalse(PendingRefreshPolicy.canManuallyRefresh(null, requestInFlight = false, manualClick = true))
+    }
+
+    // ── 结果来源 → 标注映射 ─────────────────────────────────────────────────
+
+    @Test
+    fun mockSourceGetsRedProminentBadgeOthersGetCalmBadge() {
+        // MOCK 必须显著（红色高对比）标注为模拟。
+        val (mockIsRed, mockRes) = resultBadgeOf(RecognitionSource.MOCK)
+        assertTrue(mockIsRed)
+        assertEquals(R.string.emergency_flow_badge_mock, mockRes)
+        // LIVE / CACHE 也要标注「候选、非诊断」，但用克制样式。
+        val (liveIsRed, liveRes) = resultBadgeOf(RecognitionSource.LIVE)
+        assertFalse(liveIsRed)
+        assertEquals(R.string.emergency_flow_badge_live, liveRes)
+        val (cacheIsRed, cacheRes) = resultBadgeOf(RecognitionSource.CACHE)
+        assertFalse(cacheIsRed)
+        assertEquals(R.string.emergency_flow_badge_cache, cacheRes)
+    }
+
+    // ── 未同意上传 → 本地失败，不发送数据 ───────────────────────────────────
+
+    @Test
+    fun consentRequiredErrorCodeIsStableContractForLocalFailure() {
+        // 未勾选同意时 HttpRecognitionAdapter 在本地失败此错误码（不发任何网络请求），
+        // VM 的 renderFailure 依赖该码走「未同意上传」专属文案。码值一旦变动此测试即报警。
+        assertEquals("UPLOAD_CONSENT_REQUIRED", RecognitionErrorCode.UPLOAD_CONSENT_REQUIRED.name)
+        assertEquals("请先确认同意上传图片", RecognitionErrorCode.UPLOAD_CONSENT_REQUIRED.displayMessage)
+    }
+
+    @Test
+    fun pendingSummaryNeverClaimsConfirmedResult() {
+        // pending 文案必须保持克制：只说「处理中、人工确认后查询一次」，不得出现确认/诊断表述。
+        val text = renderRecognitionSummary(
+            response(RecognitionStatus.PENDING, emptyList(), emptyList(), recognitionId = "0".repeat(64)),
+        )
+        assertTrue(text.contains("识别处理中；仅在人工确认后查询一次。"))
+        assertFalse(text.contains("准确率"))
+        assertFalse(text.contains("确诊"))
     }
 
     private fun response(

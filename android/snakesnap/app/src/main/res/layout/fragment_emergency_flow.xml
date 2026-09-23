@@ -108,6 +108,22 @@
                 android:textColor="@color/emergency_ink_soft"
                 android:textSize="13sp" />
 
+            <!-- 上传同意开关：仅真实识别（liveEnabled）时显示；默认不勾选，原图不发送。
+                 触控目标 ≥48dp；saveEnabled=false 防系统恢复状态绕过「默认未同意」。 -->
+            <CheckBox
+                android:id="@+id/upload_consent"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:checked="false"
+                android:minHeight="48dp"
+                android:saveEnabled="false"
+                android:text="@string/emergency_flow_upload_consent"
+                android:textColor="@color/emergency_ink"
+                android:textSize="14sp"
+                android:visibility="gone"
+                tools:visibility="visible" />
+
             <!-- 阶段状态区：每一步都显示，不静默 -->
             <LinearLayout
                 android:id="@+id/stage_panel"
@@ -149,18 +165,40 @@
                     tools:progress="42"
                     tools:visibility="visible" />
 
-                <!-- MOCK 常驻标注：红底白字，只要展示结果就一定在 -->
+                <!-- 结果来源标注：常驻结果区顶部。MOCK 走红底白字，LIVE/CACHE 走晨雾浅底，
+                     具体底色与文案由 EmergencyFlowFragment 按 sourceBadgeIsMock / sourceBadgeText 设置。 -->
                 <TextView
-                    android:id="@+id/mock_badge"
+                    android:id="@+id/source_badge"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="14dp"
-                    android:background="@drawable/bg_emergency_mock_badge"
+                    android:background="@drawable/bg_emergency_source_badge"
                     android:gravity="center"
                     android:paddingVertical="8dp"
-                    android:text="@string/emergency_flow_mock_badge"
-                    android:textColor="@color/white"
+                    android:textColor="@color/emergency_ink"
                     android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:visibility="gone"
+                    tools:background="@drawable/bg_emergency_mock_badge"
+                    tools:text="MOCK · 模拟结果，非真实识别"
+                    tools:textColor="@color/white"
+                    tools:visibility="visible" />
+
+                <!-- pending 时的人工「查询一次结果」：无任何自动轮询/重试，只此一个入口 -->
+                <TextView
+                    android:id="@+id/pending_refresh_button"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/bg_emergency_help"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:minHeight="52dp"
+                    android:paddingHorizontal="16dp"
+                    android:text="@string/emergency_flow_pending_refresh"
+                    android:textColor="@color/emergency_ink"
+                    android:textSize="16sp"
                     android:textStyle="bold"
                     android:visibility="gone"
                     tools:visibility="visible" />

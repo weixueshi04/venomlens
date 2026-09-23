@@ -534,8 +534,20 @@
     <string name="emergency_flow_stage_preparing">正在准备图片…</string>
     <string name="emergency_flow_image_ready">已准备 JPEG：%1$d × %2$d，%3$d KiB（已校正方向、重新编码，不保留原始 EXIF）</string>
     <string name="emergency_flow_stage_recognizing">正在生成候选分析（MOCK）…</string>
+    <string name="emergency_flow_stage_recognizing_live">正在识别（真实识别）…</string>
     <string name="emergency_flow_stage_done">已生成候选分析</string>
-    <string name="emergency_flow_mock_badge">MOCK · 模拟结果，非真实识别</string>
+    <string name="emergency_flow_badge_mock">MOCK · 模拟结果，非真实识别</string>
+    <string name="emergency_flow_badge_live">LIVE · 真实识别候选，非诊断</string>
+    <string name="emergency_flow_badge_cache">CACHE · 历史结果回放，非本次识别</string>
+    <string name="emergency_flow_upload_consent">同意上传处理后的照片用于真实识别（去 EXIF、≤2 MB JPEG）。未勾选则不发送任何数据。</string>
+    <string name="emergency_flow_stage_pending">识别处理中，等待人工查询</string>
+    <string name="emergency_flow_pending_detail">服务已受理但尚未出结果。不会自动轮询、不会自动重试；需要时点一次下方「查询一次结果」。仍可先记录伤情和求助。</string>
+    <string name="emergency_flow_pending_refresh">查询一次结果</string>
+    <string name="emergency_flow_stage_pending_refreshing">正在查询一次结果…</string>
+    <string name="emergency_flow_pending_refreshing_detail">仅本次人工触发的查询；若仍在处理中，可稍后再手动查询。</string>
+    <string name="emergency_flow_consent_required_title">未同意上传，照片没有发送</string>
+    <string name="emergency_flow_consent_required_detail">真实识别需要你先勾选「同意上传照片」。刚才没有发出任何网络请求。勾选后重新拍照即可识别；也可直接记录伤情和求助。</string>
+    <string name="emergency_flow_recognition_failed_suffix">识别失败不等于没有蛇；不自动重试，仍可记录伤情和求助。</string>
     <string name="emergency_flow_image_unavailable">无法读取图片，仍可直接记录伤情。</string>
     <string name="emergency_flow_image_io_failed">无法读取图片，仍可直接记录伤情。</string>
     <string name="emergency_flow_image_security_failed">无法访问该图片，仍可直接记录伤情。</string>
@@ -549,11 +561,11 @@
     <string name="emergency_flow_local_missing_title">本地照片不可用</string>
     <string name="emergency_flow_local_missing_detail">下载已完成，但未能在手机上定位到图片文件。仍可记录伤情和求助。</string>
     <string name="emergency_flow_recognition_failed_title">候选分析未完成</string>
-    <string name="emergency_flow_recognition_no_result">模拟分析未返回结果；不自动重试。仍可记录伤情和求助。</string>
+    <string name="emergency_flow_recognition_no_result">识别未返回结果；不自动重试。仍可记录伤情和求助。</string>
     <string name="emergency_flow_help_title">下一步：记录伤情或求助</string>
     <string name="emergency_flow_help_bitten">记录伤情（已被咬）</string>
     <string name="emergency_flow_help_not_bitten">未被咬 / 保持距离</string>
     <string name="emergency_flow_help_hospital">医院联系与求助</string>
     <string name="emergency_flow_candidate_suffix">· 离线比对资料（非诊断）</string>
-    <string name="emergency_flow_disclaimer">本页面为 MOCK 模拟演示：不生成诊断结论，候选不代表已确认，无可靠置信度，识别结果不能用于排除危险或替代医疗判断。原图不上传、不自动定位。</string>
+    <string name="emergency_flow_disclaimer">本页面不生成诊断结论：候选不代表已确认，无可靠置信度，识别结果不能用于排除危险或替代医疗判断。未勾选同意时原图不上传；MOCK 模式不发送任何数据。不自动定位。</string>
 </resources>

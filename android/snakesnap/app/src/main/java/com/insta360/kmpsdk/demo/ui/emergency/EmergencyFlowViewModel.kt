@@ -9,12 +9,17 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.arashivision.sdk.media.api.work.WorkManager
 import com.arashivision.sdk.media.api.work.WorkWrapper
+import com.insta360.kmpsdk.demo.BuildConfig
 import com.insta360.kmpsdk.demo.R
+import com.insta360.kmpsdk.demo.recognition.HttpRecognitionAdapter
 import com.insta360.kmpsdk.demo.recognition.MockRecognitionAdapter
 import com.insta360.kmpsdk.demo.recognition.MockScenario
+import com.insta360.kmpsdk.demo.recognition.RecognitionAdapter
 import com.insta360.kmpsdk.demo.recognition.RecognitionCall
+import com.insta360.kmpsdk.demo.recognition.RecognitionErrorCode
 import com.insta360.kmpsdk.demo.recognition.RecognitionImage
 import com.insta360.kmpsdk.demo.recognition.RecognitionResult
+import com.insta360.kmpsdk.demo.recognition.RecognitionResponse
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -29,6 +34,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
 import timber.log.Timber
 import java.io.File
 import java.io.IOException
@@ -61,12 +67,24 @@ data class EmergencyFlowUiState(
     val detailText: String = "",
     /** 下载进度 0..100，<0 表示不显示进度条。 */
     val progressPercent: Int = -1,
-    /** 顶部固定 MOCK 标注是否显示。 */
-    val mockBadgeVisible: Boolean = false,
-    /** 识别合规文案（照抄 MockRecognitionActivity.renderSuccess 措辞）。 */
+    /** 是否配置了真实识别代理（baseUrl 与 token 都非空）。false 即 MOCK 降级模式。 */
+    val liveEnabled: Boolean = false,
+    /** 上传同意开关是否勾选。默认未勾选：原图不发送（安全红线）。 */
+    val uploadConsent: Boolean = false,
+    /** 真实识别请求是否在途（upload 或 refresh），用于禁用按钮并显示等待文案。 */
+    val requestInFlight: Boolean = false,
+    /** 结果来源标注是否显示。 */
+    val sourceBadgeVisible: Boolean = false,
+    /** 结果来源标注文案（MOCK 显著标注模拟；LIVE / CACHE 标注非诊断）。 */
+    val sourceBadgeText: String = "",
+    /** 是否为 MOCK 来源：决定标注用红色高对比样式。 */
+    val sourceBadgeIsMock: Boolean = false,
+    /** 识别合规文案（措辞与 MockRecognitionActivity.renderSuccess 一致）。 */
     val summaryText: String = "",
     val candidates: List<EmergencyCandidateUi> = emptyList(),
     val resultSourceName: String = "",
+    /** 非空表示结果处于 pending，等待人工点击「查询一次结果」。 */
+    val pendingRecognitionId: String? = null,
     /**
      * 求助出口（病例卡 / 医院）是否可点。
      * 按产品红线恒为 true —— 见 [EmergencyFlowPolicy.helpExitsEnabled]。
@@ -77,27 +95,74 @@ data class EmergencyFlowUiState(
 )
 
 /**
- * 紧急一键流程编排：拍照 → 取回到手机 → MOCK 识别 → 病例卡/医院求助。
+ * 紧急一键流程编排：拍照 → 取回到手机 → 识别（真实 / MOCK 降级）→ 病例卡/医院求助。
  *
  * 拍摄控制完全复用 [com.insta360.kmpsdk.demo.ui.capture.CameraCaptureViewModel]，
  * 本 VM 只负责「拍完之后」的链路与 UI 状态，不重写任何 SDK 拍摄调用。
+ *
+ * 识别双路径：构建期注入的 baseUrl 与 token **都非空**时走 [HttpRecognitionAdapter] 真实识别，
+ * 否则降级 [MockRecognitionAdapter]（本地 fixture，不发网络请求）。见 [recognitionModeOf]。
+ * 契约规定 pending 不自动轮询、不自动重试，只能人工触发一次 refresh，见 [PendingRefreshPolicy]。
  */
 class EmergencyFlowViewModel(
     application: Application,
 ) : AndroidViewModel(application) {
 
-    private val _ui = MutableStateFlow(EmergencyFlowUiState())
+    /**
+     * 识别模式由构建期注入的配置决定；密钥只来自 local.properties / 环境变量，默认空串 → MOCK。
+     * 必须先于 [_ui] 声明：Kotlin 属性按声明顺序初始化，_ui 的初值要用到它。
+     */
+    private val recognitionMode: RecognitionMode = recognitionModeOf(
+        BuildConfig.RECOGNITION_PROXY_BASE_URL,
+        BuildConfig.RECOGNITION_PROXY_TOKEN,
+    )
+
+    private val _ui = MutableStateFlow(
+        EmergencyFlowUiState(liveEnabled = recognitionMode == RecognitionMode.LIVE)
+    )
     val ui: StateFlow<EmergencyFlowUiState> = _ui.asStateFlow()
 
     private val _event = MutableSharedFlow<EmergencyFlowEvent>(extraBufferCapacity = 4)
     val event: SharedFlow<EmergencyFlowEvent> = _event.asSharedFlow()
 
     private var pipelineJob: Job? = null
+    private var refreshJob: Job? = null
     private var activeCall: RecognitionCall? = null
 
     /** 传给病例卡的本机图片 Uri（FileProvider content Uri），失败时为 null。 */
     private var preparedImageUri: Uri? = null
     private var preparedAt: String? = null
+
+    /** pending 后人工 refresh 要复用同一个 adapter（含同一份代理配置），故保留引用。 */
+    private var pendingAdapter: RecognitionAdapter? = null
+
+    /**
+     * 构造真实识别适配器。真实模式必须 mockScenario=null，
+     * 否则 [HttpRecognitionAdapter] 的 init 校验会抛异常（真实模式不接受 X-Mock-Scenario 头）。
+     * baseUrl 写错时不让 App 崩，降级回 MOCK 并记录日志——来源标注仍会如实显示 MOCK，不会伪装成真实结果。
+     */
+    private fun createAdapter(): RecognitionAdapter {
+        val app = getApplication<Application>()
+        if (recognitionMode == RecognitionMode.LIVE) {
+            return runCatching {
+                HttpRecognitionAdapter(
+                    baseUrl = BuildConfig.RECOGNITION_PROXY_BASE_URL,
+                    authToken = BuildConfig.RECOGNITION_PROXY_TOKEN,
+                    // adb reverse 会留下失效的空闲代理连接；用零空闲连接池，每次新建连接。
+                    // 与 MockRecognitionActivity 的既有做法一致。
+                    client = OkHttpClient.Builder()
+                        .connectionPool(okhttp3.ConnectionPool(0, 1, java.util.concurrent.TimeUnit.SECONDS))
+                        .build(),
+                    // 真实模式必须 mockScenario=null，否则 init 校验抛异常（真实模式不接受 X-Mock-Scenario 头）。
+                    mockScenario = null,
+                ) as RecognitionAdapter
+            }.getOrElse { e ->
+                Timber.w(e, "recognition proxy config invalid, fall back to MOCK")
+                MockRecognitionAdapter(app.assets, MockScenario.CANDIDATES)
+            }
+        }
+        return MockRecognitionAdapter(app.assets, MockScenario.CANDIDATES)
+    }
 
     private fun str(resId: Int): String = getApplication<Application>().getString(resId)
 
@@ -113,6 +178,15 @@ class EmergencyFlowViewModel(
         _ui.update { if (it.captureEnabled == enabled) it else it.copy(captureEnabled = enabled) }
     }
 
+    /**
+     * 上传同意开关。默认未勾选：原图默认不发送（安全红线）。
+     * 真实模式下未勾选即点识别，[HttpRecognitionAdapter] 会在本地直接失败
+     * UPLOAD_CONSENT_REQUIRED，不发出任何网络请求。
+     */
+    fun onUploadConsentChanged(consent: Boolean) {
+        _ui.update { if (it.uploadConsent == consent) it else it.copy(uploadConsent = consent) }
+    }
+
     fun onHelpClicked(bitten: Boolean) {
         _event.tryEmit(EmergencyFlowEvent.OpenCare(bitten))
     }
@@ -123,6 +197,32 @@ class EmergencyFlowViewModel(
 
     fun onCandidateClicked(candidate: EmergencyCandidateUi) {
         _event.tryEmit(EmergencyFlowEvent.OpenSpecies(candidate.speciesId, _ui.value.resultSourceName))
+    }
+
+    /**
+     * 「查询一次结果」：**只能由用户点击触发**（manualClick 恒为 true 的唯一调用点）。
+     * 没有任何定时器、轮询或自动重试路径调用本函数 —— 契约要求 pending 只人工查询。
+     * 查询后若仍是 pending，按钮仍可再次点击（仍属人工触发）。
+     */
+    fun onRefreshPendingClicked() {
+        val state = _ui.value
+        val recognitionId = state.pendingRecognitionId
+        if (!PendingRefreshPolicy.canManuallyRefresh(recognitionId, state.requestInFlight, manualClick = true)) {
+            return
+        }
+        val adapter = pendingAdapter ?: return
+        refreshJob?.cancel()
+        refreshJob = viewModelScope.launch {
+            _ui.update {
+                it.copy(
+                    requestInFlight = true,
+                    stageText = str(R.string.emergency_flow_stage_pending_refreshing),
+                    detailText = str(R.string.emergency_flow_pending_refreshing_detail),
+                )
+            }
+            val result = runAdapterRefresh(adapter, recognitionId!!)
+            deliverRefreshResult(result)
+        }
     }
 
     fun currentImageUri(): Uri? = preparedImageUri
@@ -139,15 +239,19 @@ class EmergencyFlowViewModel(
      */
     fun onCaptureFinished(isPhoto: Boolean, filePaths: List<String>) {
         pipelineJob?.cancel()
+        refreshJob?.cancel()
         preparedImageUri = null
         preparedAt = null
         activeCall = null
+        pendingAdapter = null
 
         if (!EmergencyFlowPolicy.shouldEnterPipeline(isPhoto)) {
             _ui.update {
                 EmergencyFlowUiState(
                     connected = it.connected,
                     captureEnabled = it.captureEnabled,
+                    liveEnabled = recognitionMode == RecognitionMode.LIVE,
+                    uploadConsent = it.uploadConsent,
                     stage = EmergencyStage.FAILED,
                     stageText = str(R.string.emergency_flow_video_skipped_title),
                     detailText = str(R.string.emergency_flow_video_skipped_detail),
@@ -161,14 +265,18 @@ class EmergencyFlowViewModel(
     }
 
     private suspend fun runPipeline(filePaths: List<String>) {
-        // 每次新链路开始，清掉上一轮的 MOCK 标注与候选，避免残留误导。
+        // 每次新链路开始，清掉上一轮的来源标注与候选，避免残留误导。
         _ui.update {
             it.copy(
-                mockBadgeVisible = false,
+                sourceBadgeVisible = false,
+                sourceBadgeText = "",
+                sourceBadgeIsMock = false,
                 summaryText = "",
                 candidates = emptyList(),
                 resultSourceName = "",
+                pendingRecognitionId = null,
                 imageWarningText = "",
+                requestInFlight = false,
             )
         }
         // ── 阶段 1：从相机取回照片 ────────────────────────────────────────────
@@ -211,26 +319,28 @@ class EmergencyFlowViewModel(
         val image = prepareImage(localPath)
         // 读图失败不 return：MOCK 识别与照片字节无关，且求助出口必须一直可用。
 
-        // ── 阶段 3：生成候选分析（MOCK）─────────────────────────────────────
+        // ── 阶段 3：生成候选分析（有配置走真实、无配置走 MOCK）────────────────
+        val live = recognitionMode == RecognitionMode.LIVE
         setStage(
             EmergencyStage.RECOGNIZING,
-            str(R.string.emergency_flow_stage_recognizing),
+            str(
+                if (live) R.string.emergency_flow_stage_recognizing_live
+                else R.string.emergency_flow_stage_recognizing
+            ),
             null,
             -1,
         )
-        val result = runMockRecognition(image?.jpeg)
-
-        // ── 阶段 4：展示结果与出口 ────────────────────────────────────────────
-        when (result) {
-            is RecognitionResult.Success -> renderSuccess(result)
-            is RecognitionResult.Failure -> renderFailure(result, image == null)
-            null -> renderNoResult()
-        }
+        val adapter = createAdapter()
+        pendingAdapter = adapter
+        val result = runRecognition(adapter, image?.jpeg, uploadConsent = _ui.value.uploadConsent)
+        renderResult(result, imageMissing = image == null)
     }
 
     /**
      * 轮询相机相册，按文件名把 `onCaptureFinish` 的路径对到 [WorkWrapper]。
      * 相机写卡有延迟，故按 [POLL_INTERVAL_MS] 轮询，上限约 [POLL_TIMEOUT_MS]。
+     * 注意：这里的轮询是「等相机把文件写进相册列表」，与识别的 pending 无关；
+     * 识别契约禁止的自动轮询只针对 refresh 接口。
      */
     private suspend fun findCameraWork(filePaths: List<String>): WorkWrapper? {
         val deadline = System.currentTimeMillis() + POLL_TIMEOUT_MS
@@ -354,51 +464,129 @@ class EmergencyFlowViewModel(
         return null
     }
 
-    private suspend fun runMockRecognition(jpeg: ByteArray?): RecognitionResult? =
-        suspendCancellableCoroutine { cont: CancellableContinuation<RecognitionResult?> ->
-            val adapter = MockRecognitionAdapter(getApplication<Application>().assets, MockScenario.CANDIDATES)
-            val requestId = UUID.randomUUID().toString()
-            val call = adapter.recognize(requestId, jpeg ?: ByteArray(0), false) { result ->
-                activeCall = null
-                if (cont.isActive) cont.resume(result)
-            }
-            activeCall = call
-            cont.invokeOnCancellation {
-                activeCall = null
-                call.cancel()
-            }
+    private suspend fun runRecognition(
+        adapter: RecognitionAdapter,
+        jpeg: ByteArray?,
+        uploadConsent: Boolean,
+    ): RecognitionResult? = suspendCancellableCoroutine { cont: CancellableContinuation<RecognitionResult?> ->
+        _ui.update { it.copy(requestInFlight = true) }
+        val requestId = UUID.randomUUID().toString()
+        val call = adapter.recognize(requestId, jpeg ?: ByteArray(0), uploadConsent) { result ->
+            activeCall = null
+            if (cont.isActive) cont.resume(result)
         }
+        activeCall = call
+        cont.invokeOnCancellation {
+            activeCall = null
+            call.cancel()
+        }
+    }
 
-    private fun renderSuccess(result: RecognitionResult.Success) {
-        val response = result.response
+    private suspend fun runAdapterRefresh(
+        adapter: RecognitionAdapter,
+        recognitionId: String,
+    ): RecognitionResult? = suspendCancellableCoroutine { cont: CancellableContinuation<RecognitionResult?> ->
+        val requestId = UUID.randomUUID().toString()
+        val call = adapter.refresh(requestId, recognitionId) { result ->
+            activeCall = null
+            if (cont.isActive) cont.resume(result)
+        }
+        activeCall = call
+        cont.invokeOnCancellation {
+            activeCall = null
+            call.cancel()
+        }
+    }
+
+    /** 人工 refresh 的结果：仍 pending 就继续等下一次人工点击；拿到候选则正常渲染。 */
+    private fun deliverRefreshResult(result: RecognitionResult?) {
+        _ui.update { it.copy(requestInFlight = false) }
+        when (result) {
+            is RecognitionResult.Success -> renderSuccess(result.response)
+            is RecognitionResult.Failure -> renderFailure(result, imageMissing = false)
+            null -> renderNoResult()
+        }
+    }
+
+    private fun renderResult(result: RecognitionResult?, imageMissing: Boolean) {
+        _ui.update { it.copy(requestInFlight = false) }
+        when (result) {
+            is RecognitionResult.Success -> renderSuccess(result.response)
+            is RecognitionResult.Failure -> renderFailure(result, imageMissing)
+            null -> renderNoResult()
+        }
+    }
+
+    private fun renderSuccess(response: RecognitionResponse) {
         val summary = renderRecognitionSummary(response)
+        val (badgeIsMock, badgeRes) = resultBadgeOf(response.resultSource)
+        // 202=pending：不是「已完成」。只显示阶段文案 + 人工查询按钮，不自动轮询。
+        val pendingId = PendingRefreshPolicy.pendingRecognitionId(response.status, response.recognitionId)
+        if (pendingId != null) {
+            _ui.update {
+                it.copy(
+                    stage = EmergencyStage.PENDING,
+                    stageText = str(R.string.emergency_flow_stage_pending),
+                    detailText = str(R.string.emergency_flow_pending_detail),
+                    progressPercent = -1,
+                    requestInFlight = false,
+                    sourceBadgeVisible = true,
+                    sourceBadgeText = str(badgeRes),
+                    sourceBadgeIsMock = badgeIsMock,
+                    summaryText = summary,
+                    candidates = emptyList(),
+                    resultSourceName = response.resultSource.name,
+                    pendingRecognitionId = pendingId,
+                    helpExitsEnabled = true,
+                )
+            }
+            return
+        }
         _ui.update {
             it.copy(
                 stage = EmergencyStage.DONE,
                 stageText = str(R.string.emergency_flow_stage_done),
                 detailText = "",
                 progressPercent = -1,
-                mockBadgeVisible = true,
+                requestInFlight = false,
+                sourceBadgeVisible = true,
+                sourceBadgeText = str(badgeRes),
+                sourceBadgeIsMock = badgeIsMock,
                 summaryText = summary,
                 candidates = response.candidates.map { c ->
                     EmergencyCandidateUi(c.speciesId, c.commonName, c.scientificName)
                 },
                 resultSourceName = response.resultSource.name,
+                pendingRecognitionId = null,
                 helpExitsEnabled = true,
             )
         }
     }
 
     private fun renderFailure(result: RecognitionResult.Failure, imageMissing: Boolean) {
+        // 未勾选同意：adapter 在本地就失败，照片根本没发出去，文案要如实说明。
+        val consentBlocked = result.error.code == RecognitionErrorCode.UPLOAD_CONSENT_REQUIRED
+        val detail = when {
+            consentBlocked -> str(R.string.emergency_flow_consent_required_detail)
+            else -> result.error.message + "\n" + str(R.string.emergency_flow_recognition_failed_suffix)
+        }
         _ui.update {
             it.copy(
                 stage = EmergencyStage.FAILED,
-                stageText = str(R.string.emergency_flow_recognition_failed_title),
-                detailText = result.error.message,
+                stageText = if (consentBlocked) {
+                    str(R.string.emergency_flow_consent_required_title)
+                } else {
+                    str(R.string.emergency_flow_recognition_failed_title)
+                },
+                detailText = detail,
                 progressPercent = -1,
-                mockBadgeVisible = true,
+                requestInFlight = false,
+                // 失败时不挂来源标注：没有结果可标注，挂 MOCK 红标会误导成「已跑出模拟结果」。
+                sourceBadgeVisible = false,
+                sourceBadgeText = "",
                 summaryText = "",
                 candidates = emptyList(),
+                pendingRecognitionId = null,
                 helpExitsEnabled = true,
                 imageWarningText = if (imageMissing) it.imageWarningText.ifBlank {
                     str(R.string.emergency_flow_image_unavailable)
@@ -412,9 +600,12 @@ class EmergencyFlowViewModel(
             it.copy(
                 stage = EmergencyStage.FAILED,
                 stageText = str(R.string.emergency_flow_recognition_failed_title),
-                detailText = str(R.string.emergency_flow_recognition_no_result),
+                detailText = str(R.string.emergency_flow_recognition_no_result) + "\n" +
+                    str(R.string.emergency_flow_recognition_failed_suffix),
                 progressPercent = -1,
-                mockBadgeVisible = true,
+                requestInFlight = false,
+                sourceBadgeVisible = false,
+                pendingRecognitionId = null,
                 helpExitsEnabled = true,
             )
         }
@@ -425,10 +616,11 @@ class EmergencyFlowViewModel(
             EmergencyFlowUiState(
                 connected = it.connected,
                 captureEnabled = it.captureEnabled,
+                liveEnabled = recognitionMode == RecognitionMode.LIVE,
+                uploadConsent = it.uploadConsent,
                 stage = EmergencyStage.FAILED,
                 stageText = title,
                 detailText = detail,
-                mockBadgeVisible = it.mockBadgeVisible,
                 imageWarningText = it.imageWarningText,
                 // 红线：链路失败不阻断求助。
                 helpExitsEnabled = EmergencyFlowPolicy.helpExitsEnabled(
@@ -459,6 +651,7 @@ class EmergencyFlowViewModel(
 
     override fun onCleared() {
         pipelineJob?.cancel()
+        refreshJob?.cancel()
         activeCall?.cancel()
         activeCall = null
         super.onCleared()

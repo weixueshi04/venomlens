@@ -31,7 +31,7 @@ import com.insta360.kmpsdk.demo.ui.connection.ConnectionViewModel
 import kotlinx.coroutines.launch
 
 /**
- * 紧急一键流程主线页：拍照 → 下载到手机 → MOCK 分析 → 病例卡 / 医院求助。
+ * 紧急一键流程主线页：拍照 → 下载到手机 → 识别（真实 / MOCK 降级）→ 病例卡 / 医院求助。
  *
  * 拍摄控制完全复用 [CameraCaptureViewModel]（含防重复点击遮罩、强制关闭自拍倒计时），
  * 本页只负责编排「拍完之后」的链路与展示。
@@ -76,6 +76,14 @@ class EmergencyFlowFragment : Fragment() {
 
         binding.backLink.setOnClickListener { findNavController().popBackStack() }
         binding.captureButton.setOnClickListener { captureViewModel.onPrimaryCaptureButtonClicked() }
+
+        // 上传同意：默认不勾选（布局 checked=false + saveEnabled=false），改选即同步 VM。
+        // 真实模式下未勾选点拍照，HttpRecognitionAdapter 会在本地失败 UPLOAD_CONSENT_REQUIRED，不发任何请求。
+        binding.uploadConsent.setOnCheckedChangeListener { _, checked ->
+            flowViewModel.onUploadConsentChanged(checked)
+        }
+        // pending 时唯一的人工查询入口；没有任何定时器/轮询调用 onRefreshPendingClicked。
+        binding.pendingRefreshButton.setOnClickListener { flowViewModel.onRefreshPendingClicked() }
 
         // 求助出口：常驻常亮，与链路成败无关（红线：失败不得阻断求助路径）。
         binding.helpTitle.isVisible = true
@@ -159,7 +167,10 @@ class EmergencyFlowFragment : Fragment() {
                         binding.stageProgress.isVisible = showProgress
                         if (showProgress) binding.stageProgress.progress = s.progressPercent
 
-                        binding.mockBadge.isVisible = s.mockBadgeVisible
+                        renderSourceBadge(s)
+                        renderUploadConsent(s)
+                        renderPendingRefresh(s)
+
                         binding.summaryText.isVisible = s.summaryText.isNotEmpty()
                         binding.summaryText.text = s.summaryText
 
@@ -194,13 +205,48 @@ class EmergencyFlowFragment : Fragment() {
         }
     }
 
-    /** 遮罩期与链路进行中都不让重复按快门，其余时候按 CameraCaptureViewModel 的结论放行。 */
+    /**
+     * 结果来源标注：MOCK 红底白字（「这是模拟」不可能被忽略），LIVE/CACHE 晨雾浅底深字。
+     * 失败态不挂标注（VM 已置 sourceBadgeVisible=false）——没有结果可标注。
+     */
+    private fun renderSourceBadge(s: EmergencyFlowUiState) {
+        val badge = binding.sourceBadge
+        badge.isVisible = s.sourceBadgeVisible
+        if (!s.sourceBadgeVisible) return
+        badge.text = s.sourceBadgeText
+        if (s.sourceBadgeIsMock) {
+            badge.setBackgroundResource(R.drawable.bg_emergency_mock_badge)
+            badge.setTextColor(requireContext().getColor(R.color.white))
+        } else {
+            badge.setBackgroundResource(R.drawable.bg_emergency_source_badge)
+            badge.setTextColor(requireContext().getColor(R.color.emergency_ink))
+        }
+    }
+
+    /** 同意开关只在真实识别模式出现；MOCK 降级模式不发网络，无需同意项。 */
+    private fun renderUploadConsent(s: EmergencyFlowUiState) {
+        binding.uploadConsent.isVisible = s.liveEnabled
+        if (binding.uploadConsent.isChecked != s.uploadConsent) {
+            binding.uploadConsent.isChecked = s.uploadConsent
+        }
+        binding.uploadConsent.isEnabled = !s.requestInFlight
+    }
+
+    /** 「查询一次结果」：仅 pending 且请求不在途时可见可点。 */
+    private fun renderPendingRefresh(s: EmergencyFlowUiState) {
+        val visible = s.pendingRecognitionId != null
+        binding.pendingRefreshButton.isVisible = visible
+        binding.pendingRefreshButton.isEnabled = visible && !s.requestInFlight
+        binding.pendingRefreshButton.alpha = if (visible && !s.requestInFlight) 1f else 0.5f
+    }
+
+    /** 遮罩期与链路进行中（含 pending 查询在途）都不让重复按快门，其余时候按 CameraCaptureViewModel 的结论放行。 */
     private fun renderCaptureAvailability() {
         val flow = flowViewModel.ui.value
         val pipelineRunning = flow.stage == EmergencyStage.FETCHING ||
             flow.stage == EmergencyStage.PREPARING ||
             flow.stage == EmergencyStage.RECOGNIZING
-        val enabled = flow.connected && flow.captureEnabled &&
+        val enabled = flow.connected && flow.captureEnabled && !flow.requestInFlight &&
             !binding.blockingOverlay.isVisible && !pipelineRunning
         binding.captureButton.isEnabled = enabled
         binding.captureButton.isClickable = enabled

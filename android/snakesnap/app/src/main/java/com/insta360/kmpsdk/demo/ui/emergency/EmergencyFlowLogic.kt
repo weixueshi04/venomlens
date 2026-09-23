@@ -1,5 +1,6 @@
 package com.insta360.kmpsdk.demo.ui.emergency
 
+import com.insta360.kmpsdk.demo.R
 import com.insta360.kmpsdk.demo.recognition.QualityIssue
 import com.insta360.kmpsdk.demo.recognition.RecognitionResponse
 import com.insta360.kmpsdk.demo.recognition.RecognitionSource
@@ -11,8 +12,11 @@ import com.insta360.kmpsdk.demo.recognition.RecognitionStatus
  * 这里刻意不依赖任何 Android / SDK 类型，全部可在 JVM 单元测试中直接覆盖。
  */
 
-/** 紧急流程阶段。[FAILED] 只表示「自动链路」失败，不代表求助出口不可用。 */
-enum class EmergencyStage { IDLE, FETCHING, PREPARING, RECOGNIZING, DONE, FAILED }
+/**
+ * 紧急流程阶段。[FAILED] 只表示「自动链路」失败，不代表求助出口不可用。
+ * [PENDING] 是真实识别的 202 中间态：只能等人工点击「查询一次结果」，不自动轮询。
+ */
+enum class EmergencyStage { IDLE, FETCHING, PREPARING, RECOGNIZING, PENDING, DONE, FAILED }
 
 object EmergencyFlowFiles {
 
@@ -82,6 +86,60 @@ object EmergencyFlowPolicy {
 
     /** MOCK 识别在图片准备失败时是否仍然执行：是。MOCK 结果与照片字节无关，保留候选展示更有用。 */
     fun runMockWithoutImage(): Boolean = true
+}
+
+/**
+ * 阶段3 走真实识别还是本地 MOCK，由构建期注入的代理配置决定。
+ * 密钥只在 local.properties / 环境变量，默认空串 → MOCK。
+ */
+enum class RecognitionMode { LIVE, MOCK }
+
+/**
+ * [RecognitionMode.LIVE] 需要 baseUrl 与 token 同时非空。
+ * 只给 baseUrl 不给 token（或反之）一律降级 MOCK：
+ * 半配置状态下走真实链路只会得到 401/403，不如明确降级。
+ */
+fun recognitionModeOf(proxyBaseUrl: String?, proxyToken: String?): RecognitionMode =
+    if (!proxyBaseUrl.isNullOrBlank() && !proxyToken.isNullOrBlank()) RecognitionMode.LIVE
+    else RecognitionMode.MOCK
+
+/**
+ * 结果来源标注：MOCK 必须显著（红色）标注为模拟；LIVE/CACHE 也必须标注「候选、非诊断」。
+ * 返回 (是否高危红色标注, 文案 string 资源 id)。
+ */
+fun resultBadgeOf(source: RecognitionSource): Pair<Boolean, Int> = when (source) {
+    RecognitionSource.MOCK -> true to R.string.emergency_flow_badge_mock
+    RecognitionSource.LIVE -> false to R.string.emergency_flow_badge_live
+    RecognitionSource.CACHE -> false to R.string.emergency_flow_badge_cache
+}
+
+/**
+ * pending → 人工查询的状态机契约。
+ *
+ * 契约规定：202=pending，**没有自动轮询、没有自动重试**，pending 只能由人工触发
+ * 一次 `POST /v1/recognitions/{id}/refresh`。本对象只提供「人工点击」这一个入口，
+ * 结构上就不存在自动触发的路径；查询后若仍 pending，可再次由人工点击。
+ */
+object PendingRefreshPolicy {
+
+    /** recognitionId 格式，与 HttpRecognitionAdapter.refresh 的校验保持一致。 */
+    private val recognitionIdPattern = Regex("[a-f0-9]{64}")
+
+    /** 仅当状态确为 PENDING 且 recognitionId 合法时，才进入「等待人工查询」。 */
+    fun pendingRecognitionId(
+        status: RecognitionStatus,
+        recognitionId: String?,
+    ): String? = recognitionId?.takeIf { status == RecognitionStatus.PENDING && recognitionIdPattern.matches(it) }
+
+    /**
+     * 「查询一次结果」按钮是否可点。[manualClick] 必须由真实点击事件驱动；
+     * 本函数没有任何自动调用路径，因此不存在自动轮询。
+     */
+    fun canManuallyRefresh(
+        recognitionId: String?,
+        requestInFlight: Boolean,
+        manualClick: Boolean,
+    ): Boolean = manualClick && !requestInFlight && recognitionId != null
 }
 
 /**

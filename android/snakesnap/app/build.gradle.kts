@@ -3,12 +3,35 @@ import groovy.json.JsonSlurper
 import org.gradle.kotlin.dsl.implementation
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.security.MessageDigest
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     kotlin("kapt")
 }
+
+/**
+ * 真实识别代理配置（HHodata）注入点：
+ * 只从 local.properties（已在 .gitignore 内）或环境变量读取，默认空串。
+ * 密钥绝不进仓库、绝不硬编码进源码；空串 → App 运行时降级为本地 MOCK。
+ */
+val localProperties = Properties().apply {
+    val propertiesFile = rootProject.file("local.properties")
+    if (propertiesFile.isFile) propertiesFile.inputStream().use(::load)
+}
+
+fun recognitionConfig(envName: String, propertyKey: String): String =
+    providers.environmentVariable(envName).orNull
+        ?.takeIf { it.isNotBlank() }
+        ?: localProperties.getProperty(propertyKey)?.trim().orEmpty()
+
+val recognitionProxyBaseUrl = recognitionConfig("RECOGNITION_PROXY_BASE_URL", "recognition.proxy.baseUrl")
+val recognitionProxyToken = recognitionConfig("RECOGNITION_PROXY_TOKEN", "recognition.proxy.token")
+
+/** buildConfigField 的字符串值需要二次转义：反斜杠与引号。 */
+fun asJavaStringLiteral(value: String): String =
+    "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"") + "\""
 
 val repositoryRoot = rootProject.file("../..")
 val speciesCatalogFile = repositoryRoot.resolve("data/species.json")
@@ -171,6 +194,11 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
+        // 真实识别代理配置：默认空串（→ 运行时降级 MOCK）。值来自 local.properties 或环境变量，
+        // 二者都不进仓库。转义用 asJavaStringLiteral，防 baseUrl/token 里的引号或反斜杠破坏生成代码。
+        buildConfigField("String", "RECOGNITION_PROXY_BASE_URL", asJavaStringLiteral(recognitionProxyBaseUrl))
+        buildConfigField("String", "RECOGNITION_PROXY_TOKEN", asJavaStringLiteral(recognitionProxyToken))
+
         ndk {
             abiFilters += listOf("arm64-v8a")
         }
@@ -196,6 +224,7 @@ android {
     }
     buildFeatures {
         viewBinding = true
+        buildConfig = true
     }
     sourceSets.getByName("main").assets.srcDir(speciesAssetsDirectory)
     testOptions {

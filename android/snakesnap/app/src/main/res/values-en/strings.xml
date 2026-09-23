@@ -534,8 +534,20 @@
     <string name="emergency_flow_stage_preparing">Preparing the image…</string>
     <string name="emergency_flow_image_ready">JPEG ready: %1$d × %2$d, %3$d KiB (orientation corrected, re-encoded, original EXIF stripped)</string>
     <string name="emergency_flow_stage_recognizing">Generating candidate analysis (MOCK)…</string>
+    <string name="emergency_flow_stage_recognizing_live">Recognizing (live service)…</string>
     <string name="emergency_flow_stage_done">Candidate analysis ready</string>
-    <string name="emergency_flow_mock_badge">MOCK · simulated result, not real recognition</string>
+    <string name="emergency_flow_badge_mock">MOCK · simulated result, not real recognition</string>
+    <string name="emergency_flow_badge_live">LIVE · real recognition candidates, not a diagnosis</string>
+    <string name="emergency_flow_badge_cache">CACHE · replayed past result, not this request</string>
+    <string name="emergency_flow_upload_consent">Allow uploading the processed photo for live recognition (EXIF stripped, ≤2 MB JPEG). Nothing is sent while unchecked.</string>
+    <string name="emergency_flow_stage_pending">Recognition in progress, awaiting manual query</string>
+    <string name="emergency_flow_pending_detail">The service accepted the task but has no result yet. There is no auto-polling and no auto-retry; tap “Query once” below when you want to check. You can record the injury and get help meanwhile.</string>
+    <string name="emergency_flow_pending_refresh">Query once</string>
+    <string name="emergency_flow_stage_pending_refreshing">Querying once…</string>
+    <string name="emergency_flow_pending_refreshing_detail">This single manual query only; if it is still processing, you can check again later by hand.</string>
+    <string name="emergency_flow_consent_required_title">Upload not consented, photo not sent</string>
+    <string name="emergency_flow_consent_required_detail">Live recognition needs you to tick “Allow uploading the photo” first. No network request was made. Tick it and capture again to recognize; you can also record the injury and get help directly.</string>
+    <string name="emergency_flow_recognition_failed_suffix">A failed recognition does not mean there is no snake; it does not retry automatically. You can still record the injury and get help.</string>
     <string name="emergency_flow_image_unavailable">Could not read the image; you can still record the injury.</string>
     <string name="emergency_flow_image_io_failed">Could not read the image; you can still record the injury.</string>
     <string name="emergency_flow_image_security_failed">Could not access the image; you can still record the injury.</string>
@@ -549,11 +561,11 @@
     <string name="emergency_flow_local_missing_title">Local photo unavailable</string>
     <string name="emergency_flow_local_missing_detail">Download finished but the file could not be located on the phone. You can still record the injury and get help.</string>
     <string name="emergency_flow_recognition_failed_title">Candidate analysis not completed</string>
-    <string name="emergency_flow_recognition_no_result">The simulated analysis returned no result; it does not retry automatically. You can still record the injury and get help.</string>
+    <string name="emergency_flow_recognition_no_result">The recognition returned no result; it does not retry automatically. You can still record the injury and get help.</string>
     <string name="emergency_flow_help_title">Next: record the injury or get help</string>
     <string name="emergency_flow_help_bitten">Record injury (bitten)</string>
     <string name="emergency_flow_help_not_bitten">Not bitten / keep distance</string>
     <string name="emergency_flow_help_hospital">Hospital contacts &amp; help</string>
     <string name="emergency_flow_candidate_suffix">· offline reference (not a diagnosis)</string>
-    <string name="emergency_flow_disclaimer">This page is a MOCK demo: it produces no diagnosis, candidates are not confirmed, there is no reliable confidence score, and results cannot rule out danger or replace medical judgment. The original image is never uploaded and location is never auto-detected.</string>
+    <string name="emergency_flow_disclaimer">This page produces no diagnosis: candidates are not confirmed, there is no reliable confidence score, and results cannot rule out danger or replace medical judgment. The original image is not uploaded unless you consent; MOCK mode sends no data at all. Location is never auto-detected.</string>
 </resources>

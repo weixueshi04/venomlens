@@ -1,3 +1,10 @@
 sdk.dir=C:/path/to/Android/Sdk
 insta360.maven.username=<from Insta360 SDK documentation>
 insta360.maven.password=<from Insta360 SDK documentation>
+
+# 真实识别代理（HHodata）配置。两项都留空 → App 阶段3 降级为本地 MOCK 模拟识别。
+# 真实值只写进 local.properties（已在 .gitignore 内），绝不提交到仓库。
+# baseUrl 例：http://127.0.0.1:8200 —— 真机连相机热点无外网时，用 adb reverse tcp:8200 tcp:8200 转发到电脑上的代理。
+# token 为代理鉴权令牌。仅当 baseUrl 与 token 都非空时 App 才走真实识别。
+recognition.proxy.baseUrl=
+recognition.proxy.token=
