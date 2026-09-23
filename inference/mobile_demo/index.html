@@ -22,10 +22,15 @@
     <input type="file" id="photo" accept="image/*" capture="environment">
     <img id="thumb" alt="" hidden>
     <label class="consent"><input type="checkbox" id="consent"> 我同意将这张图片发送给识别服务（演示环境）</label>
+    <video id="cam" playsinline muted hidden></video>
     <div class="row">
       <button id="btn-upload" class="primary" disabled>上传并识别</button>
       <button id="btn-offline" class="ghost">离线模拟场景…</button>
+      <button id="btn-auto" class="ghost">自动连拍（手机相机）</button>
+      <button id="btn-auto-stop" class="ghost" hidden>停止连拍</button>
     </div>
+    <label>连拍间隔 <select id="auto-interval"><option value="3">3 秒</option><option value="5" selected>5 秒</option><option value="8">8 秒</option></select></label>
+    <p class="hint" id="auto-note">自动连拍需安全上下文：USB 线连电脑并 adb reverse 后打开 http://127.0.0.1:8765/m/；局域网 http 下请改用手动选图。影石 X5 自动拍照需原生 SDK（韦侧 APK），见现场验收单 B 路线。</p>
     <div id="offline-scenarios" class="chips" hidden></div>
   </section>
 

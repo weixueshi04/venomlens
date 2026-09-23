@@ -115,16 +115,14 @@ $('consent').addEventListener('change', () => {
   $('btn-upload').disabled = !$('photo').files[0] || !$('consent').checked;
 });
 
-$('btn-upload').addEventListener('click', async () => {
-  const f = $('photo').files[0];
-  if (!f || !$('consent').checked || !base()) return;
+async function uploadBlob(blob, label) {
   const fd = new FormData();
-  fd.append('image', f, 'capture.jpg');
+  fd.append('image', blob, 'capture.jpg');
   fd.append('requestId', 'm-' + Date.now().toString(36));
   fd.append('uploadConsent', 'true');
   $('sec-result').hidden = false;
   $('result-body').replaceChildren();
-  $('result-meta').textContent = '上传中…';
+  $('result-meta').textContent = '上传中…' + (label ? `（${label}）` : '');
   try {
     const r = await fetch(base() + '/v1/recognitions', {
       method: 'POST', headers: { Authorization: 'Bearer ' + token() }, body: fd,
@@ -142,6 +140,61 @@ $('btn-upload').addEventListener('click', async () => {
   } catch (e) {
     $('result-meta').textContent = '请求失败：' + e.message;
   }
+}
+
+$('btn-upload').addEventListener('click', async () => {
+  const f = $('photo').files[0];
+  if (!f || !$('consent').checked || !base()) return;
+  await uploadBlob(f, '手动选图');
+});
+
+let autoTimer = null, autoStream = null, autoBusy = false;
+function stopAuto() {
+  if (autoTimer) clearInterval(autoTimer);
+  autoTimer = null;
+  if (autoStream) autoStream.getTracks().forEach((t) => t.stop());
+  autoStream = null;
+  $('cam').hidden = true;
+  $('btn-auto').hidden = false;
+  $('btn-auto-stop').hidden = true;
+}
+$('btn-auto-stop').addEventListener('click', stopAuto);
+$('btn-auto').addEventListener('click', async () => {
+  if (!window.isSecureContext) {
+    $('auto-note').textContent = '当前不是安全上下文，浏览器禁止调用相机。请用 USB 线连接电脑执行 adb reverse tcp:8765 tcp:8765 后，在手机打开 http://127.0.0.1:8765/m/ 再试；或改用手动选图。';
+    return;
+  }
+  if (!base() || !$('consent').checked) {
+    $('auto-note').textContent = '先填写代理地址与凭证，并勾选上传同意，再开启自动连拍。';
+    return;
+  }
+  try {
+    autoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+  } catch (e) {
+    $('auto-note').textContent = '相机不可用：' + e.message;
+    return;
+  }
+  $('cam').srcObject = autoStream;
+  $('cam').hidden = false;
+  $('btn-auto').hidden = true;
+  $('btn-auto-stop').hidden = false;
+  const secs = Number($('auto-interval').value || 5);
+  autoTimer = setInterval(async () => {
+    if (autoBusy) return;
+    autoBusy = true;
+    try {
+      const v = $('cam');
+      const scale = Math.min(1, 1280 / Math.max(v.videoWidth, v.videoHeight));
+      const cv = document.createElement('canvas');
+      cv.width = Math.round(v.videoWidth * scale);
+      cv.height = Math.round(v.videoHeight * scale);
+      cv.getContext('2d').drawImage(v, 0, 0, cv.width, cv.height);
+      const blob = await new Promise((res) => cv.toBlob(res, 'image/jpeg', 0.85));
+      if (blob) await uploadBlob(blob, '自动连拍');
+    } finally {
+      autoBusy = false;
+    }
+  }, secs * 1000);
 });
 
 $('btn-refresh').addEventListener('click', async () => {
