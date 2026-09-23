@@ -48,7 +48,7 @@ function clearResult(message = '选择一个固定场景，演示候选与物种
 }
 function cardElement(speciesId) {
   const card = ($('strict').checked ? bundle.normal : bundle.preview)[speciesId];
-  if (!card) return node('div', '当前没有该物种的卡片资料，请保留原图并按未知处理。求助提醒仍可使用。', 'missing');
+  if (!card) return node('div', '该候选未入库：按「宁缺勿错」不展示物种信息；通用安全提醒与求助入口仍可用。请保留原图并按未知处理。', 'missing');
   const article = node('article', undefined, 'species-card');
   const body = node('div', undefined, 'card-body');
   const head = node('div', undefined, 'card-head');
@@ -60,13 +60,22 @@ function cardElement(speciesId) {
   const badges = node('div', undefined, 'card-badges');
   badges.append(node('span', '风险：未知', 'pill neutral'));
   body.append(badges);
+  if (card.aliases && card.aliases.length) {
+    body.append(node('p', '别名（地域参考）：' + card.aliases.map((a) => a.alias + (a.region ? '（' + a.region + '）' : '') + (a.level === 'genus' ? '［属级］' : '')).join('　/　'), 'card-aliases'));
+  }
   if ($('strict').checked) body.append(node('p', card.notice, 'card-notice'));
   if (card.hook) {
     body.append(node('h4', card.hook, 'hook'));
     const list = node('ul', undefined, 'checklist');
     card.checklist.forEach((text) => list.append(node('li', text)));
     body.append(list);
-  } else body.append(node('p', '比对说明尚未审核，当前不展示；不能据此判断安全。', 'missing'));
+  } else {
+    const status = node('ul', undefined, 'status-list');
+    status.append(node('li', '比对文案：' + (card.contentStatus === 'unavailable' ? '未整理' : '待审核') + '（正常模式不展示；预览模式带目标态标注展示）'));
+    status.append(node('li', '参考图：可发布 ' + card.images.length + ' 张，来源门禁拦截 ' + card.hiddenImageCount + ' 张'));
+    status.append(node('li', '以上为审核进度，不是安全结论；安全提醒与求助入口不受影响。'));
+    body.append(status);
+  }
   if (card.images.length) {
     const gallery = node('div', undefined, card.images.length === 1 ? 'gallery single' : 'gallery');
     card.images.forEach((photo) => {

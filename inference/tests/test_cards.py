@@ -144,5 +144,19 @@ class SpeciesCardTests(unittest.TestCase):
             export_bundle(ROOT / "data/invalid-demo")
 
 
+
+    def test_aliases_propagate_with_name_visibility(self):
+        catalog = json.loads((ROOT / "data" / "species.json").read_text(encoding="utf-8"))
+        keelback = next(row for row in catalog if row["speciesId"] == "pseudagkistrodon_rudis")
+        corn = next(row for row in catalog if row["speciesId"] == "pantherophis_guttatus")
+        cali = next(row for row in catalog if row["speciesId"] == "lampropeltis_californiae")
+        self.assertEqual(build_card(keelback)["aliases"],
+                         [{"alias": "伪腹蛇", "region": None, "level": "species"}])
+        self.assertEqual(build_card(keelback, preview=True)["aliases"][0]["alias"], "伪腹蛇")
+        self.assertEqual(build_card(corn)["aliases"], [])
+        # 未核验名称：正常投影不放行名称，别名随名称隐藏；预览投影带标注展示
+        self.assertEqual(build_card(cali)["aliases"], [])
+        self.assertEqual(build_card(cali, preview=True)["aliases"], [])
+
 if __name__ == "__main__":
     unittest.main()

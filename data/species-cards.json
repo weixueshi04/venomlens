@@ -9,6 +9,7 @@
       "scientificName": "Pantherophis guttatus",
       "nameStatus": "verified",
       "contentStatus": "pending_review",
+      "aliases": [],
       "previewOnly": false,
       "hook": null,
       "checklist": [],
@@ -39,6 +40,7 @@
       "scientificName": null,
       "nameStatus": "pending_review",
       "contentStatus": "unavailable",
+      "aliases": [],
       "previewOnly": false,
       "hook": null,
       "checklist": [],
@@ -60,6 +62,13 @@
       "scientificName": "Pseudagkistrodon rudis",
       "nameStatus": "verified",
       "contentStatus": "pending_review",
+      "aliases": [
+        {
+          "alias": "伪腹蛇",
+          "region": null,
+          "level": "species"
+        }
+      ],
       "previewOnly": false,
       "hook": null,
       "checklist": [],
@@ -90,6 +99,7 @@
       "scientificName": "Heterodon nasicus",
       "nameStatus": "verified",
       "contentStatus": "pending_review",
+      "aliases": [],
       "previewOnly": false,
       "hook": null,
       "checklist": [],
@@ -120,6 +130,7 @@
       "scientificName": null,
       "nameStatus": "pending_review",
       "contentStatus": "pending_review",
+      "aliases": [],
       "previewOnly": false,
       "hook": null,
       "checklist": [],
@@ -141,6 +152,7 @@
       "scientificName": null,
       "nameStatus": "pending_review",
       "contentStatus": "pending_review",
+      "aliases": [],
       "previewOnly": false,
       "hook": null,
       "checklist": [],
@@ -164,6 +176,7 @@
       "scientificName": "Pantherophis guttatus",
       "nameStatus": "verified",
       "contentStatus": "pending_review",
+      "aliases": [],
       "previewOnly": true,
       "hook": "橙红身子、红色马鞍状大块斑",
       "checklist": [
@@ -209,6 +222,7 @@
       "scientificName": "Lampropeltis californiae",
       "nameStatus": "pending_review",
       "contentStatus": "unavailable",
+      "aliases": [],
       "previewOnly": true,
       "hook": null,
       "checklist": [],
@@ -235,6 +249,13 @@
       "scientificName": "Pseudagkistrodon rudis",
       "nameStatus": "verified",
       "contentStatus": "pending_review",
+      "aliases": [
+        {
+          "alias": "伪腹蛇",
+          "region": null,
+          "level": "species"
+        }
+      ],
       "previewOnly": true,
       "hook": "棕身一排深色「马鞍」大块斑",
       "checklist": [
@@ -269,6 +290,7 @@
       "scientificName": "Heterodon nasicus",
       "nameStatus": "verified",
       "contentStatus": "pending_review",
+      "aliases": [],
       "previewOnly": true,
       "hook": "鼻尖上翘像猪拱鼻、身粗短带大斑",
       "checklist": [
@@ -314,6 +336,7 @@
       "scientificName": "Lycodon rufozonatus",
       "nameStatus": "pending_review",
       "contentStatus": "pending_review",
+      "aliases": [],
       "previewOnly": true,
       "hook": "黑身红横纹、一圈圈像腰带",
       "checklist": [
@@ -353,6 +376,7 @@
       "scientificName": "Gloydius brevicaudus",
       "nameStatus": "pending_review",
       "contentStatus": "pending_review",
+      "aliases": [],
       "previewOnly": true,
       "hook": "土灰身、深色圆斑、尾巴明显短",
       "checklist": [
