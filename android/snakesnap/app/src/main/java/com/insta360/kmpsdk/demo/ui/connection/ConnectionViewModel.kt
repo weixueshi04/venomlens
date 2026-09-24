@@ -113,6 +113,40 @@ class ConnectionViewModel(
     private var connectionAttemptJob: Job? = null
 
     /**
+     * 用户主动点「断开连接」时置位。
+     * 必须把「主动断开」与「链路被被动掐断」区分开：前者要真正收工，后者要自愈重连。
+     */
+    private var userInitiatedDisconnect = false
+
+    /**
+     * 最近一次成功连接所用入口的可重放闭包（如 `onConnectWifiClicked`）。
+     * 真机取证（2026-09-24，X5 over Wi-Fi）：App 切后台约 40s 后相机 socket 静默 43.8s，
+     * SDK 判 ERR_TIMEOUT 并明确打印 `reconnectIfNeed = false`——链路不会自愈，只能由应用层重放这个入口。
+     */
+    private var reconnectInvoker: (() -> Unit)? = null
+
+    /** 被动断连后的自动重连任务；同一时刻只允许存在一条，避免多路并发把状态机搅乱。 */
+    private var autoReconnectJob: Job? = null
+
+    /** 正处在一次自动重连尝试内部：此期间新的断连事件不再递归调度重连，交由尝试循环计数。 */
+    private var autoReconnectAttemptInFlight = false
+
+    /**
+     * 存在「曾被被动掐断且尚未恢复」的会话。退避用尽后仍保持 true，
+     * 这样用户切回前台时 [onAppForegrounded] 会立刻再补一刀。
+     */
+    private var pendingAutoReconnect = false
+
+    /** 被动断连后待释放的相机对象，由 [releaseStaleDeviceBeforeReconnect] 在重连前按序释放。 */
+    private var deviceAwaitingRelease: CameraDevice? = null
+
+    /**
+     * 连接期间的轻量保活往返。SDK 侧以「收到相机包」为心跳依据（日志字段 inPacketDurationSinceLatestMs），
+     * 静默超过约 40s 即判超时；主动发一次极轻的取电池请求可把这个窗口压到 10s 量级。
+     */
+    private var sessionKeepAliveJob: Job? = null
+
+    /**
      * [connectSystemWifi] 通过 WifiNetworkSpecifier 发起的进程专属网络请求回调。
      * 该请求必须持续注册才能保持对应 Network 存活，直到断连/清理时才 unregisterNetworkCallback；
      * 此前未反注册会导致请求泄漏，断连重连同一 SSID 时可能拿到陈旧/失效的 Network。
@@ -230,14 +264,80 @@ class ConnectionViewModel(
         connectionHealthJob = null
     }
 
+    /**
+     * 断连总入口。
+     *
+     * 分岔依据是「谁掐断的」：
+     * - 用户主动 [disconnect]，或本来就没有可重放的连接入口 → 真正收工（[finishDisconnected]）。
+     * - 链路被被动掐断（SDK 心跳超时、相机侧复位、瞬时网络抖动）→ 轻量拆除 + 自动重连
+     *   （[handleTransientDisconnect]）：不弹「相机已断开」对话框、不把用户从紧急流程踢回连接页、
+     *   也不停前台服务——这三件事都会把已经摆在用户面前的求助出口一起带走。
+     */
     private fun handleDisconnected(reason: String?) {
+        if (!userInitiatedDisconnect && reconnectInvoker != null) {
+            handleTransientDisconnect(reason)
+            return
+        }
+        finishDisconnected(reason, null)
+    }
+
+    /**
+     * 被动断连：释放相机对象、清掉 UI 上的设备信息，但**保留**进程网络绑定与前台服务，
+     * 因为紧接着就要复用同一条到相机 AP 的链路重连。
+     */
+    private fun handleTransientDisconnect(reason: String?) {
         stopConnectionHealthWatch()
+        stopSessionKeepAlive()
+        if (!autoReconnectAttemptInFlight) {
+            // 取消整条连接尝试链路（模式切换轮询、NAN 握手后续等），否则它们会在断连处理完之后
+            // 才自然超时，用"切模式失败/超时"覆盖掉这里刚写入的状态
+            connectionAttemptJob?.cancel()
+            connectionAttemptJob = null
+        }
+        val device = currentCameraDevice
+        setCurrentCameraDevice(null)
+        // 不能在这里异步 release 就往下走：release() 会走 camera.disconnect() + destroy()，
+        // 若它排到重连的 connect() 之后执行，会把刚连上的新会话又拆掉。
+        // 因此把要释放的对象寄存下来，由 [attemptReconnectOnce] 在重放连接入口**之前**按序释放。
+        deviceAwaitingRelease = device
+        pendingAutoReconnect = true
+        _ui.update {
+            it.copy(
+                // 处在一次重连尝试内部时置 Idle，让尝试循环能把这次判为失败；
+                // 否则循环看不到终态，只能干等到超时才收场
+                connectState =
+                    if (autoReconnectAttemptInFlight) ConnectState.Idle else ConnectState.Connecting,
+                connectionButtonActiveIndex = null,
+                scanListVisible = false,
+                deviceInfoVisible = false,
+                previewCaptureEntryVisible = false,
+                device = null,
+                dynamicInfoRefreshing = false,
+                statusMessage = getApplication<Application>().getString(R.string.camera_reconnecting),
+                statusText = getApplication<Application>().getString(R.string.reconnecting),
+            )
+        }
+        Timber.w("transient camera disconnect (%s), scheduling auto reconnect", reason ?: "unknown")
+        if (!autoReconnectAttemptInFlight) {
+            scheduleAutoReconnect()
+        }
+    }
+
+    /** 真正的收工：解绑网络、停前台服务、发断连信号（各页据此弹窗并回到连接页）。 */
+    private fun finishDisconnected(
+        reason: String?,
+        messageOverride: String?,
+    ) {
+        stopConnectionHealthWatch()
+        stopSessionKeepAlive()
         // 取消整条连接尝试链路（模式切换轮询、NAN 握手后续等），否则它们会在断连处理完之后
         // 才自然超时，用"切模式失败/超时"覆盖掉这里刚写入的"已断开"状态
         connectionAttemptJob?.cancel()
         connectionAttemptJob = null
         val device = currentCameraDevice
         setCurrentCameraDevice(null)
+        // 收工前把寄存的残骸也一并释放，避免最后一次重连失败后留下未释放的会话
+        releaseStaleDeviceBeforeReconnect()
         // 健康监测/连接失败等自动断开路径此前从未通知相机侧断连，相机会一直占着会话直至固件自身超时，
         // 期间立即重连会返回冲突错误码；断连指令须在解绑进程网络前送达，故先 release 再 unbind。
         // release() 内部已包含断连语义，不再额外调用 disconnect()，避免协议层重复发送断连帧
@@ -260,16 +360,125 @@ class ConnectionViewModel(
                 device = null,
                 dynamicInfoRefreshing = false,
                 statusMessage =
-                    if (reason.isNullOrBlank()) {
-                        getApplication<Application>().getString(R.string.camera_disconnected)
-                    } else {
-                        getApplication<Application>().getString(R.string.connection_failed, reason)
-                    },
+                    messageOverride
+                        ?: if (reason.isNullOrBlank()) {
+                            getApplication<Application>().getString(R.string.camera_disconnected)
+                        } else {
+                            getApplication<Application>().getString(R.string.connection_failed, reason)
+                        },
                 statusText = getApplication<Application>().getString(R.string.not_connected),
             )
         }
         _cameraDisconnectedSignal.value = CameraDisconnectedEvent(++cameraDisconnectedEventId)
         CameraSessionForegroundService.stop(getApplication())
+    }
+
+    /**
+     * 有界退避自动重连。
+     *
+     * 真机实测重连本身极快（2026-09-24 02:54:31.090 发起 → .143 已 onCameraConnect，约 50ms），
+     * 所以退避只用来跨过相机侧会话残留的那个窗口，不需要拉长。
+     */
+    private fun scheduleAutoReconnect() {
+        if (autoReconnectJob?.isActive == true) return
+        if (reconnectInvoker == null) return
+        autoReconnectJob =
+            viewModelScope.launch {
+                val backoffMs = AUTO_RECONNECT_BACKOFF_MS
+                for ((index, wait) in backoffMs.withIndex()) {
+                    if (wait > 0) delay(wait)
+                    if (userInitiatedDisconnect || reconnectInvoker == null) return@launch
+                    if (attemptReconnectOnce(index + 1, backoffMs.size)) return@launch
+                }
+                if (userInitiatedDisconnect) return@launch
+                Timber.w("auto reconnect exhausted after %d attempts", backoffMs.size)
+                // 保留 pendingAutoReconnect，让用户切回前台时还能再补一刀
+                finishDisconnected(
+                    reason = null,
+                    messageOverride =
+                        getApplication<Application>().getString(R.string.camera_reconnect_failed),
+                )
+            }
+    }
+
+    /** 重连前按序清掉上一段会话残骸。必须在 [reconnectInvoker] 之前同步做完，见寄存处的注释。 */
+    private fun releaseStaleDeviceBeforeReconnect() {
+        val stale = deviceAwaitingRelease ?: return
+        deviceAwaitingRelease = null
+        runCatching { stale.release() }
+            .onFailure { e -> Timber.w(e, "release stale camera device before reconnect failed") }
+    }
+
+    /** 重放一次连接入口，并把 [ConnectState] 的终态作为这次尝试的成功/失败判据。 */
+    private suspend fun attemptReconnectOnce(
+        attempt: Int,
+        total: Int,
+    ): Boolean {
+        val invoker = reconnectInvoker ?: return false
+        autoReconnectAttemptInFlight = true
+        try {
+            Timber.i("auto reconnect attempt %d/%d", attempt, total)
+            releaseStaleDeviceBeforeReconnect()
+            invoker()
+            val deadline = System.currentTimeMillis() + AUTO_RECONNECT_ATTEMPT_TIMEOUT_MS
+            while (System.currentTimeMillis() < deadline) {
+                delay(AUTO_RECONNECT_POLL_INTERVAL_MS)
+                when (_ui.value.connectState) {
+                    ConnectState.Connected -> {
+                        Timber.i("auto reconnect succeeded on attempt %d", attempt)
+                        return true
+                    }
+
+                    ConnectState.Idle -> return false
+                    ConnectState.Connecting -> Unit
+                }
+            }
+            Timber.w("auto reconnect attempt %d timed out", attempt)
+            connectionAttemptJob?.cancel()
+            connectionAttemptJob = null
+            return false
+        } finally {
+            autoReconnectAttemptInFlight = false
+        }
+    }
+
+    /**
+     * App 回到前台时调用。
+     *
+     * 真机取证（2026-09-24）：`SmartPower idle->background(40206ms)` 之后立刻
+     * `OneCameraSocketIO mOnErrorCallback ERR_TIMEOUT` + `inPacketDurationSinceLatestMs 43817`。
+     * 即后台期间相机 socket 静默 43.8s 被 SDK 判死，而 SDK 自己打印 `reconnectIfNeed = false`。
+     * 后台里线程与网络都可能被系统收紧，重连未必能成，所以把「回到前台」当作最可靠的那次重试时机。
+     */
+    fun onAppForegrounded() {
+        if (userInitiatedDisconnect || reconnectInvoker == null || !pendingAutoReconnect) return
+        Timber.i("app foregrounded with pending auto reconnect, retrying now")
+        autoReconnectJob?.cancel()
+        autoReconnectJob = null
+        scheduleAutoReconnect()
+    }
+
+    /** 连接期间周期性做一次极轻的往返，压缩 SDK 的静默窗口。 */
+    private fun startSessionKeepAlive(device: CameraDevice) {
+        sessionKeepAliveJob?.cancel()
+        sessionKeepAliveJob =
+            viewModelScope.launch {
+                while (isActive) {
+                    delay(SESSION_KEEP_ALIVE_INTERVAL_MS)
+                    if (currentCameraDevice !== device || _ui.value.connectState != ConnectState.Connected) {
+                        return@launch
+                    }
+                    withContext(Dispatchers.IO) {
+                        runCatching { device.system.fetchBatteryData() }
+                            .onFailure { Timber.d(it, "session keep-alive round trip failed") }
+                    }
+                }
+            }
+    }
+
+    private fun stopSessionKeepAlive() {
+        sessionKeepAliveJob?.cancel()
+        sessionKeepAliveJob = null
     }
 
     fun consumeCameraDisconnectedSignal(eventId: Long) {
@@ -282,6 +491,8 @@ class ConnectionViewModel(
      * wifi 连接
      */
     fun onConnectWifiClicked() {
+        // 记下这条入口，链路被被动掐断时按原样重放（见 reconnectInvoker 的注释）
+        reconnectInvoker = { onConnectWifiClicked() }
         enterConnectingState(buttonIndex = 0, statusResId = R.string.connecting_via_wifi)
         launchConnectionAttempt {
             Timber.d("connecting via WiFi")
@@ -405,6 +616,7 @@ class ConnectionViewModel(
      * usb 连接
      */
     fun onUsbClicked() {
+        reconnectInvoker = { onUsbClicked() }
         enterConnectingState(buttonIndex = 2, statusResId = R.string.connecting_via_usb)
         launchConnectionAttempt {
             Timber.d("connecting via USB")
@@ -441,6 +653,7 @@ class ConnectionViewModel(
      */
     fun onConnectBluetooth(index: Int) {
         Timber.d("connecting via BLE")
+        reconnectInvoker = { onConnectBluetooth(index) }
         bleScanStopped = true
         currentCameraDevice?.stopScan()
         onConnectBluetooth(index, false)
@@ -451,6 +664,7 @@ class ConnectionViewModel(
      */
     fun onConnectWifiByBluetooth(index: Int) {
         Timber.d("connecting WiFi via BLE")
+        reconnectInvoker = { onConnectWifiByBluetooth(index) }
         bleScanStopped = true
         currentCameraDevice?.stopScan()
         onConnectBluetooth(index, true)
@@ -468,6 +682,7 @@ class ConnectionViewModel(
      */
     fun onConnectWiFiAwareByBluetooth(index: Int) {
         Timber.d("connecting WiFi Aware via BLE")
+        reconnectInvoker = { onConnectWiFiAwareByBluetooth(index) }
         bleScanStopped = true
         currentCameraDevice?.stopScan()
         val list = _ui.value.scannedDevices
@@ -787,6 +1002,14 @@ class ConnectionViewModel(
 
     fun disconnect() {
         Timber.d("disconnect")
+        // 主动断开：解除自愈意图，否则刚 release 完就会被自动重连拉回去
+        userInitiatedDisconnect = true
+        pendingAutoReconnect = false
+        reconnectInvoker = null
+        autoReconnectJob?.cancel()
+        autoReconnectJob = null
+        stopSessionKeepAlive()
+        releaseStaleDeviceBeforeReconnect()
         stopConnectionHealthWatch()
         connectionAttemptJob?.cancel()
         connectionAttemptJob = null
@@ -864,6 +1087,11 @@ class ConnectionViewModel(
         connectType: ConnectType,
         cameraDevice: CameraDevice,
     ) {
+        // 连上了：清掉自愈意图，并停掉为这次重连排期的退避循环
+        userInitiatedDisconnect = false
+        pendingAutoReconnect = false
+        autoReconnectJob?.cancel()
+        autoReconnectJob = null
         _cameraDisconnectedSignal.value = null
         setCurrentCameraDevice(cameraDevice)
         val methodLabel = connectType.name
@@ -895,6 +1123,7 @@ class ConnectionViewModel(
         }
         registerSystemDynamicListeners(cameraDevice)
         startConnectionHealthWatch(cameraDevice)
+        startSessionKeepAlive(cameraDevice)
         CameraSessionForegroundService.start(getApplication())
         persistRecentDeviceIfPossible(device)
     }
@@ -981,5 +1210,19 @@ class ConnectionViewModel(
         const val CONNECTION_HEALTH_CHECK_INTERVAL_MS = 1_000L
         const val AWARE_MODE_POLL_TIMES = 10
         const val AWARE_MODE_POLL_INTERVAL_MS = 500L
+
+        /**
+         * 自动重连退避：首刀立刻打，其后只用来跨过相机侧会话残留窗口。
+         * 真机实测单次重连约 50ms（02:54:31.090 发起 → .143 onCameraConnect），故无需更长退避。
+         */
+        val AUTO_RECONNECT_BACKOFF_MS = longArrayOf(0L, 800L, 2_000L, 5_000L)
+        const val AUTO_RECONNECT_ATTEMPT_TIMEOUT_MS = 8_000L
+        const val AUTO_RECONNECT_POLL_INTERVAL_MS = 200L
+
+        /**
+         * 保活间隔。SDK 以「距上次收到相机包的时长」为心跳依据（日志字段 inPacketDurationSinceLatestMs），
+         * 实测静默 43.8s 即判 ERR_TIMEOUT；取 10s 留足余量，且对相机是极轻的量。
+         */
+        const val SESSION_KEEP_ALIVE_INTERVAL_MS = 10_000L
     }
 }

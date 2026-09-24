@@ -39,6 +39,62 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
+        <!-- 演示区：产品里唯一与「演示」有关的设置项。
+             刻意**不**放「离线样例识别 / 开发联调」这类开发者入口——它绕开真实链路直接喂模拟数据，
+             会让这个 App 看起来像测试工具，且与「网络优先、不用本地数据集演示」冲突。 -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="4dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    style="@style/DemoSubTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/demo_section_title" />
+
+                <!-- 注意：@style/DemoSettingLabel 里写死了 layout_width=0dp + weight=1，
+                     它是给「横向行的直接子节点」用的。放进竖向嵌套列里宽度会被压成 0、
+                     标题直接不渲染（已踩过），所以这里不给标题套那个 style，显式写尺寸与字色。 -->
+                <LinearLayout style="@style/DemoSettingRow">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/demo_case_fill"
+                            android:textColor="@color/demo_primary_text"
+                            android:textSize="14sp" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/demo_case_fill_desc"
+                            android:textColor="@color/demo_hint"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/switch_case_demo_fill"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

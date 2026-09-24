@@ -52,7 +52,6 @@ class SpeciesComparisonActivityTest {
         onView(withId(R.id.species_empty)).check(matches(isDisplayed()))
         onView(withId(R.id.species_details)).check(matches(withEffectiveVisibility(Visibility.GONE)))
         onView(withId(R.id.species_safety)).check(matches(withText(SpeciesCatalog.SAFETY_WARNING)))
-        onView(withId(R.id.species_result_source)).check(matches(withText(ComparisonResultSource.MOCK.badge)))
         onView(withId(R.id.species_hospital)).perform(click())
         assertEquals(HospitalDirectoryActivity::class.java.name, monitor.attempts.single().component?.className)
         scenario.onActivity { activity ->
@@ -201,42 +200,22 @@ class SpeciesComparisonActivityTest {
     }
 
     @Test
-    fun mockSourceAndExpandedLookAlikesSurviveRecreationUsingOnlySmallExtras() =
+    fun expandedLookAlikesSurviveRecreationUsingOnlySmallExtras() =
         withScreen("gloydius_brevicaudus") { scenario, _ ->
-            onView(withId(R.id.species_result_source)).check(matches(isDisplayed()))
-                .check(matches(withText(ComparisonResultSource.MOCK.badge)))
             onView(withId(R.id.species_look_alikes)).check(matches(withEffectiveVisibility(Visibility.GONE)))
             onView(withId(R.id.species_look_alikes_toggle)).perform(scrollTo(), click())
             onView(withId(R.id.species_look_alikes)).perform(scrollTo()).check(matches(isDisplayed()))
             scenario.recreate()
             waitForLoad()
-            onView(withId(R.id.species_result_source)).check(matches(withText(ComparisonResultSource.MOCK.badge)))
             onView(withId(R.id.species_look_alikes)).perform(scrollTo()).check(matches(isDisplayed()))
             scenario.onActivity { activity ->
                 val extras = requireNotNull(activity.intent.extras)
-                assertEquals(setOf(SpeciesComparisonActivity.EXTRA_SPECIES_ID, SpeciesComparisonActivity.EXTRA_RESULT_SOURCE), extras.keySet())
+                // 结果来源不再跨页传递（2026-09-24 需求：界面不区分 MOCK / LIVE / CACHE）。
+                assertEquals(setOf(SpeciesComparisonActivity.EXTRA_SPECIES_ID), extras.keySet())
                 assertEquals("gloydius_brevicaudus", extras.getString(SpeciesComparisonActivity.EXTRA_SPECIES_ID))
-                assertEquals("MOCK", extras.getString(SpeciesComparisonActivity.EXTRA_RESULT_SOURCE))
                 assertTrue(activity.findViewById<TextView>(R.id.species_review).text.contains(SpeciesCatalog.DRAFT_WARNING))
             }
         }
-
-    @Test
-    fun nullAndUnrecognizedSourcesNeverDisplayLive() {
-        listOf(null, "unrecognized").forEach { source ->
-            withScreen(source = source) { scenario, _ ->
-                onView(withId(R.id.species_result_source)).check(matches(withText(ComparisonResultSource.UNKNOWN.badge)))
-                scenario.recreate()
-                waitForLoad()
-                onView(withId(R.id.species_result_source)).check(matches(withText(ComparisonResultSource.UNKNOWN.badge)))
-            }
-        }
-    }
-
-    @Test
-    fun cacheSourceRemainsDistinctFromLive() = withScreen(source = "CACHE") { _, _ ->
-        onView(withId(R.id.species_result_source)).check(matches(withText(ComparisonResultSource.CACHE.badge)))
-    }
 
     @Test
     fun externalLinkStartsOnlyOnTapAndIsInterceptedBeforeAnyBrowserLaunch() = withScreen { scenario, monitor ->
@@ -277,7 +256,6 @@ class SpeciesComparisonActivityTest {
 
     private fun withScreen(
         speciesId: String = "pseudagkistrodon_rudis",
-        source: String? = "MOCK",
         failure: RuntimeException? = null,
         block: (ActivityScenario<SpeciesComparisonActivity>, BlockingStarts) -> Unit,
     ) {
@@ -285,8 +263,7 @@ class SpeciesComparisonActivityTest {
         val monitor = BlockingStarts(failure)
         instrumentation.addMonitor(monitor)
         try {
-            val intent = SpeciesComparisonActivity.intent(instrumentation.targetContext, speciesId, source ?: "UNKNOWN")
-            if (source == null) intent.removeExtra(SpeciesComparisonActivity.EXTRA_RESULT_SOURCE)
+            val intent = SpeciesComparisonActivity.intent(instrumentation.targetContext, speciesId)
             ActivityScenario.launch<SpeciesComparisonActivity>(intent).use { scenario ->
                 waitForLoad()
                 assertTrue("No automatic outgoing Activity is allowed", monitor.attempts.isEmpty())

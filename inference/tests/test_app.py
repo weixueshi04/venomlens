@@ -274,12 +274,13 @@ class AppTests(unittest.TestCase):
         self.assertEqual((second.status_code, second.json()["resultSource"]), (502, "cache"))
         self.assertEqual(len(requests), 1)
 
-    def test_healthz_exposes_demo_release_flag_default_off(self):
+    def test_healthz_reports_mode_and_local_budget(self):
         settings = Settings(mode="mock", ledger_path=self.path)
         client = TestClient(create_app(settings, None))
         self.addCleanup(client.close)
         body = client.get("/healthz").json()
-        self.assertFalse(body["demoReleaseUnverified"])
+        self.assertEqual(body, {"status": "ok", "mode": "mock",
+                                "localCallLimit": 0, "localCallsUsed": 0})
 
     def test_recorded_keelback_result_maps_and_replays_without_more_calls(self):
         completed = [1000, [{"box": [573, 814, 1228, 1470], "list": [

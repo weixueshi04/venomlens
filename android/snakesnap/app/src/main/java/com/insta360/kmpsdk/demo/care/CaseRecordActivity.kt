@@ -25,6 +25,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewModelScope
 import com.insta360.kmpsdk.demo.databinding.ActivityCaseRecordBinding
 import com.insta360.kmpsdk.demo.recognition.RecognitionImage
+import com.insta360.kmpsdk.demo.util.DemoAppPreferences
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -116,16 +117,29 @@ class CaseRecordActivity : AppCompatActivity() {
 
     private fun render(state: CaseRecordUiState) {
         val hasRecord = state.record != null
-        binding.caseBranchMessage.text = when {
+        // 演示填充必须显形：否则预填值会被当成这次采集到的病人信息。
+        val demoBanner =
+            if (state.demoFillEnabled) {
+                "【演示数据】下列字段是演示预填值，不是本次采集的病人信息。\n\n"
+            } else {
+                ""
+            }
+        binding.caseBranchMessage.text = demoBanner + when {
             model.latestOnly && !hasRecord -> "查看最近保存的本地信息卡。"
-            state.draft.bitten -> "被咬（用户填写）。请立即就医，不要为填写或保存信息卡延误救治。"
-            else -> "未被咬（用户填写）。请保持距离，不要触碰或捕捉；未被咬、识别失败或未检出均不等于安全。"
+            state.draft.biteStatus == BiteStatus.BITTEN ->
+                "被咬（用户填写）。请立即就医，不要为填写或保存信息卡延误救治。"
+            state.draft.biteStatus == BiteStatus.NOT_BITTEN ->
+                "未被咬（用户填写）。请保持距离，不要触碰或捕捉；未被咬、识别失败或未检出均不等于安全。"
+            else ->
+                "咬伤情况未提供。未填写不等于未被咬——请保持距离，不要触碰或捕捉；" +
+                    "识别失败或未检出同样不等于安全。如已发生咬伤，请立即就医。"
         }
         binding.caseStatus.text = state.message
         binding.caseStatus.isVisible = state.message.isNotEmpty()
         binding.caseProgress.isVisible = state.busy
         binding.caseForm.isVisible = !hasRecord && !state.pendingLatest && !model.latestOnly
-        binding.caseBiteFields.isVisible = state.draft.bitten
+        // 只有明确「被咬」才展开咬伤细节字段：未知/未被咬时收集咬伤时间、部位、症状没有意义
+        binding.caseBiteFields.isVisible = state.draft.biteStatus == BiteStatus.BITTEN
         listOf(
             binding.caseBiteTime, binding.caseBodyPart, binding.caseSymptoms,
             binding.caseAge, binding.caseBloodType, binding.caseEmergencyName,
@@ -142,7 +156,7 @@ class CaseRecordActivity : AppCompatActivity() {
         binding.caseSaveWithoutOriginal.isVisible = !hasRecord && !state.pendingLatest && state.allowWithoutOriginal && !model.latestOnly
         binding.caseSaveWithoutOriginal.isEnabled = !state.busy
         binding.caseSavedCard.isVisible = hasRecord
-        binding.caseSavedCard.text = state.record?.cardText().orEmpty()
+        binding.caseSavedCard.text = demoBanner + state.record?.cardText().orEmpty()
         binding.caseImageStatus.text = state.imageMessage
         binding.caseImagePreview.isVisible = state.preview != null
         binding.caseImagePreview.setImageBitmap(state.preview)
@@ -158,7 +172,7 @@ class CaseRecordActivity : AppCompatActivity() {
         internal const val EXTRA_IMPORTED_AT = "care.importedAt"
         internal const val EXTRA_SUMMARY = "care.recognitionSummary"
         internal const val EXTRA_LABELS = "care.candidateLabels"
-        internal const val EXTRA_BITTEN = "care.bitten"
+        internal const val EXTRA_BITE_STATUS = "care.biteStatus"
         internal const val EXTRA_LATEST = "care.latest"
 
         fun intent(
@@ -167,13 +181,13 @@ class CaseRecordActivity : AppCompatActivity() {
             importedAt: String?,
             recognitionSummary: String,
             candidateLabels: ArrayList<String>,
-            bitten: Boolean,
+            biteStatus: BiteStatus,
         ): Intent = Intent(context, CaseRecordActivity::class.java)
             .putExtra(EXTRA_URI, originalImageUri)
             .putExtra(EXTRA_IMPORTED_AT, importedAt)
             .putExtra(EXTRA_SUMMARY, recognitionSummary)
             .putStringArrayListExtra(EXTRA_LABELS, ArrayList(candidateLabels.take(3)))
-            .putExtra(EXTRA_BITTEN, bitten)
+            .putExtra(EXTRA_BITE_STATUS, biteStatus.name)
 
         fun latestIntent(context: Context): Intent = Intent(context, CaseRecordActivity::class.java)
             .putExtra(EXTRA_LATEST, true)
@@ -189,6 +203,8 @@ internal data class CaseRecordUiState(
     val allowWithoutOriginal: Boolean = false,
     val preview: Bitmap? = null,
     val imageMessage: String = "",
+    /** 是否开着「演示填充」：开着时界面必须挂一条显眼的演示数据横幅。 */
+    val demoFillEnabled: Boolean = false,
 )
 
 internal class CaseRecordViewModel(
@@ -199,16 +215,23 @@ internal class CaseRecordViewModel(
     private val store = CaseRecordStore(context)
     private val resolver = context.contentResolver
     val latestOnly = intent.getBooleanExtra(CaseRecordActivity.EXTRA_LATEST, false)
+
+    /**
+     * 演示填充开关。只影响**可选**字段的预填，见 [CaseRecordActivity.DEMO_DETAILS]；
+     * 咬伤情况永远不在预填范围内——未选就是「未提供」，不能被演示值顶成一句安全声明。
+     */
+    private val demoFillEnabled = DemoAppPreferences.readCaseDemoFillEnabled(context)
     @Suppress("DEPRECATION")
     private val originalUri = intent.getParcelableExtra<Uri>(CaseRecordActivity.EXTRA_URI)
     private val viewingId = restored?.getString(STATE_VIEWING_ID)
     private var previewJob: Job? = null
     private val mutableState = MutableStateFlow(
         CaseRecordUiState(
-            draft = restoreDraft(intent, restored),
+            draft = restoreDraft(intent, restored).let { if (demoFillEnabled) it.withDemoDetails() else it },
             pendingLatest = restored?.getBoolean(STATE_PENDING_LATEST) ?: false,
             message = restored?.getString(STATE_MESSAGE).orEmpty(),
             allowWithoutOriginal = restored?.getBoolean(STATE_WITHOUT_ORIGINAL) ?: false,
+            demoFillEnabled = demoFillEnabled,
         ),
     )
     val state = mutableState.asStateFlow()
@@ -372,7 +395,10 @@ internal class CaseRecordViewModel(
 
         private fun restoreDraft(intent: Intent, restored: Bundle?): CaseDraft {
             val base = CaseDraft(
-                bitten = intent.getBooleanExtra(CaseRecordActivity.EXTRA_BITTEN, false),
+                // 缺失必须落 UNKNOWN，不能落 NOT_BITTEN。
+                // 原先这里是 getBooleanExtra(EXTRA_BITTEN, false)，意图里没有这个 extra 时默认成 false，
+                // 卡片就会替用户断言「未被咬」——在蛇伤场景里这是一句会造成伤害的安全声明。
+                biteStatus = readBiteStatus(intent),
                 importedAt = intent.getStringExtra(CaseRecordActivity.EXTRA_IMPORTED_AT),
                 recognitionSummary = intent.getStringExtra(CaseRecordActivity.EXTRA_SUMMARY).orEmpty(),
                 candidateLabels = intent.getStringArrayListExtra(CaseRecordActivity.EXTRA_LABELS).orEmpty().take(3),
@@ -381,6 +407,51 @@ internal class CaseRecordViewModel(
                 id = restored?.getString(STATE_ID) ?: base.id,
                 details = restored?.getString(STATE_DETAILS)?.let { CaseDetails.fromJson(JSONObject(it)) } ?: base.details,
                 comparisonIndex = (restored?.getInt(STATE_COMPARISON) ?: 0).coerceIn(0, base.candidateLabels.size),
+            )
+        }
+
+        private fun readBiteStatus(intent: Intent): BiteStatus {
+            val raw = intent.getStringExtra(CaseRecordActivity.EXTRA_BITE_STATUS) ?: return BiteStatus.UNKNOWN
+            return runCatching { BiteStatus.valueOf(raw) }.getOrDefault(BiteStatus.UNKNOWN)
+        }
+
+        /**
+         * 演示填充的固定值。
+         *
+         * 全部写成一眼可辨的「演示：…」，且不含任何真实个人信息。
+         * 这些值**只**在 [DemoAppPreferences.readCaseDemoFillEnabled] 为 true 时生效，
+         * 界面上必须同时出现演示数据横幅——否则就把演示值伪装成了采集到的病人信息。
+         *
+         * 这里的字段全是「照片和识别链路无论如何推不出来」的：部位、症状、年龄、血型、联系人。
+         * 咬伤情况不在此列，也不允许进这里。
+         */
+        internal val DEMO_DETAILS = CaseDetails(
+            biteTime = "演示：约 10 分钟前",
+            bodyPart = "演示：右小腿外侧",
+            symptoms = "演示：局部疼痛肿胀，无呼吸困难",
+            age = "35",
+            location = "演示：示例林区步道 3 号段",
+            bloodType = "演示：未知",
+            emergencyName = "演示：家属（示例）",
+            emergencyPhone = "演示：13800000000",
+            emergencyRelationship = "演示：配偶",
+        )
+
+        /** 只填空字段，不覆盖用户已经填过的内容。 */
+        internal fun CaseDraft.withDemoDetails(): CaseDraft {
+            val demo = DEMO_DETAILS
+            return copy(
+                details = details.copy(
+                    biteTime = details.biteTime.ifBlank { demo.biteTime },
+                    bodyPart = details.bodyPart.ifBlank { demo.bodyPart },
+                    symptoms = details.symptoms.ifBlank { demo.symptoms },
+                    age = details.age.ifBlank { demo.age },
+                    location = details.location.ifBlank { demo.location },
+                    bloodType = details.bloodType.ifBlank { demo.bloodType },
+                    emergencyName = details.emergencyName.ifBlank { demo.emergencyName },
+                    emergencyPhone = details.emergencyPhone.ifBlank { demo.emergencyPhone },
+                    emergencyRelationship = details.emergencyRelationship.ifBlank { demo.emergencyRelationship },
+                ),
             )
         }
     }

@@ -30,6 +30,17 @@ object DemoAppPreferences {
          * 授权状态只认本键，不走 View 的 saveInstanceState，避免进程重建后状态与实际授权不一致。
          */
         const val EMERGENCY_UPLOAD_CONSENT_GRANTED = "emergency_upload_consent_granted"
+
+        /**
+         * 演示填充：开启后，本地伤情信息卡里那些**无法从照片与识别链路得到**的字段
+         * （咬伤时间、部位、症状、年龄、血型、紧急联系人…）会用固定的演示值预填，
+         * 并且卡片上会带一条显眼的「演示数据」横幅。
+         *
+         * 默认 false。这条开关存在的意义只是「上台演示时不用手打一遍」，
+         * 它**不会**、也**不应该**影响任何安全相关的默认值：咬伤情况仍然只能由用户自己选，
+         * 未选就是「未提供」。演示值绝不能变成一条默认安全声明。
+         */
+        const val CASE_DEMO_FILL_ENABLED = "case_demo_fill_enabled"
     }
 
     private fun get(context: Context): SharedPreferences =
@@ -73,6 +84,20 @@ object DemoAppPreferences {
     fun persistEmergencyUploadConsent(context: Context, granted: Boolean) {
         get(context).edit()
             .putBoolean(Keys.EMERGENCY_UPLOAD_CONSENT_GRANTED, granted)
+            .apply()
+    }
+
+    /**
+     * 读取「演示填充」开关。默认 false。
+     * 注意它只影响可选字段的预填，见 [Keys.CASE_DEMO_FILL_ENABLED] 的说明。
+     */
+    fun readCaseDemoFillEnabled(context: Context): Boolean =
+        get(context).getBoolean(Keys.CASE_DEMO_FILL_ENABLED, false)
+
+    /** 写入「演示填充」开关。 */
+    fun persistCaseDemoFillEnabled(context: Context, enabled: Boolean) {
+        get(context).edit()
+            .putBoolean(Keys.CASE_DEMO_FILL_ENABLED, enabled)
             .apply()
     }
 

@@ -8,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -19,6 +20,7 @@ import androidx.navigation.fragment.findNavController
 import com.arashivision.sdk.camera.core.model.FunctionMode
 import com.arashivision.sdk.camera.core.model.FunctionType
 import com.insta360.kmpsdk.demo.R
+import com.insta360.kmpsdk.demo.care.BiteStatus
 import com.insta360.kmpsdk.demo.care.CaseRecordActivity
 import com.insta360.kmpsdk.demo.databinding.FragmentEmergencyFlowBinding
 import com.insta360.kmpsdk.demo.hospital.HospitalDirectoryActivity
@@ -74,7 +76,15 @@ class EmergencyFlowFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // 本页现在既是 App 首页（底部导航一等 Tab），也是从连接页跳进来的子页。
+        // 作为首页时没有上一级，返回箭头一点就直接退出 App —— 藏掉它，避免误退。
+        binding.backLink.isVisible = findNavController().previousBackStackEntry != null
         binding.backLink.setOnClickListener { findNavController().popBackStack() }
+        // 未连接时「去连接」的出口：本页是首页，没有底部导航以外的路径能到连接页，
+        // 让提示本身就是按钮，别让用户对着提示猜怎么走。
+        binding.connectHint.setOnClickListener {
+            findNavController().navigate(R.id.connectionFragment)
+        }
         binding.captureButton.setOnClickListener { captureViewModel.onPrimaryCaptureButtonClicked() }
 
         // 上传同意：默认不勾选（布局 checked=false + saveEnabled=false），改选即同步 VM。
@@ -92,8 +102,8 @@ class EmergencyFlowFragment : Fragment() {
             it.isVisible = true
             it.isEnabled = true
         }
-        binding.helpBitten.setOnClickListener { flowViewModel.onHelpClicked(bitten = true) }
-        binding.helpNotBitten.setOnClickListener { flowViewModel.onHelpClicked(bitten = false) }
+        binding.helpBitten.setOnClickListener { flowViewModel.onHelpClicked(BiteStatus.BITTEN) }
+        binding.helpNotBitten.setOnClickListener { flowViewModel.onHelpClicked(BiteStatus.NOT_BITTEN) }
         binding.helpHospital.setOnClickListener { flowViewModel.onHospitalClicked() }
 
         observeConnection()
@@ -167,7 +177,6 @@ class EmergencyFlowFragment : Fragment() {
                         binding.stageProgress.isVisible = showProgress
                         if (showProgress) binding.stageProgress.progress = s.progressPercent
 
-                        renderSourceBadge(s)
                         renderUploadConsent(s)
                         renderPendingRefresh(s)
 
@@ -187,39 +196,17 @@ class EmergencyFlowFragment : Fragment() {
                 launch {
                     flowViewModel.event.collect { event ->
                         when (event) {
-                            is EmergencyFlowEvent.OpenCare -> openCare(event.bitten)
+                            is EmergencyFlowEvent.OpenCare -> openCare(event.biteStatus, event.auto)
                             EmergencyFlowEvent.OpenHospital ->
                                 startActivity(Intent(requireContext(), HospitalDirectoryActivity::class.java))
 
                             is EmergencyFlowEvent.OpenSpecies -> startActivity(
-                                SpeciesComparisonActivity.intent(
-                                    requireContext(),
-                                    event.speciesId,
-                                    event.resultSourceName,
-                                )
+                                SpeciesComparisonActivity.intent(requireContext(), event.speciesId)
                             )
                         }
                     }
                 }
             }
-        }
-    }
-
-    /**
-     * 结果来源标注：MOCK 红底白字（「这是模拟」不可能被忽略），LIVE/CACHE 晨雾浅底深字。
-     * 失败态不挂标注（VM 已置 sourceBadgeVisible=false）——没有结果可标注。
-     */
-    private fun renderSourceBadge(s: EmergencyFlowUiState) {
-        val badge = binding.sourceBadge
-        badge.isVisible = s.sourceBadgeVisible
-        if (!s.sourceBadgeVisible) return
-        badge.text = s.sourceBadgeText
-        if (s.sourceBadgeIsMock) {
-            badge.setBackgroundResource(R.drawable.bg_emergency_mock_badge)
-            badge.setTextColor(requireContext().getColor(R.color.white))
-        } else {
-            badge.setBackgroundResource(R.drawable.bg_emergency_source_badge)
-            badge.setTextColor(requireContext().getColor(R.color.emergency_ink))
         }
     }
 
@@ -307,7 +294,7 @@ class EmergencyFlowFragment : Fragment() {
         }
     }
 
-    private fun openCare(bitten: Boolean) {
+    private fun openCare(biteStatus: BiteStatus, auto: Boolean = false) {
         startActivity(
             CaseRecordActivity.intent(
                 requireContext(),
@@ -317,9 +304,18 @@ class EmergencyFlowFragment : Fragment() {
                     getString(R.string.emergency_flow_recognition_no_result)
                 },
                 ArrayList(flowViewModel.currentCandidateLabels()),
-                bitten,
-            )
+                biteStatus,
+            ),
         )
+        if (auto) {
+            // 自动弹出时说明一句背景，避免用户误以为咬伤情况已被系统判定过。
+            Toast
+                .makeText(
+                    requireContext(),
+                    getString(R.string.emergency_flow_case_auto_opened),
+                    Toast.LENGTH_LONG,
+                ).show()
+        }
     }
 
     override fun onDestroyView() {

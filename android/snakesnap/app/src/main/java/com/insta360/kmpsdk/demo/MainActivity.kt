@@ -9,6 +9,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
 import com.hjq.permissions.Permission
@@ -16,6 +17,7 @@ import com.hjq.permissions.XXPermissions
 import com.arashivision.sdk.camera.InstaCameraSDK
 import com.arashivision.sdk.media.InstaMediaSDK
 import com.insta360.kmpsdk.demo.databinding.ActivityMainBinding
+import com.insta360.kmpsdk.demo.ui.connection.ConnectionViewModel
 import com.insta360.kmpsdk.demo.util.AssetsUtil
 import com.insta360.kmpsdk.demo.util.DemoAppPreferences
 import com.insta360.kmpsdk.demo.util.DemoLogcatDumper
@@ -43,9 +45,12 @@ class MainActivity : AppCompatActivity() {
         binding.bottomNav.setupWithNavController(navController)
 
         navController.addOnDestinationChangedListener { _, destination, _ ->
+            // 只有「沉浸式」页面才藏底部导航：预览 / 拍摄 / 直播 / 播放器 / 拼接。
+            // 紧急流程页（一拍知蛇）**不在**此列——它是底部导航的一等 Tab，
+            // 藏掉导航会让用户在求助路径上失去退路。
             val hideBottom =
                 when (destination.id) {
-                    R.id.previewFragment, R.id.captureFragment, R.id.liveStreamFragment, R.id.videoPlayerFragment, R.id.imagePlayerFragment, R.id.stitchFragment, R.id.emergencyFlowFragment -> true
+                    R.id.previewFragment, R.id.captureFragment, R.id.liveStreamFragment, R.id.videoPlayerFragment, R.id.imagePlayerFragment, R.id.stitchFragment -> true
                     else -> false
                 }
             binding.bottomNav.visibility = if (hideBottom) View.GONE else View.VISIBLE
@@ -58,6 +63,14 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         // 后台期间 logcat 子进程可能被系统回收，回到前台立即恢复，不必等看门狗退避周期
         DemoLogcatDumper.ensureRunning(this)
+        // 后台期间相机 socket 会被 SDK 判超时（真机取证：静默 43.8s 即报 ERR_TIMEOUT，
+        // 且 SDK 自身打印 reconnectIfNeed=false，链路不会自愈）。回到前台是最可靠的重连时机，
+        // 这里把机会交给 ConnectionViewModel；仅有「曾被被动掐断」时会真正动作。
+        ViewModelProvider(
+            this,
+            ConnectionViewModel.Factory(application),
+        )[ConnectionViewModel::class.java]
+            .onAppForegrounded()
     }
 
     private fun initSDK() {

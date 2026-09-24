@@ -38,15 +38,15 @@ HTTP 200：已获得本次结果，但不代表识别正确。
 ```
 
 - `status`：`candidates` / `uncertain` / `no_snake` / `pending`。
-- `candidates`：最多 3 条，字段为 `speciesId`、`commonName`、`scientificName`、`score`、`providerScore`。`candidates` 状态至少 1 条；`no_snake` 和 `pending` 必须为空。
+- `candidates`：最多 3 条，字段为 `speciesId`、`commonName`、`scientificName`、`score`、`providerScore`、`demoRelease`、`nameStatus`。`candidates` 状态至少 1 条；`no_snake` 和 `pending` 必须为空。
 - `score` 首版始终为 `null`，`scoreType` 始终为 `unavailable`。供应商原始数字放 `providerScore`；单位、范围和校准情况未确认，**界面不将其格式化成百分比，也不把 97.6 自动除以 100**。
-- 名称仅从本地已核验映射表产生；存在未匹配候选时为 `uncertain`，但保留其余已匹配候选，客户端不能仅因该状态而忽略候选列表。`data/species.json` 已按郭的核验结果加入颈棱蛇；玉米蛇、加州王蛇仍待核对。名称核验不等于毒性或医疗资料核验。
+- 名称从**本地目录内**的映射产生：准入门槛是「在 `data/species.json` 内」，**不再要求** `verificationStatus == "verified"`（2026-09-24 修订，见附则 B）。存在未匹配候选时为 `uncertain`，但保留其余已匹配候选，客户端不能仅因该状态而忽略候选列表。名称未核验的候选以 `demoRelease=true`、`nameStatus="pending_review"` 逐条带出，客户端必须如实呈现「候选不代表已确认」。名称核验不等于毒性或医疗资料核验。
 - `qualityIssues` 可包含 `blurred` / `too_small` / `low_light`。真实 Adapter 当前没有质量判断证据，返回空数组；模拟场景可以演示这些提示。
 - `resultSource` 必须可见：`mock` 是模拟，`live` 是本次供应商响应，`cache` 是账本回放。缓存的 `latencyMs` 是原尝试耗时，不是本次响应耗时。
 - `recognitionId` 是代理侧标识，真实响应提供；不暴露供应商任务 ID。模拟的非 pending 响应可以省略此字段。
 - 原始候选顺序保留，不把不同检测区域的分值解释为可比较的概率。
 
-供应商 `[1010,"No animals"]` 以及空检测结果目前映射为 `uncertain`；即使使用 `class=R`，未识别到爬行动物也不能证明蛇不存在。`no_snake` 暂仅用于模拟客户端状态，任何状态都不能隐藏伤情记录和求助入口。
+供应商 `[1008,"No boxes"]`、`[1010,"No animals"]` 以及空检测结果均映射为 `uncertain`；即使使用 `class=R`，未识别到爬行动物也不能证明蛇不存在。`no_snake` 暂仅用于模拟客户端状态，任何状态都不能隐藏伤情记录和求助入口。
 
 ## 3. 异步任务：先返回 pending，再人工查询
 
@@ -149,3 +149,27 @@ RECOGNITION_MODE=mock LIVE_CALL_LIMIT=0 PROXY_TOKEN= python -m uvicorn inference
 - Candidate 新增字段（ additive ）：`demoRelease: bool`、`nameStatus: "verified"|"pending_review"`。展示 `demoRelease=true` 候选的客户端**必须以呈现级披露（页面横幅或口播说明「目标态演示：候选与文案未经人工核验」）框定整段演示**；按郭 2026-09-23 夜指示，卡片本体不再加逐条标注以展示目标态效果；候选仍不得进入病例卡身份或任何核验结论；正常投影与图片 sourceStatus 门禁不受本开关影响。
 - `/healthz` 增加 `demoReleaseUnverified` 字段，开关永不静默。
 - 通知韦仕学：本附则为公共 Interface 变更，Android 渲染需同步加标注；未加标注前不得开启该环境变量。
+
+## 附则 B（2026-09-24）：映射准入放开、空检测口径、分片落盘
+
+### B.1 映射准入：从「已核验」改为「在本地目录内」
+
+**变更**：`HhodataProvider` 的名称索引不再跳过 `verificationStatus != "verified"` 的条目，**目录成员一律参与映射**。
+
+**动机**：2026-09-24 联网实测（`tools/verify_live_recognition.py`，4 张带物种标注的参考图）只命中 1/4。上游原始日志（`logs/raw_provider.log`）显示短尾蝮（`Gloydius brevicauda(s)`，97.6 分）与赤链蛇（`Lycodon rufozonatus`，97.6 分）**都被上游答对**，却因为本地目录里这两条是 `pending_review` 而被整体丢弃，返回「无法可靠判断」——这是「联网状态下也判不准」的直接根因。「学名映射待人工核对」不等于「这个物种名不许出现」，把两者等同会把正确答案一起扔掉。
+
+**不变量（红线）**：
+1. 目录**外**的名称仍不产出候选，并使该条结果落到 `uncertain`；契约 L43 不变——此时已匹配的候选照常保留，客户端不得仅因该状态而忽略候选列表；
+2. 核验状态**不被丢弃**，改为逐条披露：未核验名称带 `demoRelease=true`、`nameStatus="pending_review"`，客户端必须如实呈现「候选不代表已确认」；
+3. 毒性／医疗资料核验与名称核验仍然是两件事，`riskStatus` 与 `comparisonProfile.venomInfoStatus` 不动；
+4. **没有任何条目被自动升级为 `verified`**——`data/species.json` 的 `verificationStatus` 未改动。
+
+**随之作废**：附则 A 的 `DEMO_RELEASE_UNVERIFIED` 开关与 `/healthz` 的 `demoReleaseUnverified` 字段。放开后该开关已无意义（未核验名称恒可映射，披露改为逐条），保留一个静默 no-op 的开关比删掉更危险。`/healthz` 现返回 `status` / `mode` / `localCallLimit` / `localCallsUsed`。
+
+### B.2 空检测口径：`1008 "No boxes"`
+
+上游 `[1008,"No boxes"]` 与 `[1010,"No animals"]`、空结果同口径：属**正常返回**，映射为 `uncertain`，**不是** `UPSTREAM_ERROR`。未识别到爬行动物不能证明蛇不存在。实测：2026-09-24 02:45 对同一 taskId 连续两次查询均返回 `[1008,"No boxes"]`。
+
+### B.3 分片落盘（隐私）
+
+`MultiPartParser` 的分片上限属性名随 starlette 版本变更：≤0.37 读 `spool_max_size`，**0.38+ 读 `max_file_size`（类默认 1MB）**。只设旧名时，1MB 以上的图片会静默落到 `SpooledTemporaryFile` 的磁盘临时文件，违反「图片不得落盘」的隐私口径（实测 starlette 0.38.6 + python-multipart 0.0.29，由 `test_valid_upload_stays_in_memory` 捕获）。`inference/app.py` 现同时设置两个属性名。

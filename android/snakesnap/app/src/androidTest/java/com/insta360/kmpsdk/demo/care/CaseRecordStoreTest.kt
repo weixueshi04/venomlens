@@ -55,7 +55,7 @@ class CaseRecordStoreTest {
 
     @Test
     fun noImageNoRecognitionAndEmptyFieldsReopenFromDisk() = runBlocking {
-        val saved = store.save(CaseDraft(bitten = true), null)
+        val saved = store.save(CaseDraft(biteStatus = BiteStatus.BITTEN), null)
         val reopened = CaseRecordStore(context).loadLatest()
         assertEquals(saved, reopened)
         assertEquals(CaseOriginalStatus.NOT_PROVIDED, reopened!!.originalStatus)
@@ -72,7 +72,7 @@ class CaseRecordStoreTest {
         }
         val originalBytes = source.readBytes()
         val saved = store.save(
-            CaseDraft(bitten = false, importedAt = "2026-09-01T00:00:00Z", recognitionSummary = "【MOCK】uncertain"),
+            CaseDraft(biteStatus = BiteStatus.NOT_BITTEN, importedAt = "2026-09-01T00:00:00Z", recognitionSummary = "【MOCK】uncertain"),
             Uri.fromFile(source),
         )
         val original = store.originalFile(saved)!!
@@ -100,7 +100,7 @@ class CaseRecordStoreTest {
     fun oversizedOriginalRequiresExplicitContinuationAndLeavesNoPartialImage() = runBlocking {
         val source = File(root, "synthetic-large.bin")
         RandomAccessFile(source, "rw").use { it.setLength(CaseRecordStore.MAX_ORIGINAL_BYTES + 1) }
-        val draft = CaseDraft(bitten = true, recognitionSummary = "【MOCK · 识别失败】\nUPSTREAM_TIMEOUT")
+        val draft = CaseDraft(biteStatus = BiteStatus.BITTEN, recognitionSummary = "【MOCK · 识别失败】\nUPSTREAM_TIMEOUT")
         try {
             store.save(draft, Uri.fromFile(source))
             fail("Oversized original must not silently save a text-only card")
@@ -119,7 +119,7 @@ class CaseRecordStoreTest {
 
     @Test
     fun inaccessibleOriginalCanBeOmittedWithoutLosingInjuryFields() = runBlocking {
-        val draft = CaseDraft(bitten = true, details = CaseDetails(bodyPart = "合成测试：左脚", symptoms = "合成测试症状"))
+        val draft = CaseDraft(biteStatus = BiteStatus.BITTEN, details = CaseDetails(bodyPart = "合成测试：左脚", symptoms = "合成测试症状"))
         val missing = Uri.fromFile(File(root, "missing.jpg"))
         try {
             store.save(draft, missing)
@@ -137,7 +137,7 @@ class CaseRecordStoreTest {
         assertTrue(records.mkdirs())
         val pointer = File(records, CaseRecordStore.LATEST_FILE)
         assertTrue(pointer.mkdir())
-        val draft = CaseDraft(bitten = true, recognitionSummary = "pending")
+        val draft = CaseDraft(biteStatus = BiteStatus.BITTEN, recognitionSummary = "pending")
         try {
             store.save(draft, null)
             fail("Replacing a directory with a pointer must fail visibly")
@@ -173,7 +173,7 @@ class CaseRecordStoreTest {
         val originalBytes = source.readBytes()
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         val launch = CaseRecordActivity.intent(
-            context, Uri.fromFile(source), null, "【MOCK】pending", arrayListOf("候选甲"), true,
+            context, Uri.fromFile(source), null, "【MOCK】pending", arrayListOf("候选甲"), BiteStatus.BITTEN,
         )
         val pendingMessage = "信息卡已保存，但最近记录入口更新失败；可重试索引"
         val savedState = Bundle()
@@ -270,7 +270,7 @@ class CaseRecordStoreTest {
 
     @Test
     fun missingPreviouslySavedOriginalIsNotReportedAsAvailable() = runBlocking {
-        val saved = store.save(CaseDraft(bitten = false), Uri.fromFile(syntheticJpeg()))
+        val saved = store.save(CaseDraft(biteStatus = BiteStatus.NOT_BITTEN), Uri.fromFile(syntheticJpeg()))
         assertTrue(store.originalFile(saved)!!.delete())
         val reopened = CaseRecordStore(context).loadLatest()!!
         assertEquals(saved, reopened)
@@ -280,7 +280,7 @@ class CaseRecordStoreTest {
     @Test
     fun restoredFormSavesOnceAndLatestEntryUsesDiskRatherThanOldUiState() = runBlocking {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
-        val launch = CaseRecordActivity.intent(context, null, null, "【MOCK】pending", arrayListOf("候选甲"), true)
+        val launch = CaseRecordActivity.intent(context, null, null, "【MOCK】pending", arrayListOf("候选甲"), BiteStatus.BITTEN)
         val savedState = Bundle()
         val owner = ViewModelStore()
         lateinit var model: CaseRecordViewModel

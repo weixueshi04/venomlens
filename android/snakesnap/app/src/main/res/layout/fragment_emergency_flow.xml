@@ -49,12 +49,19 @@
                     layout="@layout/layout_connection_status" />
             </LinearLayout>
 
-            <!-- 未连接提示 -->
+            <!-- 未连接提示：本身就是一个跳转入口（点一下直达「连接」页）。
+                 触控目标 ≥48dp，避免"只是提示、不给出口"把用户卡死在本页。 -->
             <TextView
                 android:id="@+id/connect_hint"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:minHeight="48dp"
+                android:gravity="center_vertical"
+                android:paddingHorizontal="4dp"
                 android:text="@string/emergency_flow_need_connection"
                 android:textColor="@color/emergency_mock_badge"
                 android:textSize="14sp"
@@ -165,25 +172,6 @@
                     tools:progress="42"
                     tools:visibility="visible" />
 
-                <!-- 结果来源标注：常驻结果区顶部。MOCK 走红底白字，LIVE/CACHE 走晨雾浅底，
-                     具体底色与文案由 EmergencyFlowFragment 按 sourceBadgeIsMock / sourceBadgeText 设置。 -->
-                <TextView
-                    android:id="@+id/source_badge"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="14dp"
-                    android:background="@drawable/bg_emergency_source_badge"
-                    android:gravity="center"
-                    android:paddingVertical="8dp"
-                    android:textColor="@color/emergency_ink"
-                    android:textSize="14sp"
-                    android:textStyle="bold"
-                    android:visibility="gone"
-                    tools:background="@drawable/bg_emergency_mock_badge"
-                    tools:text="MOCK · 模拟结果，非真实识别"
-                    tools:textColor="@color/white"
-                    tools:visibility="visible" />
-
                 <!-- pending 时的人工「查询一次结果」：无任何自动轮询/重试，只此一个入口 -->
                 <TextView
                     android:id="@+id/pending_refresh_button"
@@ -223,7 +211,7 @@
                     android:textIsSelectable="true"
                     android:textSize="14sp"
                     android:visibility="gone"
-                    tools:text="【MOCK · 模拟结果】\n候选蛇种（不代表已确认）"
+                    tools:text="候选蛇种（不代表已确认）"
                     tools:visibility="visible" />
 
                 <LinearLayout

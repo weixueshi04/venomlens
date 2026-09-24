@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/connectionFragment">
+    app:startDestination="@id/emergencyFlowFragment">
 
     <fragment
         android:id="@+id/connectionFragment"
@@ -47,11 +47,9 @@
             app:destination="@id/stitchFragment" />
     </fragment>
 
-    <fragment
-        android:id="@+id/unitTestFragment"
-        android:name="com.insta360.kmpsdk.demo.ui.unittest.UnitTestFragment"
-        android:label="@string/nav_unittest"
-        tools:layout="@layout/fragment_unit_test" />
+    <!-- 原先这里有个 unitTestFragment（SDK 示例的「单元测试」占位页）。
+         已删除：交付包里不该存在测试入口，即便它已从底部导航摘掉。
+         真正需要测试的路径由 app/src/test（105 项 JVM 单测）与 tools/ 下的真机取证脚本覆盖。 -->
 
     <fragment
         android:id="@+id/previewFragment"

@@ -53,7 +53,6 @@ class SpeciesComparisonActivity : AppCompatActivity() {
             }
         }
         binding.speciesSafety.text = SpeciesCatalog.SAFETY_WARNING
-        binding.speciesResultSource.text = ComparisonResultSource.from(intent.getStringExtra(EXTRA_RESULT_SOURCE)).badge
         lifecycleScope.launch {
             val catalog = withContext(Dispatchers.IO) {
                 try {
@@ -278,13 +277,11 @@ class SpeciesComparisonActivity : AppCompatActivity() {
 
     companion object {
         const val EXTRA_SPECIES_ID = "com.insta360.kmpsdk.demo.species.SPECIES_ID"
-        const val EXTRA_RESULT_SOURCE = "com.insta360.kmpsdk.demo.species.RESULT_SOURCE"
         private const val STATE_LOOK_ALIKES = "species.lookAlikesExpanded"
 
-        fun intent(context: Context, speciesId: String, resultSource: String): Intent =
+        fun intent(context: Context, speciesId: String): Intent =
             Intent(context, SpeciesComparisonActivity::class.java)
                 .putExtra(EXTRA_SPECIES_ID, speciesId)
-                .putExtra(EXTRA_RESULT_SOURCE, resultSource)
     }
 }
 

@@ -1,10 +1,8 @@
 package com.insta360.kmpsdk.demo.ui.emergency
 
-import com.insta360.kmpsdk.demo.R
 import com.insta360.kmpsdk.demo.recognition.QualityIssue
 import com.insta360.kmpsdk.demo.recognition.RecognitionErrorCode
 import com.insta360.kmpsdk.demo.recognition.RecognitionResponse
-import com.insta360.kmpsdk.demo.recognition.RecognitionSource
 import com.insta360.kmpsdk.demo.recognition.RecognitionStatus
 
 /**
@@ -106,14 +104,9 @@ fun recognitionModeOf(proxyBaseUrl: String?, proxyToken: String?): RecognitionMo
     else RecognitionMode.MOCK
 
 /**
- * 结果来源标注：MOCK 必须显著（红色）标注为模拟；LIVE/CACHE 也必须标注「候选、非诊断」。
- * 返回 (是否高危红色标注, 文案 string 资源 id)。
+ * 结果来源标注：已按 2026-09-24 需求**整体移除**（不再在界面区分 MOCK / LIVE / CACHE）。
+ * 保留的是产品安全口径本身——候选不代表已确认、无可靠置信度、不生成诊断结论。
  */
-fun resultBadgeOf(source: RecognitionSource): Pair<Boolean, Int> = when (source) {
-    RecognitionSource.MOCK -> true to R.string.emergency_flow_badge_mock
-    RecognitionSource.LIVE -> false to R.string.emergency_flow_badge_live
-    RecognitionSource.CACHE -> false to R.string.emergency_flow_badge_cache
-}
 
 /** 有界自动查询的单步决策，见 [PendingRefreshPolicy.nextAutoStep]。 */
 enum class AutoRefreshStep {
@@ -225,20 +218,22 @@ object UploadConsentGatePolicy {
 }
 
 /**
- * 识别结果合规文案，措辞与 `MockRecognitionActivity.renderSuccess()` 完全一致。
- * 主线页照抄同一套安全表述，避免两处口径漂移。
+ * 识别结果合规文案。只保留安全表述，**不再带结果来源标注**（2026-09-24 需求：
+ * 界面不再区分 MOCK / LIVE / CACHE）。
  */
 fun renderRecognitionSummary(response: RecognitionResponse): String = buildString {
-    val source = when (response.resultSource) {
-        RecognitionSource.MOCK -> "MOCK · 模拟结果"
-        RecognitionSource.LIVE -> "LIVE · 本次供应商响应"
-        RecognitionSource.CACHE -> "CACHE · 历史结果回放"
-    }
-    appendLine("【$source】")
     appendLine(when (response.status) {
         RecognitionStatus.CANDIDATES -> "候选蛇种（不代表已确认）"
         RecognitionStatus.NO_SNAKE -> "未检测到蛇，不代表现场安全。"
-        RecognitionStatus.UNCERTAIN -> "无法可靠判断；仍保留可用候选。"
+        RecognitionStatus.UNCERTAIN -> if (response.candidates.isEmpty()) {
+            // 上游明确表示没检出目标（1008 / 1010）或候选全在本地目录之外：确实没有可用信息。
+            "未获得可用候选，无法可靠判断。"
+        } else {
+            // 上游同时提到了本地未收录的物种，故整条降级 uncertain，但已匹配的候选照常保留
+            // （契约 L43，客户端不得丢弃）。文案必须说明「为什么降级」，
+            // 否则「无法可靠判断」会被读成识别失败，而实际上正确物种就在下面的候选里。
+            "已给出候选；上游还提到本地未收录的物种，因此未作整体判定。"
+        }
         RecognitionStatus.PENDING -> "识别处理中；正在自动查询结果（间隔 2 秒、最多 5 次），超限后可人工查询一次。"
     })
     response.candidates.forEachIndexed { index, candidate ->
@@ -257,6 +252,5 @@ fun renderRecognitionSummary(response: RecognitionResponse): String = buildStrin
     }
     response.recognitionId?.let { appendLine("\n识别任务：$it") }
     appendLine("\n响应耗时字段：${response.latencyMs} ms")
-    if (response.resultSource == RecognitionSource.CACHE) appendLine("缓存耗时不是本次请求耗时。")
     appendLine("识别结果不能用于排除危险或替代医疗判断。")
 }

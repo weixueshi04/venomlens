@@ -1,19 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  演示用底部导航：只保留产品主线，去掉厂商 SDK 示例页（相册 / 单元测试）。
+  这三项的 android:id 必须与 nav_graph.xml 里的 destination id 完全一致，
+  NavigationUI.setupWithNavController 靠 id 匹配来完成「点导航项 = 切目的地」。
+-->
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/emergencyFlowFragment"
+        android:icon="@android:drawable/ic_menu_camera"
+        android:title="@string/nav_emergency" />
     <item
         android:id="@+id/connectionFragment"
         android:icon="@android:drawable/ic_menu_compass"
         android:title="@string/nav_connection" />
     <item
-        android:id="@+id/galleryFragment"
-        android:icon="@android:drawable/ic_menu_gallery"
-        android:title="@string/nav_gallery" />
-    <item
         android:id="@+id/settingsFragment"
         android:icon="@android:drawable/ic_menu_preferences"
         android:title="@string/nav_settings" />
-    <item
-        android:id="@+id/unitTestFragment"
-        android:icon="@android:drawable/ic_menu_sort_by_size"
-        android:title="@string/nav_unittest" />
 </menu>

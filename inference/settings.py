@@ -15,8 +15,6 @@ class Settings:
     animal_class: str = "R"
     live_call_limit: int = 0
     ledger_path: Path = ROOT / ".runtime" / "hhodata.sqlite3"
-    # 演示 lane：放行未核验名称进入候选（带 demoRelease 标注）。默认关；路演演示专用，部署不得开启
-    demo_release_unverified: bool = False
 
     def __post_init__(self):
         if self.mode not in {"mock", "hhodata"}:
@@ -38,5 +36,4 @@ class Settings:
             animal_class=os.getenv("HHODATA_CLASS", "R"),
             live_call_limit=int(os.getenv("LIVE_CALL_LIMIT", "0")),
             ledger_path=Path(os.getenv("LIVE_LEDGER_PATH", str(ROOT / ".runtime" / "hhodata.sqlite3"))),
-            demo_release_unverified=os.getenv("DEMO_RELEASE_UNVERIFIED", "") in {"1", "true", "True"},
         )

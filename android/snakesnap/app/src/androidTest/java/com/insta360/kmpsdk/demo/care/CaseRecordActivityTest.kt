@@ -32,7 +32,7 @@ class CaseRecordActivityTest {
     @Test
     fun rebuildingPreservesInjuryAndUserComparisonAfterRecognitionFailure() {
         val snapshot = "【MOCK · 识别失败】\n错误码：UPSTREAM_TIMEOUT"
-        val intent = CaseRecordActivity.intent(context, null, null, snapshot, arrayListOf("候选甲", "候选乙"), true)
+        val intent = CaseRecordActivity.intent(context, null, null, snapshot, arrayListOf("候选甲", "候选乙"), BiteStatus.BITTEN)
         ActivityScenario.launch<CaseRecordActivity>(intent).use { scenario ->
             awaitReady()
             scenario.onActivity { activity ->
@@ -73,7 +73,7 @@ class CaseRecordActivityTest {
     @Test
     fun unbittenWithNoResultStillAllowsRecordingAndAlwaysWarnsAboutSafety() {
         ActivityScenario.launch<CaseRecordActivity>(
-            CaseRecordActivity.intent(context, null, null, "", arrayListOf(), false),
+            CaseRecordActivity.intent(context, null, null, "", arrayListOf(), BiteStatus.NOT_BITTEN),
         ).use { scenario ->
             awaitReady()
             scenario.onActivity { activity ->
@@ -92,7 +92,7 @@ class CaseRecordActivityTest {
     @Suppress("DEPRECATION")
     fun entryUsesUriRatherThanImageBytesAndLimitsCandidates() {
         val uri = Uri.parse("content://synthetic.test/photo/1")
-        val intent = CaseRecordActivity.intent(context, uri, "2026-09-01T00:00:00Z", "pending", arrayListOf("甲", "乙", "丙", "丁"), true)
+        val intent = CaseRecordActivity.intent(context, uri, "2026-09-01T00:00:00Z", "pending", arrayListOf("甲", "乙", "丙", "丁"), BiteStatus.BITTEN)
         assertEquals(uri, intent.getParcelableExtra<Uri>(CaseRecordActivity.EXTRA_URI))
         assertEquals(3, intent.getStringArrayListExtra(CaseRecordActivity.EXTRA_LABELS)!!.size)
         intent.extras!!.keySet().forEach { assertFalse(intent.extras!!.get(it) is ByteArray) }

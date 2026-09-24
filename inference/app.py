@@ -47,7 +47,12 @@ async def read_upload(request: Request):
         yield data
 
     parser = MultiPartParser(request.headers, stream(), max_files=1, max_fields=2)
+    # 图片不得落盘（隐私口径）：把分片上限抬到请求体上限之上，使其始终留在内存。
+    # 注意属性名——starlette ≤0.37 读 `spool_max_size`，0.38+ 读 `max_file_size`（类默认 1MB）。
+    # 只设旧名会让 1MB 以上的图片静默落到 SpooledTemporaryFile 的磁盘临时文件里
+    # （实测 starlette 0.38.6 + python-multipart 0.0.29，见 test_valid_upload_stays_in_memory）。
     parser.spool_max_size = MAX_REQUEST_BYTES + 1
+    parser.max_file_size = MAX_REQUEST_BYTES + 1
     try:
         form = await parser.parse()
     except (MultiPartException, MultipartParseError):
@@ -81,8 +86,7 @@ def create_app(settings: Settings | None = None, provider=None):
         ledger = BudgetLedger(settings.ledger_path, settings.live_call_limit)
         if provider is None:
             catalog = json.loads((ROOT / "data" / "species.json").read_text(encoding="utf-8"))
-            provider = HhodataProvider(settings.api_key, settings.animal_class, catalog,
-                                       demo_release=settings.demo_release_unverified)
+            provider = HhodataProvider(settings.api_key, settings.animal_class, catalog)
 
     def authorize(request):
         if settings.proxy_token:
@@ -135,8 +139,7 @@ def create_app(settings: Settings | None = None, provider=None):
     async def health():
         return {"status": "ok", "mode": settings.mode,
                 "localCallLimit": settings.live_call_limit,
-                "localCallsUsed": ledger.used() if ledger else 0,
-                "demoReleaseUnverified": settings.demo_release_unverified}
+                "localCallsUsed": ledger.used() if ledger else 0}
 
     @app.post("/v1/recognitions", response_model=RecognitionResult,
               responses={202: {"model": RecognitionResult}},

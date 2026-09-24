@@ -5,9 +5,12 @@
     <string name="fg_service_notification_title">一拍知蛇</string>
     <string name="fg_service_notification_text">正在保持相机连接</string>
     <string name="nav_connection">连接</string>
+    <string name="nav_emergency">一拍知蛇</string>
     <string name="nav_gallery">相册</string>
     <string name="nav_settings">设置</string>
-    <string name="nav_unittest">单元测试</string>
+    <string name="demo_section_title">演示</string>
+    <string name="demo_case_fill">病例卡预填演示信息</string>
+    <string name="demo_case_fill_desc">仅预填空白字段，字段值一律标注「演示」</string>
     <string name="top_status_connected">已连接</string>
     <string name="top_status_disconnected">未连接</string>
     <string name="top_status_connecting">连接中…</string>
@@ -276,8 +279,6 @@
     <string name="toast_stitching">拼接中</string>
 
     <!-- Unit Test Fragment -->
-    <string name="unit_test">单元测试</string>
-    <string name="unit_test_placeholder">测试入口占位，可后续接入自动化用例。</string>
 
     <!-- Capture Fragment -->
     <string name="back_to_connection">返回连接页</string>
@@ -441,6 +442,9 @@
     <string name="wifi_ap_switch_mode_failed">切换相机 Wi‑Fi 到 AP 模式失败，请重试</string>
     <string name="wifi_ap_enter_mode_timeout">相机未切回 AP 模式（超时），请重试</string>
     <string name="camera_disconnected">相机连接已断开</string>
+    <string name="camera_reconnecting">相机连接已断开，正在自动重连…</string>
+    <string name="reconnecting">重连中</string>
+    <string name="camera_reconnect_failed">相机自动重连未成功。请回到连接页手动重连。</string>
     <string name="camera_not_connected">相机未连接，请先完成连接</string>
     <string name="operation_success">操作成功</string>
     <string name="operation_failed_generic">操作失败</string>
@@ -519,11 +523,11 @@
     <string name="live_camera_disconnected">相机未连接</string>
     <string name="live_unknown_error">未知错误</string>
 
-    <!-- 紧急一键流程（EmergencyFlow）：拍照 → 下载到手机 → MOCK 分析 → 病例卡/医院求助 -->
+    <!-- 紧急一键流程（EmergencyFlow）：拍照 → 下载到手机 → 识别 → 病例卡/医院求助 -->
     <string name="emergency_flow_entry">紧急一键流程</string>
     <string name="emergency_flow_title">紧急一键流程</string>
     <string name="emergency_flow_back">返回连接页</string>
-    <string name="emergency_flow_need_connection">请先在「连接」页连接影石相机</string>
+    <string name="emergency_flow_need_connection">相机未连接 · 点此前往「连接」页连接影石相机 →</string>
     <string name="emergency_flow_calm">别急，我们一步步来。</string>
     <string name="emergency_flow_calm_sub">按下按钮拍下现场，App 会自动取回照片并给出候选分析；也可以直接用相机机身按键拍照。</string>
     <string name="emergency_flow_capture_button">紧急拍照</string>
@@ -533,12 +537,16 @@
     <string name="emergency_flow_download_progress">下载中 %1$d%%</string>
     <string name="emergency_flow_stage_preparing">正在准备图片…</string>
     <string name="emergency_flow_image_ready">已准备 JPEG：%1$d × %2$d，%3$d KiB（已校正方向、重新编码，不保留原始 EXIF）</string>
-    <string name="emergency_flow_stage_recognizing">正在生成候选分析（MOCK）…</string>
+    <string name="emergency_flow_stage_recognizing">正在生成候选分析…</string>
     <string name="emergency_flow_stage_recognizing_live">正在识别（真实识别）…</string>
+    <!-- 「本地数据集」只允许在确证代理不可达/未配置时出现，且必须写明非真实识别 -->
+    <string name="emergency_flow_stage_recognizing_local">识别服务不可达 · 改用本地数据集（非真实识别）…</string>
+    <string name="emergency_flow_fallback_proxy_unreachable">识别服务不可达（%1$s）：本次结果是本地数据集回放，不是真实识别。</string>
+    <string name="emergency_flow_fallback_not_configured">未注入识别代理配置：本次结果是本地数据集回放，不是真实识别。</string>
+    <string name="emergency_flow_fallback_config_invalid">识别代理配置不合法：本次结果是本地数据集回放，不是真实识别。</string>
     <string name="emergency_flow_stage_done">已生成候选分析</string>
-    <string name="emergency_flow_badge_mock">MOCK · 模拟结果，非真实识别</string>
-    <string name="emergency_flow_badge_live">LIVE · 真实识别候选，非诊断</string>
-    <string name="emergency_flow_badge_cache">CACHE · 历史结果回放，非本次识别</string>
+    <!-- 拍完即出病例：卡片自动弹出时给一句背景说明，避免用户以为咬伤情况已被系统判定 -->
+    <string name="emergency_flow_case_auto_opened">已自动生成本次伤情信息卡。卡片里的识别内容只是候选，不是诊断；咬伤情况需要你自己确认。</string>
     <string name="emergency_flow_upload_consent">同意上传处理后的照片用于真实识别（去 EXIF、≤2 MB JPEG）。一次授权长期有效，取消勾选立即撤销；未授权则不发送任何数据。</string>
     <string name="emergency_flow_stage_pending">识别处理中，正在自动查询</string>
     <string name="emergency_flow_pending_detail">服务已受理但尚未出结果。App 会自动查询（间隔 2 秒、最多 5 次）；超限后停止，可人工再查一次。任何失败都不会自动重试。仍可先记录伤情和求助。</string>
@@ -570,5 +578,5 @@
     <string name="emergency_flow_help_not_bitten">未被咬 / 保持距离</string>
     <string name="emergency_flow_help_hospital">医院联系与求助</string>
     <string name="emergency_flow_candidate_suffix">· 离线比对资料（非诊断）</string>
-    <string name="emergency_flow_disclaimer">本页面不生成诊断结论：候选不代表已确认，无可靠置信度，识别结果不能用于排除危险或替代医疗判断。未勾选同意时原图不上传；MOCK 模式不发送任何数据。不自动定位。</string>
+    <string name="emergency_flow_disclaimer">本页面不生成诊断结论：候选不代表已确认，无可靠置信度，识别结果不能用于排除危险或替代医疗判断。未获得你的同意前，原图不会上传。不自动定位。</string>
 </resources>

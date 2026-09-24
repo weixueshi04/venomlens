@@ -184,17 +184,6 @@ class SpeciesCatalogTest {
     }
 
     @Test
-    fun sourceBadgeAcceptsOnlyExplicitKnownSourceAndNeverDefaultsToLive() {
-        assertEquals(ComparisonResultSource.MOCK, ComparisonResultSource.from("MOCK"))
-        assertEquals(ComparisonResultSource.LIVE, ComparisonResultSource.from("LIVE"))
-        assertEquals(ComparisonResultSource.CACHE, ComparisonResultSource.from("CACHE"))
-        listOf(null, "", "live", " LIVE", "unexpected", "null").forEach {
-            assertEquals(ComparisonResultSource.UNKNOWN, ComparisonResultSource.from(it))
-            assertFalse(ComparisonResultSource.from(it).badge.contains("LIVE"))
-        }
-    }
-
-    @Test
     fun malformedCatalogsAndOversizedInputsFailExplicitly() {
         listOf("", "{", "{}", "null", "[] trailing", " ".repeat(SpeciesCatalog.MAX_JSON_CHARACTERS + 1)).forEach {
             try {

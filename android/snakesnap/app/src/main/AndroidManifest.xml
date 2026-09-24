@@ -53,9 +53,13 @@
         android:networkSecurityConfig="@xml/network_security_config"
         tools:targetApi="35">
 
+        <!-- singleTop：避免任何「再起一个 MainActivity 实例」的入口把旧实例连同它的
+             ConnectionViewModel 一起销毁——ViewModel 一走 onCleared 就会 release 相机，
+             用户看到的就是「切了下软件回来连接没了」。 -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
+            android:launchMode="singleTop"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AndroidSDKDemo">
             <intent-filter>
@@ -72,15 +76,11 @@
                 android:resource="@xml/device_filter" />
         </activity>
 
-        <activity
-            android:name=".recognition.MockRecognitionActivity"
-            android:exported="true"
-            android:label="Mock识别(开发)">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
+        <!-- 全 App 只有 MainActivity 一个入口。
+             原先的 MockRecognitionActivity（离线样例识别 / 开发联调）已连同它的布局一起删除：
+             它是开发控制台，会绕开真实链路直接喂模拟数据，放在交付包里等于多开一个测试入口，
+             也与「网络优先、不用本地数据集演示」相冲突。
+             无相机时的离线能力由紧急流程在代理不可达时自行启用，并且必定挂 MOCK 红标。 -->
 
         <activity
             android:name=".species.SpeciesComparisonActivity"

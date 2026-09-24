@@ -165,8 +165,6 @@ class EmergencyFlowLogicTest {
         )
         val text = renderRecognitionSummary(response)
 
-        // MOCK 标注必须在文案里。
-        assertTrue(text.contains("MOCK · 模拟结果"))
         // 候选不得表述为已确认 / 准确率。
         assertTrue(text.contains("候选蛇种（不代表已确认）"))
         assertTrue(text.contains("供应商原始分值：0.87（含义未经校准）"))
@@ -176,6 +174,7 @@ class EmergencyFlowLogicTest {
         // 红线：不得出现「准确率」「确诊」「诊断结果」这类表述。
         assertFalse(text.contains("准确率"))
         assertFalse(text.contains("确诊"))
+        assertNoSourceLabel(text)
     }
 
     @Test
@@ -189,10 +188,23 @@ class EmergencyFlowLogicTest {
 
     @Test
     fun summaryMarksUncertainAndPendingWithoutConfidenceClaims() {
+        // 候选为空：确实没有可用信息。
         assertTrue(
             renderRecognitionSummary(response(RecognitionStatus.UNCERTAIN, emptyList(), emptyList()))
-                .contains("无法可靠判断；仍保留可用候选。"),
+                .contains("未获得可用候选，无法可靠判断。"),
         )
+        // 有候选但整条降级 uncertain（契约 L43）：文案要说明降级原因，不能读成识别失败。
+        val mixed = renderRecognitionSummary(
+            response(
+                RecognitionStatus.UNCERTAIN,
+                listOf(Candidate("gloydius_brevicaudus", "短尾蝮", "Gloydius brevicaudus", null, 97.6)),
+                emptyList(),
+            ),
+        )
+        assertTrue(mixed.contains("已给出候选；上游还提到本地未收录的物种，因此未作整体判定。"))
+        assertFalse(mixed.contains("无法可靠判断"))
+        assertTrue(mixed.contains("短尾蝮"))
+        assertNoSourceLabel(mixed)
         val pending = renderRecognitionSummary(
             response(RecognitionStatus.PENDING, emptyList(), emptyList(), recognitionId = "0".repeat(64)),
         )
@@ -201,17 +213,27 @@ class EmergencyFlowLogicTest {
     }
 
     @Test
-    fun summaryNotesCacheLatencyIsNotRequestLatency() {
-        val text = renderRecognitionSummary(
-            response(
-                RecognitionStatus.CANDIDATES,
-                listOf(Candidate("s1", "俗名", "Sci", null, null)),
-                emptyList(),
-                source = RecognitionSource.CACHE,
-            ),
-        )
-        assertTrue(text.contains("CACHE · 历史结果回放"))
-        assertTrue(text.contains("缓存耗时不是本次请求耗时。"))
+    fun summaryNeverCarriesResultSourceLabel() {
+        // 2026-09-24 需求：结果来源标注（MOCK / LIVE / CACHE）已从界面整体移除，
+        // 三种来源的结果文案都必须干净，只保留安全表述。
+        listOf(RecognitionSource.MOCK, RecognitionSource.LIVE, RecognitionSource.CACHE).forEach { source ->
+            val text = renderRecognitionSummary(
+                response(
+                    RecognitionStatus.CANDIDATES,
+                    listOf(Candidate("s1", "俗名", "Sci", null, null)),
+                    emptyList(),
+                    source = source,
+                ),
+            )
+            assertNoSourceLabel(text)
+        }
+    }
+
+    /** 结果文案里不得再出现任何来源标注词。 */
+    private fun assertNoSourceLabel(text: String) {
+        listOf("MOCK", "LIVE", "CACHE", "模拟结果", "缓存").forEach {
+            assertFalse("结果文案不应再出现来源标注「$it」：\n$text", text.contains(it))
+        }
     }
 
     // ── 真实 / MOCK 适配器选择（构建期配置组合）──────────────────────────────
@@ -266,23 +288,6 @@ class EmergencyFlowLogicTest {
         assertFalse(PendingRefreshPolicy.canManuallyRefresh(id, requestInFlight = false, manualClick = false))
         // 没有 pending id → 拒绝。
         assertFalse(PendingRefreshPolicy.canManuallyRefresh(null, requestInFlight = false, manualClick = true))
-    }
-
-    // ── 结果来源 → 标注映射 ─────────────────────────────────────────────────
-
-    @Test
-    fun mockSourceGetsRedProminentBadgeOthersGetCalmBadge() {
-        // MOCK 必须显著（红色高对比）标注为模拟。
-        val (mockIsRed, mockRes) = resultBadgeOf(RecognitionSource.MOCK)
-        assertTrue(mockIsRed)
-        assertEquals(R.string.emergency_flow_badge_mock, mockRes)
-        // LIVE / CACHE 也要标注「候选、非诊断」，但用克制样式。
-        val (liveIsRed, liveRes) = resultBadgeOf(RecognitionSource.LIVE)
-        assertFalse(liveIsRed)
-        assertEquals(R.string.emergency_flow_badge_live, liveRes)
-        val (cacheIsRed, cacheRes) = resultBadgeOf(RecognitionSource.CACHE)
-        assertFalse(cacheIsRed)
-        assertEquals(R.string.emergency_flow_badge_cache, cacheRes)
     }
 
     // ── 未同意上传 → 本地失败，不发送数据 ───────────────────────────────────

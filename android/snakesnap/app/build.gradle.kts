@@ -189,8 +189,10 @@ android {
         applicationId = "com.insta360.kmpsdk.demo"
         minSdk = 29
         targetSdk = 35
-        versionCode = 3
-        versionName = libs.versions.inskmpVersion.get()
+        // App 版本与 InsKMP SDK 版本解耦：本包是产品演示包，版本跟着自己的 release 走。
+        // 此前 versionName 直接取 libs.versions.inskmpVersion，会让安装后的包自称 SDK 版本号。
+        versionCode = 4
+        versionName = "0.2.0-demo"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 

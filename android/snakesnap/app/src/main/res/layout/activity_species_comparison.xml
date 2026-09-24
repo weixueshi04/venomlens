@@ -50,17 +50,6 @@
         android:textStyle="bold" />
 
     <TextView
-        android:id="@+id/species_result_source"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="#E0EAE5"
-        android:paddingHorizontal="16dp"
-        android:paddingVertical="8dp"
-        android:textColor="#193E38"
-        android:textSize="16sp"
-        android:textStyle="bold" />
-
-    <TextView
         android:id="@+id/species_action_message"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

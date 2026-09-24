@@ -11,6 +11,7 @@ import com.arashivision.sdk.media.api.work.WorkManager
 import com.arashivision.sdk.media.api.work.WorkWrapper
 import com.insta360.kmpsdk.demo.BuildConfig
 import com.insta360.kmpsdk.demo.R
+import com.insta360.kmpsdk.demo.care.BiteStatus
 import com.insta360.kmpsdk.demo.recognition.HttpRecognitionAdapter
 import com.insta360.kmpsdk.demo.recognition.MockRecognitionAdapter
 import com.insta360.kmpsdk.demo.recognition.MockScenario
@@ -18,6 +19,7 @@ import com.insta360.kmpsdk.demo.recognition.RecognitionAdapter
 import com.insta360.kmpsdk.demo.recognition.RecognitionCall
 import com.insta360.kmpsdk.demo.recognition.RecognitionErrorCode
 import com.insta360.kmpsdk.demo.recognition.RecognitionImage
+import com.insta360.kmpsdk.demo.recognition.RecognitionProxyHealth
 import com.insta360.kmpsdk.demo.recognition.RecognitionResult
 import com.insta360.kmpsdk.demo.recognition.RecognitionResponse
 import kotlinx.coroutines.CancellableContinuation
@@ -44,9 +46,19 @@ import kotlin.coroutines.resume
 
 /** 主线页需要跳转的三个出口，交给 Fragment 执行（VM 不持有 Context/Activity）。 */
 sealed interface EmergencyFlowEvent {
-    data class OpenCare(val bitten: Boolean) : EmergencyFlowEvent
+    /**
+     * 打开本地伤情信息卡。
+     *
+     * [biteStatus] 恒为 [BiteStatus.UNKNOWN]（自动打开时）或用户显式点选的值——
+     * 照片与识别链路都推不出「有没有被咬」，所以绝不给它兜底成 NOT_BITTEN。
+     *
+     * [auto] 为 true 表示这是「拍完即出病例」的自动打开：卡片上要有一句说明，
+     * 免得用户以为咬伤情况已经被系统判定过了。
+     */
+    data class OpenCare(val biteStatus: BiteStatus, val auto: Boolean = false) : EmergencyFlowEvent
+
     data object OpenHospital : EmergencyFlowEvent
-    data class OpenSpecies(val speciesId: String, val resultSourceName: String) : EmergencyFlowEvent
+    data class OpenSpecies(val speciesId: String) : EmergencyFlowEvent
 }
 
 data class EmergencyCandidateUi(
@@ -78,16 +90,9 @@ data class EmergencyFlowUiState(
     val consentGranted: Boolean = false,
     /** 真实识别请求是否在途（upload 或 refresh），用于禁用按钮并显示等待文案。 */
     val requestInFlight: Boolean = false,
-    /** 结果来源标注是否显示。 */
-    val sourceBadgeVisible: Boolean = false,
-    /** 结果来源标注文案（MOCK 显著标注模拟；LIVE / CACHE 标注非诊断）。 */
-    val sourceBadgeText: String = "",
-    /** 是否为 MOCK 来源：决定标注用红色高对比样式。 */
-    val sourceBadgeIsMock: Boolean = false,
-    /** 识别合规文案（措辞与 MockRecognitionActivity.renderSuccess 一致）。 */
+    /** 识别合规文案（候选不代表已确认、无可靠置信度、不生成诊断结论）。 */
     val summaryText: String = "",
     val candidates: List<EmergencyCandidateUi> = emptyList(),
-    val resultSourceName: String = "",
     /** 非空表示结果处于 pending，正在有界自动查询或已退回人工查询。 */
     val pendingRecognitionId: String? = null,
     /** 已完成的**自动**查询次数，用于「第 N/5 次」文案。 */
@@ -162,15 +167,42 @@ class EmergencyFlowViewModel(
     /** 最近一次自动查询的错误码；非 null 时 nextAutoStep 判 STOP_NO_RETRY。新一轮链路重置为 null。 */
     private var lastAutoRefreshErrorCode: RecognitionErrorCode? = null
 
+    /** 本轮链路是否已经自动打开过信息卡，见 [maybeOpenCaseAutomatically]。 */
+    private var autoCaseOpenedForRound = false
+
+    /** 本轮链路上「改用本地数据集」的具体原因；为空表示走的是真实识别。 */
+    private var offlineFallbackReason: String? = null
+
     /**
-     * 构造真实识别适配器。真实模式必须 mockScenario=null，
-     * 否则 [HttpRecognitionAdapter] 的 init 校验会抛异常（真实模式不接受 X-Mock-Scenario 头）。
-     * baseUrl 写错时不让 App 崩，降级回 MOCK 并记录日志——来源标注仍会如实显示 MOCK，不会伪装成真实结果。
+     * 构造本轮要用的识别适配器。
+     *
+     * 产品口径（用户明确要求）：**有网就必须走真实识别，禁止用本地数据集顶替**。
+     * 所以这里没有「构造失败就悄悄换成 fixture」这种分支了，判定顺序是：
+     * 1. 构建期配置成 LIVE → 先短超时探测代理 `/healthz`（[RecognitionProxyHealth]）；
+     * 2. 探测通过 → 走真实识别；
+     * 3. 探测不通过 / 未配置 / 配置不合法 → 才落到本地 fixture，**并且把原因写进界面**
+     *    （[R.string.emergency_flow_stage_recognizing_local]），不会伪装成真实结果。
+     *
+     * 探测失败选择「降级」而不是「直接失败」，是因为产品红线要求任何一步失败都不能阻断求助路径；
+     * 但降级必须是**看得见**的，否则就退化成最初那个「用本地数据集冒充 AI 识图」的问题了。
+     * 注意：2026-09-24 起界面不再区分结果来源（MOCK / LIVE / CACHE），降级的可见性由这条
+     * 「本地数据集」阶段文案承担，而不是由结果区徽标承担。
      */
-    private fun createAdapter(): RecognitionAdapter {
+    private suspend fun resolveAdapter(): RecognitionAdapter {
         val app = getApplication<Application>()
-        if (recognitionMode == RecognitionMode.LIVE) {
-            return runCatching {
+        if (recognitionMode != RecognitionMode.LIVE) {
+            applyLocalDatasetFallback(str(R.string.emergency_flow_fallback_not_configured))
+            return MockRecognitionAdapter(app.assets, MockScenario.CANDIDATES)
+        }
+        val reachable =
+            withContext(Dispatchers.IO) {
+                RecognitionProxyHealth.reachable(
+                    BuildConfig.RECOGNITION_PROXY_BASE_URL,
+                    BuildConfig.RECOGNITION_PROXY_TOKEN,
+                )
+            }
+        val liveAdapter =
+            runCatching {
                 HttpRecognitionAdapter(
                     baseUrl = BuildConfig.RECOGNITION_PROXY_BASE_URL,
                     authToken = BuildConfig.RECOGNITION_PROXY_TOKEN,
@@ -181,13 +213,43 @@ class EmergencyFlowViewModel(
                         .build(),
                     // 真实模式必须 mockScenario=null，否则 init 校验抛异常（真实模式不接受 X-Mock-Scenario 头）。
                     mockScenario = null,
-                ) as RecognitionAdapter
+                )
             }.getOrElse { e ->
-                Timber.w(e, "recognition proxy config invalid, fall back to MOCK")
-                MockRecognitionAdapter(app.assets, MockScenario.CANDIDATES)
+                // 配置本身不合法（baseUrl 非 http/https、带 query 等）。这是构建配置错误，
+                // 不能拿 fixture 把错误盖掉——照实报出来，并标明本次是本地数据集。
+                Timber.e(e, "recognition proxy config invalid")
+                applyLocalDatasetFallback(str(R.string.emergency_flow_fallback_config_invalid))
+                return MockRecognitionAdapter(app.assets, MockScenario.CANDIDATES)
             }
+        if (reachable) {
+            offlineFallbackReason = null
+            _ui.update { it.copy(liveEnabled = true) }
+            return liveAdapter
         }
+        Timber.w(
+            "recognition proxy unreachable at %s; this round falls back to the local dataset",
+            BuildConfig.RECOGNITION_PROXY_BASE_URL,
+        )
+        applyLocalDatasetFallback(
+            str(
+                R.string.emergency_flow_fallback_proxy_unreachable,
+                BuildConfig.RECOGNITION_PROXY_BASE_URL,
+            ),
+        )
         return MockRecognitionAdapter(app.assets, MockScenario.CANDIDATES)
+    }
+
+    /** 降级到本地数据集时把「这是本地数据集、不是真实识别」摆到界面上，不让它静默发生。 */
+    private fun applyLocalDatasetFallback(reason: String) {
+        offlineFallbackReason = reason
+        Timber.w("emergency recognition degraded to local dataset: %s", reason)
+        _ui.update {
+            it.copy(
+                liveEnabled = false,
+                stageText = str(R.string.emergency_flow_stage_recognizing_local),
+                detailText = reason,
+            )
+        }
     }
 
     private fun str(resId: Int): String = getApplication<Application>().getString(resId)
@@ -217,8 +279,8 @@ class EmergencyFlowViewModel(
         _ui.update { if (it.consentGranted == consent) it else it.copy(consentGranted = consent) }
     }
 
-    fun onHelpClicked(bitten: Boolean) {
-        _event.tryEmit(EmergencyFlowEvent.OpenCare(bitten))
+    fun onHelpClicked(biteStatus: BiteStatus) {
+        _event.tryEmit(EmergencyFlowEvent.OpenCare(biteStatus))
     }
 
     fun onHospitalClicked() {
@@ -226,7 +288,7 @@ class EmergencyFlowViewModel(
     }
 
     fun onCandidateClicked(candidate: EmergencyCandidateUi) {
-        _event.tryEmit(EmergencyFlowEvent.OpenSpecies(candidate.speciesId, _ui.value.resultSourceName))
+        _event.tryEmit(EmergencyFlowEvent.OpenSpecies(candidate.speciesId))
     }
 
     /**
@@ -276,6 +338,8 @@ class EmergencyFlowViewModel(
         activeCall = null
         pendingAdapter = null
         lastAutoRefreshErrorCode = null
+        // 新一轮拍摄 = 允许再自动出一次病例卡
+        autoCaseOpenedForRound = false
 
         if (!EmergencyFlowPolicy.shouldEnterPipeline(isPhoto)) {
             _ui.update {
@@ -297,15 +361,11 @@ class EmergencyFlowViewModel(
     }
 
     private suspend fun runPipeline(filePaths: List<String>) {
-        // 每次新链路开始，清掉上一轮的来源标注与候选，避免残留误导。
+        // 每次新链路开始，清掉上一轮的结果与候选，避免残留误导。
         _ui.update {
             it.copy(
-                sourceBadgeVisible = false,
-                sourceBadgeText = "",
-                sourceBadgeIsMock = false,
                 summaryText = "",
                 candidates = emptyList(),
-                resultSourceName = "",
                 pendingRecognitionId = null,
                 pendingAutoAttempts = 0,
                 pendingManualAvailable = false,
@@ -353,18 +413,17 @@ class EmergencyFlowViewModel(
         val image = prepareImage(localPath)
         // 读图失败不 return：MOCK 识别与照片字节无关，且求助出口必须一直可用。
 
-        // ── 阶段 3：生成候选分析（有配置走真实、无配置走 MOCK）────────────────
-        val live = recognitionMode == RecognitionMode.LIVE
+        // ── 阶段 3：生成候选分析（网络优先，见 resolveAdapter 的口径说明）──────────
         setStage(
             EmergencyStage.RECOGNIZING,
             str(
-                if (live) R.string.emergency_flow_stage_recognizing_live
+                if (recognitionMode == RecognitionMode.LIVE) R.string.emergency_flow_stage_recognizing_live
                 else R.string.emergency_flow_stage_recognizing
             ),
             null,
             -1,
         )
-        val adapter = createAdapter()
+        val adapter = resolveAdapter()
         pendingAdapter = adapter
         val result = runRecognition(adapter, image?.jpeg, uploadConsent = _ui.value.consentGranted)
         renderResult(result, imageMissing = image == null)
@@ -645,7 +704,6 @@ class EmergencyFlowViewModel(
 
     private fun renderSuccess(response: RecognitionResponse) {
         val summary = renderRecognitionSummary(response)
-        val (badgeIsMock, badgeRes) = resultBadgeOf(response.resultSource)
         // 202=pending：不是「已完成」。只显示阶段文案 + 人工查询按钮，不自动轮询。
         val pendingId = PendingRefreshPolicy.pendingRecognitionId(response.status, response.recognitionId)
         if (pendingId != null) {
@@ -656,12 +714,8 @@ class EmergencyFlowViewModel(
                     detailText = str(R.string.emergency_flow_pending_detail),
                     progressPercent = -1,
                     requestInFlight = false,
-                    sourceBadgeVisible = true,
-                    sourceBadgeText = str(badgeRes),
-                    sourceBadgeIsMock = badgeIsMock,
                     summaryText = summary,
                     candidates = emptyList(),
-                    resultSourceName = response.resultSource.name,
                     pendingRecognitionId = pendingId,
                     helpExitsEnabled = true,
                 )
@@ -675,18 +729,34 @@ class EmergencyFlowViewModel(
                 detailText = "",
                 progressPercent = -1,
                 requestInFlight = false,
-                sourceBadgeVisible = true,
-                sourceBadgeText = str(badgeRes),
-                sourceBadgeIsMock = badgeIsMock,
                 summaryText = summary,
+                // 契约 L43：uncertain 也可能带着已匹配候选（存在目录外名称时），
+                // 候选照常渲染，客户端不得仅因状态是 uncertain 就把它们丢掉。
                 candidates = response.candidates.map { c ->
                     EmergencyCandidateUi(c.speciesId, c.commonName, c.scientificName)
                 },
-                resultSourceName = response.resultSource.name,
                 pendingRecognitionId = null,
                 helpExitsEnabled = true,
             )
         }
+        // 「拍完即出病例」：拿到终态结果（含 uncertain / 一个候选都没检出）就地自动打开信息卡。
+        // 放在这里而不是链路开头，是为了让卡上的识别快照就是上面这份刚渲染的结论，不另算一份。
+        maybeOpenCaseAutomatically()
+    }
+
+    /**
+     * 自动打开本地伤情信息卡（拍完即出病例）。
+     *
+     * 两个刻意的约束：
+     * 1. 一轮链路只自动打开一次（[autoCaseOpenedForRound]）——自动查询拿到终态后还会再走一次
+     *    [renderSuccess]，不能因此把用户已经翻过的页面再顶一次。
+     * 2. 咬伤情况恒传 [BiteStatus.UNKNOWN]：照片与识别链路都推不出「有没有被咬」，
+     *    自动打开更不能替用户认领一个安全结论。用户可以在卡上改。
+     */
+    private fun maybeOpenCaseAutomatically() {
+        if (autoCaseOpenedForRound) return
+        autoCaseOpenedForRound = true
+        _event.tryEmit(EmergencyFlowEvent.OpenCare(BiteStatus.UNKNOWN, auto = true))
     }
 
     private fun renderFailure(result: RecognitionResult.Failure, imageMissing: Boolean) {
@@ -707,9 +777,7 @@ class EmergencyFlowViewModel(
                 detailText = detail,
                 progressPercent = -1,
                 requestInFlight = false,
-                // 失败时不挂来源标注：没有结果可标注，挂 MOCK 红标会误导成「已跑出模拟结果」。
-                sourceBadgeVisible = false,
-                sourceBadgeText = "",
+                // 失败时不挂任何结果：没有结果就不该有任何可被误读成结论的东西。
                 summaryText = "",
                 candidates = emptyList(),
                 pendingRecognitionId = null,
@@ -730,7 +798,6 @@ class EmergencyFlowViewModel(
                     str(R.string.emergency_flow_recognition_failed_suffix),
                 progressPercent = -1,
                 requestInFlight = false,
-                sourceBadgeVisible = false,
                 pendingRecognitionId = null,
                 helpExitsEnabled = true,
             )

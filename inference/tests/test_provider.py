@@ -77,13 +77,20 @@ class ProviderTests(unittest.IsolatedAsyncioTestCase):
         result = await self.provider(response).upload(b"image")
         self.assertEqual((result.status, result.candidates), ("uncertain", []))
 
-    async def test_unverified_catalog_is_not_used_for_live_mapping(self):
+    async def test_catalog_membership_is_the_gate_and_unverified_names_are_flagged(self):
+        # 2026-09-24 修订（契约附则 B）：准入从「verificationStatus == verified」改为「在目录内」。
+        # 未核验名称不再被整体丢弃，改为带 demoRelease=true / nameStatus=pending_review 逐条披露。
         provider = HhodataProvider("test", "B", [{**CATALOG[0], "verificationStatus": "pending_review"}])
         result = provider.parse(COMPLETED)
-        self.assertEqual((result.status, result.candidates), ("uncertain", []))
+        self.assertEqual(result.status, "candidates")
+        self.assertEqual([c["speciesId"] for c in result.candidates], ["test_corn"])
+        self.assertTrue(result.candidates[0]["demoRelease"])
+        self.assertEqual(result.candidates[0]["nameStatus"], "pending_review")
 
     async def test_no_animals_and_empty_results_are_not_safety_claims(self):
-        for payload in ([1010, "No animals"], [1000, []]):
+        # 1008="No boxes" 是上游对「画面中无检测框」的正常返回（实测于 2026-09-24），
+        # 与 1010 / 空结果同口径：映射为 uncertain 而非 UPSTREAM_ERROR。
+        for payload in ([1010, "No animals"], [1008, "No boxes"], [1000, []]):
             with self.subTest(payload=payload):
                 result = self.provider().parse(payload)
                 self.assertEqual((result.status, result.candidates), ("uncertain", []))
@@ -198,34 +205,37 @@ class ProviderTests(unittest.IsolatedAsyncioTestCase):
             "demoRelease": False, "nameStatus": "verified",
         }])
 
-    async def test_existing_project_species_remain_unverified(self):
+    async def test_unverified_catalog_species_surface_with_disclosure(self):
         catalog = json.loads((ROOT / "data/species.json").read_text(encoding="utf-8"))
         provider = HhodataProvider("test-key", "R", catalog)
-        # 玉米蛇已于 2026-09-23 经郭浩天核验（个体+命名），见 verificationRecord；此处仅校验仍未核验条目
-        for species_id in ("lampropeltis_californiae",):
-            with self.subTest(species_id=species_id):
-                entry = next(row for row in catalog if row["speciesId"] == species_id)
-                self.assertEqual(entry["verificationStatus"], "pending_review")
-                result = provider.parse([1000, [{"list": [[99, entry["scientificName"], 1, "R"]]}]])
-                self.assertEqual((result.status, result.candidates), ("uncertain", []))
+        # 短尾蝮（剧毒）在目录内但名称映射未经人工核验。旧闸门会把它整个丢掉，
+        # 导致上游 97.6 分答对却返回「无法可靠判断」——2026-09-24 实测的根因。
+        entry = next(row for row in catalog if row["speciesId"] == "gloydius_brevicaudus")
+        self.assertEqual(entry["verificationStatus"], "pending_review")
+        result = provider.parse([1000, [{"list": [
+            [97.6, "短尾蝮|Short-tailed Mamushi|Gloydius brevicaudus", 11458, "R"]]}]])
+        self.assertEqual(result.status, "candidates")
+        self.assertEqual(result.candidates, [{
+            "speciesId": "gloydius_brevicaudus", "commonName": "短尾蝮",
+            "scientificName": "Gloydius brevicaudus", "score": None, "providerScore": 97.6,
+            "demoRelease": True, "nameStatus": "pending_review",
+        }])
 
 
 if __name__ == "__main__":
     unittest.main()
 
 
-class DemoReleaseLaneTests(unittest.IsolatedAsyncioTestCase):
+class CatalogMappingTests(unittest.IsolatedAsyncioTestCase):
+    """2026-09-24 修订（契约附则 B）：映射准入 = 在本地目录内；核验状态逐条披露。"""
+
     def setUp(self):
         self.catalog = json.loads((ROOT / "data" / "species.json").read_text(encoding="utf-8"))
 
-    async def test_off_by_default_drops_unverified(self):
+    async def test_unverified_catalog_name_now_maps_with_disclosure(self):
         provider = HhodataProvider("k", "R", self.catalog)
-        result = provider.parse([1000, [{"list": [[97.0, "赤链蛇|Red-banded Dinodon|Lycodon rufozonatus", 539936, "R"]]}]])
-        self.assertEqual((result.status, result.candidates), ("uncertain", []))
-
-    async def test_on_tags_unverified_candidates(self):
-        provider = HhodataProvider("k", "R", self.catalog, demo_release=True)
-        result = provider.parse([1000, [{"list": [[97.0, "赤链蛇|Red-banded Dinodon|Lycodon rufozonatus", 539936, "R"]]}]])
+        result = provider.parse([1000, [{"list": [
+            [97.0, "赤链蛇|Red-banded Dinodon|Lycodon rufozonatus", 539936, "R"]]}]])
         self.assertEqual(result.status, "candidates")
         self.assertEqual(result.candidates, [{
             "speciesId": "lycodon_rufozonatus", "commonName": "赤链蛇",
@@ -233,8 +243,26 @@ class DemoReleaseLaneTests(unittest.IsolatedAsyncioTestCase):
             "demoRelease": True, "nameStatus": "pending_review",
         }])
 
-    async def test_on_does_not_upgrade_verified(self):
-        provider = HhodataProvider("k", "R", self.catalog, demo_release=True)
-        result = provider.parse([1000, [{"list": [[97.6, "颈棱蛇|Red Keelback|Pseudagkistrodon rudis", 9316, "R"]]}]])
+    async def test_verified_name_is_not_flagged(self):
+        provider = HhodataProvider("k", "R", self.catalog)
+        result = provider.parse([1000, [{"list": [
+            [97.6, "颈棱蛇|Red Keelback|Pseudagkistrodon rudis", 9316, "R"]]}]])
         self.assertEqual(result.candidates[0]["demoRelease"], False)
         self.assertEqual(result.candidates[0]["nameStatus"], "verified")
+
+    async def test_name_outside_catalog_is_still_dropped(self):
+        provider = HhodataProvider("k", "R", self.catalog)
+        result = provider.parse([1000, [{"list": [
+            [95.0, "乌梢蛇|Chinese Ratsnake|Zamenis carinatus", 1, "R"]]}]])
+        self.assertEqual((result.status, result.candidates), ("uncertain", []))
+
+    async def test_mixed_rows_keep_matched_candidates_under_uncertain(self):
+        # 契约 L43：存在未匹配候选时 status=uncertain，但已匹配候选必须保留，
+        # 客户端不得仅因该状态而忽略候选列表。
+        provider = HhodataProvider("k", "R", self.catalog)
+        result = provider.parse([1000, [{"list": [
+            [97.6, "颈棱蛇|Red Keelback|Pseudagkistrodon rudis", 9316, "R"],
+            [0.38, "|Moorish Viper|Daboia mauritanica", 11437, "R"],
+        ]}]])
+        self.assertEqual(result.status, "uncertain")
+        self.assertEqual([c["speciesId"] for c in result.candidates], ["pseudagkistrodon_rudis"])

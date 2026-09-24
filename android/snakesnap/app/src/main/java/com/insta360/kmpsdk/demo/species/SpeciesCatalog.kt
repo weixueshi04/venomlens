@@ -207,14 +207,3 @@ data class ReferenceImage internal constructor(
 }
 
 data class ExternalReference internal constructor(val name: String, val url: String)
-
-enum class ComparisonResultSource(val badge: String) {
-    MOCK("结果来源：MOCK · 模拟结果"),
-    LIVE("结果来源：LIVE · 在线结果（不代表核验）"),
-    CACHE("结果来源：CACHE · 缓存结果"),
-    UNKNOWN("结果来源：UNKNOWN · 未知来源，按未知处理");
-
-    companion object {
-        fun from(value: String?): ComparisonResultSource = entries.firstOrNull { it.name == value } ?: UNKNOWN
-    }
-}

@@ -60,9 +60,26 @@ data class CaseDetails(
     }
 }
 
+/**
+ * 咬伤情况。
+ *
+ * **刻意做成三态**：`UNKNOWN` 与 `NOT_BITTEN` 是两件完全不同的事，不能合并。
+ *
+ * 这里原先是一个 `Boolean`，而传入路径 `CaseRecordActivity.restoreDraft()` 用的是
+ * `getBooleanExtra(EXTRA_BITTEN, false)`——意图缺失时会默认落成 `false`，
+ * 于是整条链路把「用户没说」渲染成了「未被咬（用户填写）」这句**安全声明**。
+ * 蛇伤场景里「画面里没识别到爬行动物」根本不构成「没有被咬」的证据，
+ * 把未知说成安全属于产品红线问题，所以改为显式三态：未知就老实输出「未提供」。
+ */
+enum class BiteStatus {
+    UNKNOWN,
+    BITTEN,
+    NOT_BITTEN,
+}
+
 data class CaseDraft(
     val id: String = UUID.randomUUID().toString(),
-    val bitten: Boolean,
+    val biteStatus: BiteStatus = BiteStatus.UNKNOWN,
     val importedAt: String? = null,
     val recognitionSummary: String = "",
     val candidateLabels: List<String> = emptyList(),
@@ -110,10 +127,10 @@ data class CaseRecord(
     }
 
     fun toJson(): JSONObject = JSONObject()
-        .put("version", 1)
+        .put("version", CASE_RECORD_JSON_VERSION)
         .put("id", id)
         .put("savedAt", savedAt)
-        .put("bitten", draft.bitten)
+        .put("biteStatus", draft.biteStatus.name)
         .put("importedAt", draft.importedAt ?: JSONObject.NULL)
         .put("recognitionSummary", draft.recognitionSummary)
         .put("candidateLabels", JSONArray(draft.candidateLabels))
@@ -124,7 +141,14 @@ data class CaseRecord(
 
     fun cardText(): String = buildString {
         appendLine("本地伤情信息卡 · 非诊断")
-        appendLine(if (draft.bitten) "被咬（用户填写）" else "未被咬（用户填写）；不等于安全，请保持距离。")
+        appendLine(
+            when (draft.biteStatus) {
+                BiteStatus.BITTEN -> "被咬（用户填写）"
+                BiteStatus.NOT_BITTEN -> "未被咬（用户填写）；不等于安全，请保持距离。"
+                // 未填写 ≠ 未被咬。写成「未提供」，避免把未知渲染成一句安全声明。
+                BiteStatus.UNKNOWN -> "咬伤情况：未提供（未填写不代表未被咬，请保持距离）"
+            },
+        )
         appendLine("记录时间：$savedAt")
         appendLine("图片导入时间：${provided(draft.importedAt)}")
         appendLine("咬伤时间：${provided(draft.details.biteTime)}")
@@ -144,15 +168,28 @@ data class CaseRecord(
     }
 
     companion object {
+        /** 当前落盘版本。v1 → v2 的唯一变化是把 `bitten: Boolean` 换成三态 `biteStatus`。 */
+        const val CASE_RECORD_JSON_VERSION = 2
+
         private fun provided(value: String?): String = value?.takeIf { it.isNotBlank() } ?: "未提供"
 
+        /**
+         * 读取 v1 与 v2。
+         *
+         * v1 只有 `bitten: Boolean`，映射时**不允许**把 `false` 直接当成「未被咬」以外的东西——
+         * v1 里 `false` 的语义本身就已经被污染（见 [BiteStatus] 的说明），但历史记录只能按它本来的
+         * 意图读：`true → BITTEN`、`false → NOT_BITTEN`。缺失字段才落 [BiteStatus.UNKNOWN]。
+         */
         fun fromJson(json: JSONObject): CaseRecord {
-            require(json.getInt("version") == 1)
+            val version = json.optInt("version", 1)
+            require(version == 1 || version == CASE_RECORD_JSON_VERSION) {
+                "unsupported case record version: $version"
+            }
             val labels = json.getJSONArray("candidateLabels")
             require(labels.length() <= 3)
             val draft = CaseDraft(
                 id = json.getString("id"),
-                bitten = json.getBoolean("bitten"),
+                biteStatus = readBiteStatus(json, version),
                 importedAt = if (json.isNull("importedAt")) null else json.getString("importedAt"),
                 recognitionSummary = json.getString("recognitionSummary"),
                 candidateLabels = List(labels.length()) { labels.getString(it) },
@@ -165,6 +202,15 @@ data class CaseRecord(
                 CaseOriginalStatus.valueOf(json.getString("originalStatus")),
                 json.getLong("originalBytes"),
             )
+        }
+
+        private fun readBiteStatus(json: JSONObject, version: Int): BiteStatus {
+            if (version >= CASE_RECORD_JSON_VERSION && json.has("biteStatus")) {
+                return runCatching { BiteStatus.valueOf(json.getString("biteStatus")) }
+                    .getOrDefault(BiteStatus.UNKNOWN)
+            }
+            if (!json.has("bitten") || json.isNull("bitten")) return BiteStatus.UNKNOWN
+            return if (json.getBoolean("bitten")) BiteStatus.BITTEN else BiteStatus.NOT_BITTEN
         }
     }
 }

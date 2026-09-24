@@ -19,18 +19,16 @@ class ProviderResult:
 
 
 class HhodataProvider:
-    def __init__(self, api_key: str, animal_class: str, catalog: list[dict], transport=None,
-                 demo_release: bool = False):
+    def __init__(self, api_key: str, animal_class: str, catalog: list[dict], transport=None):
         self.api_key = api_key
         self.animal_class = animal_class
         self.transport = transport
-        self.demo_release = demo_release
         self.names = {}
-        self.demo_names = {}
         for species in catalog:
-            if species.get("verificationStatus") != "verified":
-                self._index(self.demo_names, species)
-                continue
+            # 2026-09-24 修订（契约附则 B）：映射准入从「verificationStatus == verified」改为
+            # 「在本地目录内」。旧闸门会让上游 97.6 分答对的短尾蝮（剧毒）、赤链蛇整个落成
+            # uncertain——「联网也判不准」的直接根因。
+            # 核验状态不再被丢弃，而是逐条带出（demoRelease / nameStatus），披露不降级。
             self._index(self.names, species)
 
     @staticmethod
@@ -96,7 +94,11 @@ class HhodataProvider:
         code, payload = response
         if code == 1007:
             raise ServiceError("UPSTREAM_LIMITED", "上游配额不足或限流，请人工核实", 429)
-        if code == 1010:
+        if code in {1008, 1010}:
+            # 1008="No boxes"、1010="No animals"：上游明确表示「未检测到目标」，
+            # 属于正常返回而非故障。契约规定空检测结果映射为 uncertain——
+            # 未识别到爬行动物不能证明蛇不存在（contracts/recognition-contract.md 第 49 行）。
+            # 实测：2026-09-24 02:45 对同一 taskId 连续两次查询均返回 [1008,"No boxes"]。
             return ProviderResult("uncertain")
         if code == 1001:
             if expected_task and payload == expected_task:
@@ -128,13 +130,9 @@ class HhodataProvider:
                     raise ServiceError("INVALID_MODEL_OUTPUT", "模型分值不是有限数值") from None
                 keys = [name.strip().casefold() for name in row[1].split("|") if name.strip()]
                 matched = {self.names[k]["speciesId"]: self.names[k] for k in keys if k in self.names}
-                demo_flag = False
-                if len(matched) != 1 and self.demo_release:
-                    # 演示 lane：未核验名称仅以 demoRelease 标注进入候选，客户端必须显著标注
-                    matched = {self.demo_names[k]["speciesId"]: self.demo_names[k]
-                               for k in keys if k in self.demo_names}
-                    demo_flag = True
                 if len(matched) != 1:
+                    # 目录外名称：这一行不产出候选，并把整条结果标记为 uncertain。
+                    # 契约 L43：此时候选列表仍保留其余已匹配项，客户端不得仅因该状态而忽略它们。
                     unknown = True
                     continue
                 species_id, species = next(iter(matched.items()))
@@ -142,13 +140,15 @@ class HhodataProvider:
                     continue
                 seen.add(species_id)
                 if len(candidates) < 3:
+                    verified = species.get("verificationStatus") == "verified"
                     candidates.append({
                         "speciesId": species_id,
                         "commonName": species["commonName"],
                         "scientificName": species["scientificName"],
                         "score": None,
                         "providerScore": row[0],
-                        "demoRelease": demo_flag,
-                        "nameStatus": "pending_review" if demo_flag else "verified",
+                        # 逐条披露：名称映射未经人工核验的候选仍可展示，但必须自带标记。
+                        "demoRelease": not verified,
+                        "nameStatus": "verified" if verified else "pending_review",
                     })
         return ProviderResult("candidates" if candidates and not unknown else "uncertain", candidates)

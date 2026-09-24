@@ -136,6 +136,15 @@ class SettingsFragment : Fragment() {
             viewModel.requestBleAuthorization(connectionViewModel.getCameraDevice())
         }
 
+        // ---- 演示 ----
+        // 刻意不放「离线样例识别（开发联调）」这类入口：那是开发控制台，
+        // 会绕开真实链路直接喂模拟数据，与「网络优先、不用本地数据集演示」冲突。
+        // 无相机时的离线能力由紧急流程自己在代理不可达时启用，并且必定挂 MOCK 红标。
+        binding.switchCaseDemoFill.isChecked = DemoAppPreferences.readCaseDemoFillEnabled(requireContext())
+        binding.switchCaseDemoFill.setOnCheckedChangeListener { _, checked ->
+            DemoAppPreferences.persistCaseDemoFillEnabled(requireContext(), checked)
+        }
+
         // ---- 日志管理 ----
         binding.switchSdkLog.setOnCheckedChangeListener { _, checked ->
             viewModel.setLogCaptureEnabled(checked)
