@@ -9,16 +9,22 @@
 
 ## 构建来源（重要）
 
-本 release 的 tag 打在 **`release/v0.2.0-demo`** 分支上，**不是当前 `main`**。
+本 release 的 tag 打在 **`release/v0.2.0-demo`** 分支上，作为稳定指针。
+`main` 已在 **`a8bb3c4`** 合并收拢：**Android 原生 App 是本次参赛的交付主体**，
+队友的 **H5 演示**（`inference/mobile_demo/`，挂载在推理代理的 `/m/`）**作为附加能力一并保留**。
 
-原因：`main` 在 `b20c561` 之后由队友合入了两个提交（「移动端 H5 演示应用（同源挂载 `/m/`）」与
-「H5 自动连拍模式 + 现场验收单」），其中**删除了整个 Android 紧急一键流程**
-（`EmergencyFlowFragment/Logic/ViewModel`、`fragment_emergency_flow.xml`、相关 drawable/colors 与单测），
-并把演示重心转向 H5（`inference/mobile_demo/`）。而本版 Android 包恰恰是在这条被删除的链路上开发的
-（名称映射准入修复、来源标注移除、图标、真机链路）。两条线有 16 个文件重叠且方向相反。
+> **更正说明**：本文件早先版本的「构建来源」一节曾称「队友删除了整个 Android 紧急一键流程」。
+> 该判断**有误**，特此更正。队友 `enziandom` 的两个提交实际只涉及 **7 个文件**——新增
+> `inference/mobile_demo/{app.js,index.html,style.css}`，修改 `inference/app.py`、`inference/cards.py`、
+> `inference/tests/{test_app,test_cards}.py`——**`android/` 目录一个文件都没碰**。
+> 当时是把 `git diff` 输出的 `D` 条目误读为「对方删除」，而它的含义只是「本分支有、`main` 没有」；
+> `EmergencyFlowFragment/Logic/ViewModel`、`fragment_emergency_flow.xml`、`bg_emergency_*.xml`、
+> `colors_emergency.xml` 等文件**全部由本分支在分叉点之后新建**。因此**不存在任何需要恢复的删除**。
 
-因此本版**从独立分支发布**，两侧工作都未被覆盖。要收拢成一条线，需要先决定
-「Android 原生紧急流程」与「H5 演示」谁保留、谁退场——这属于产品决策，不在本版 release 范围内。
+合并冲突仅 `inference/tests/test_app.py` 一处，按并集解决。`inference/app.py` 由 git 自动合并，
+逐行核验结果正确：本分支的三处修复（三参 `HhodataProvider` 签名、`parser.max_file_size` 隐私修复、
+`/healthz` 不再返回 `demoReleaseUnverified`）与队友的 `/m/` 挂载**并存**。
+因合并**未改动任何 Android 源码**，本 APK 与 `main` 上的 Android 源码仍逐字节对应，**无需重打**。
 
 ## 附件
 
