@@ -274,6 +274,17 @@ class AppTests(unittest.TestCase):
         self.assertEqual((second.status_code, second.json()["resultSource"]), (502, "cache"))
         self.assertEqual(len(requests), 1)
 
+    def test_mobile_demo_mounted_with_bundle_route(self):
+        settings = Settings(mode="mock", ledger_path=self.path)
+        client = TestClient(create_app(settings, None))
+        self.addCleanup(client.close)
+        index = client.get("/m/")
+        self.assertEqual(index.status_code, 200)
+        self.assertIn("一拍知蛇", index.text)
+        bundle = client.get("/m/species-cards.json")
+        self.assertEqual(bundle.status_code, 200)
+        self.assertEqual(bundle.json()["cardSchemaVersion"], "1")
+
     def test_healthz_reports_mode_and_local_budget(self):
         settings = Settings(mode="mock", ledger_path=self.path)
         client = TestClient(create_app(settings, None))

@@ -132,6 +132,9 @@ class SpeciesCardTests(unittest.TestCase):
             self.assertFalse(bundle["liveCallsEnabled"])
             self.assertEqual(bundle["mode"], "mock")
             self.assertEqual(len(list((output / "fixtures").glob("*.json"))), 7)
+            self.assertTrue((output / "mobile" / "index.html").is_file())
+            self.assertEqual(len(list((output / "mobile" / "fixtures").glob("*.json"))), 7)
+            self.assertTrue((output / "mobile" / "species-cards.json").is_file())
             self.assertTrue((output / "SHA256SUMS.txt").is_file())
 
     def test_export_rejects_nonempty_output_and_source_directories(self):
