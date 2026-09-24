@@ -7,6 +7,19 @@
 
 ---
 
+## 构建来源（重要）
+
+本 release 的 tag 打在 **`release/v0.2.0-demo`** 分支上，**不是当前 `main`**。
+
+原因：`main` 在 `b20c561` 之后由队友合入了两个提交（「移动端 H5 演示应用（同源挂载 `/m/`）」与
+「H5 自动连拍模式 + 现场验收单」），其中**删除了整个 Android 紧急一键流程**
+（`EmergencyFlowFragment/Logic/ViewModel`、`fragment_emergency_flow.xml`、相关 drawable/colors 与单测），
+并把演示重心转向 H5（`inference/mobile_demo/`）。而本版 Android 包恰恰是在这条被删除的链路上开发的
+（名称映射准入修复、来源标注移除、图标、真机链路）。两条线有 16 个文件重叠且方向相反。
+
+因此本版**从独立分支发布**，两侧工作都未被覆盖。要收拢成一条线，需要先决定
+「Android 原生紧急流程」与「H5 演示」谁保留、谁退场——这属于产品决策，不在本版 release 范围内。
+
 ## 附件
 
 | 文件 | 大小 | MD5 | SHA-256 |
